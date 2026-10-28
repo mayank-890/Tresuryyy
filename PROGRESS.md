@@ -3,17 +3,17 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-29T00:20:46+0530 by cursor
-- Active ticket: T-0002
-- Branch: chore/T-0002-hooks-ci-skeleton
-- Last green commit: e3bf1dca0a24bd04e4c9af4d9a7f4054ef8e3aef "T-0002: add pre-commit hooks, gitleaks config, and CI skeleton"
-- Working tree: clean after PROGRESS commit (revert unstaged `.gitkeep` EOF noise from pre-commit before committing PROGRESS)
-- Tests passing at last commit: `tools/check_repo_skeleton.sh` → `skeleton check passed (287 paths)`; `tools/check_large_files.sh` → `large-file check passed`; `PATH=.venv/bin:$PATH pre-commit run --all-files` → all hooks Passed on the committed tree; `PATH=.venv/bin:$PATH ./tools/precommit_fixture_secret_demo.sh` → gitleaks Failed (exit 1), `generic-api-key` on ephemeral `tools/_precommit_demo_ephemeral.txt`. `just check` not run (`justfile` is T-0003). `actionlint` not available on PATH.
-- Next step (exact): Operator reviews branch `chore/T-0002-hooks-ci-skeleton`. Merge after review. Do not start T-0003 until T-0002 is Done. PR not opened: no remote.
-- Files touched this ticket: `.pre-commit-config.yaml`, `.gitleaks.toml`, `.github/workflows/ci.yml`, `tools/check_large_files.sh`, `tools/precommit_fixture_secret_demo.sh`, and this PROGRESS update.
-- Decisions made this session (not yet in ADR): `.gitleaks.toml` uses `[extend] useDefault = true` with an empty allowlist so default rules run. Synthetic secret demo generates a runtime `api_key=` value (no literal secret in git). Local pre-commit uses `.venv/bin/pre-commit` (`.venv/` is gitignored; not a committed dependency).
-- Open questions: Q-1 through Q-7 unchanged.
-- Notes for the next tool: T-0001 is Done on `main` at merge `09cfc89`. T-0002 is In review. CI job IDs match TESTING_QA.md §10 plus `large-file-check` and `skeleton-check`. Placeholder jobs echo `TODO(T-0003)` or later ticket IDs. Install hooks with `python3 -m venv .venv && .venv/bin/pip install pre-commit && .venv/bin/pre-commit install`.
+- Updated: 2026-10-29T00:31:09+0530 by cursor
+- Active ticket: T-0003
+- Branch: feat/T-0003-cmake-superbuild
+- Last green commit: 4e544e6 (after this block: PROGRESS commit on same branch)
+- Working tree: clean after PROGRESS commit
+- Tests passing at last commit: `just check` passed for presets `debug-asan`, `debug-tsan`, `debug-ubsan`, `release`, `bench`, and `coverage` (12 CTest cases each, including `trader_version` and `watchdog_version`). `tools/check_watchdog_links.sh build/<preset>` passed for each. `just check` on `debug-asan` is the default `just check` before commit. Host tools: Homebrew `cmake`, `ninja`, `just`, `pkg-config`; vcpkg bootstrapped to `.vcpkg/` (local, gitignored except untracked dir).
+- Next step (exact): Operator reviews PR for `feat/T-0003-cmake-superbuild`. After merge, mark T-0003 Done and set T-0004 Ready. Do not start T-0004 until T-0003 is Done.
+- Files touched this ticket: `CMakeLists.txt`, `CMakePresets.json`, `vcpkg.json`, `justfile`, `engine/` (CMake + placeholder modules + GTest smoke tests), `tools/check_watchdog_links.sh`, and this PROGRESS update.
+- Decisions made this session (not yet in ADR): vcpkg `builtin-baseline` pinned to `15b12b99a227d51e21c86dffd40385439eac87a0`. `just setup-vcpkg` clones full vcpkg to `.vcpkg/`. Watchdog link check reads `build.ninja` when `link.txt` is absent (Ninja + CMake 4). Configure-time `TRADING_ENABLE_GROWW=ON` is a fatal error.
+- Open questions: Q-1 through Q-7 unchanged. Q-8: add `.vcpkg/` to `.gitignore` in a follow-up (not in T-0003 files allowed).
+- Notes for the next tool: T-0002 is Done on `main` at `756a218`. T-0003 is In review. PR URL recorded below after push. CI `build-debug-asan` job is still a placeholder until a later ticket wires real builds into GitHub Actions.
 
 ## Current Phase
 
@@ -53,7 +53,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: none beyond a script check that every required file exists (`tools/check_repo_skeleton.sh`, added in this ticket)
 
 ### T-0002: Hooks, secret scanning, CI skeleton
-- Status: In review
+- Status: Done
 - Phase: 0 · Risk class: C (CI safety gates: A) · Depends on: T-0001
 - Requirements: NFR-SEC-01, TI §10.2, TI §10.3, TESTING_QA §10
 - Goal: Pre-commit hooks and a CI workflow that run on every PR and currently build nothing.
@@ -68,24 +68,32 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
   - `.github/workflows/ci.yml`: jobs `secret-scan`, `large-file-check`, `skeleton-check` run real checks; TESTING_QA.md §10 job IDs are present as placeholders (`build-debug-asan` through `coverage-thresholds`).
   - Secret demo command: `PATH=.venv/bin:$PATH ./tools/precommit_fixture_secret_demo.sh`. Output included `Detect hardcoded secrets... Failed`, gitleaks exit 1, `RuleID: generic-api-key`, file `tools/_precommit_demo_ephemeral.txt` (removed after run; not committed).
   - `actionlint`: not available on PATH (recorded; not blocking T-0002).
-  - PR not opened: no remote.
+  - Merged to `main`: `756a218` (includes hooks, CI skeleton, and PROGRESS handoff). Remote: `origin` → https://github.com/mayank-890/Tresuryyy.git
 - Files allowed: `.pre-commit-config.yaml`, `.gitleaks.toml`, `.github/workflows/`, `tools/`
 - Out of scope: any build step
 - Tests required: pre-commit dry-run on a fixture secret; CI workflow linted (`actionlint` if available)
 
 ### T-0003: CMake superbuild, presets, vcpkg manifest, CTest
-- Status: Backlog
+- Status: In review
 - Phase: 0 · Risk class: B · Depends on: T-0002
 - Requirements: TI §3.1–§3.4
 - Goal: Engine builds with each preset; empty targets exist; CTest runs; the watchdog link-restriction check exists (currently passes trivially).
 - Acceptance criteria:
-  - [ ] Top-level `CMakeLists.txt` and `CMakePresets.json` with presets: `debug-asan`, `debug-tsan`, `debug-ubsan`, `release`, `bench`, `coverage`
-  - [ ] Options: `TRADING_ENABLE_GROWW=OFF`, `TRADING_BUILD_BINDINGS=OFF`, `TRADING_BUILD_WATCHDOG=ON`, `TRADING_ENABLE_LIVE_PROFILE=OFF`. Groww option verified OFF in every preset.
-  - [ ] `vcpkg.json` with GoogleTest only at this stage; baseline pinned
-  - [ ] Empty static libraries from TI §3.3 exist with one smoke test each
-  - [ ] `trader` and `watchdog` placeholder executables print version and exit 0
-  - [ ] `just build` and `just test` work on each preset
-  - [ ] A check script fails if `watchdog` links any `trading_strategy` or `trading_risk` target
+  - [x] Top-level `CMakeLists.txt` and `CMakePresets.json` with presets: `debug-asan`, `debug-tsan`, `debug-ubsan`, `release`, `bench`, `coverage`
+  - [x] Options: `TRADING_ENABLE_GROWW=OFF`, `TRADING_BUILD_BINDINGS=OFF`, `TRADING_BUILD_WATCHDOG=ON`, `TRADING_ENABLE_LIVE_PROFILE=OFF`. Groww option verified OFF in every preset.
+  - [x] `vcpkg.json` with GoogleTest only at this stage; baseline pinned
+  - [x] Empty static libraries from TI §3.3 exist with one smoke test each
+  - [x] `trader` and `watchdog` placeholder executables print version and exit 0
+  - [x] `just build` and `just test` work on each preset
+  - [x] A check script fails if `watchdog` links any `trading_strategy` or `trading_risk` target
+- Evidence:
+  - `CMakePresets.json` defines six configure/build/test presets; each sets `TRADING_ENABLE_GROWW=OFF` via hidden `vcpkg-base`.
+  - `CMakeLists.txt` declares options with Groww fatal if enabled; `enable_testing()` before `add_subdirectory(engine)`.
+  - `vcpkg.json` lists only `gtest`; `builtin-baseline` `15b12b99a227d51e21c86dffd40385439eac87a0`.
+  - `engine/CMakeLists.txt` builds TI §3.3 libraries (Groww adapter omitted), `trader`, `watchdog`, and `*_tests` smoke executables (10 libraries).
+  - `trader` / `watchdog` print `trading-engine 0.1.0 (placeholder)` and `trading-watchdog 0.1.0 (placeholder)`; CTest `trader_version` and `watchdog_version` pass.
+  - `just check <preset>` passed for all six presets (2026-10-29 session).
+  - `tools/check_watchdog_links.sh` inspects Ninja link line; passes on all preset build dirs.
 - Files allowed: `engine/`, `CMakeLists.txt`, `CMakePresets.json`, `vcpkg.json`, `justfile`, `tools/`
 - Out of scope: real logic in any module; third-party libraries beyond GoogleTest (each needs an ADR)
 - Tests required: CTest smoke tests per library; the watchdog link check runs in CI
@@ -236,6 +244,7 @@ Tickets for Phase 1 are written at the Phase 0 exit review. Do not begin them in
 | Q-5 | Logging library (ADR-0011) | T-0005 (may proceed with the custom sink; decision needed before Phase 3) | Open — agent proposes options, operator decides |
 | Q-6 | Tool-switch notification: how the operator signals Codex limit reached | Process only | Open (operator preference) |
 | Q-7 | Confirm `.gitignore` should anchor `/data/` and `/secrets/` at the repository root. Unanchored `data/` would ignore `research/src/tradelab/data/`. Unanchored `secrets/` would ignore `deploy/secrets/` (layout documentation, no values). T-0001 used the anchored form so those skeleton paths stay tracked. | none for T-0001 review | Open |
+| Q-8 | Add `.vcpkg/` to `.gitignore` (local vcpkg clone from `just setup-vcpkg`). Not in T-0003 files allowed. | none for T-0003 review | Open |
 
 ## Decisions Log
 
@@ -255,7 +264,9 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-10-29 | cursor | T-0002 | `09cfc89` (merge T-0001), `e3bf1dc`, PROGRESS commit | In review | Merged T-0001 to `main`. T-0002 hooks + CI skeleton. Pre-commit demo blocked synthetic secret. PR not opened: no remote. |
+| 2026-10-29 | cursor | T-0003 | `4e544e6`, PROGRESS commit | In review | CMake superbuild, six presets, vcpkg gtest, empty engine targets, watchdog link check. |
+| 2026-10-29 | cursor | T-0002 | `756a218` on `main` | Done | Hooks + CI skeleton; pushed to GitHub `origin`. |
+| 2026-10-29 | cursor | T-0002 | `09cfc89` (merge T-0001), `e3bf1dc`, PROGRESS commit | Done | Merged T-0001 to `main`. T-0002 hooks + CI skeleton. Pre-commit demo blocked synthetic secret. |
 | 2026-10-29 | cursor | T-0001 | `8086b9f`, `a9defd7`, and the commit that adds this row | Done | Repo was empty. `git` 2.54.0. `user.name` and `user.email` were set. No remote configured. `just` is not on PATH and was not installed. `tools/check_repo_skeleton.sh`: `skeleton check passed (287 paths)`. PR not opened: no remote. |
 | 2026-10-25 | human | — | — | Kickoff documents created | Starting point for T-0001 |
 
