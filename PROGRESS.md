@@ -12,7 +12,7 @@ Single source of truth for the current state of work. Read this first in every s
 - Next step (exact): Operator reviews PR for `feat/T-0003-cmake-superbuild`. After merge, mark T-0003 Done and set T-0004 Ready. Do not start T-0004 until T-0003 is Done.
 - Files touched this ticket: `CMakeLists.txt`, `CMakePresets.json`, `vcpkg.json`, `justfile`, `engine/` (CMake + placeholder modules + GTest smoke tests), `tools/check_watchdog_links.sh`, and this PROGRESS update.
 - Decisions made this session (not yet in ADR): vcpkg `builtin-baseline` pinned to `15b12b99a227d51e21c86dffd40385439eac87a0`. `just setup-vcpkg` clones full vcpkg to `.vcpkg/`. Watchdog link check reads `build.ninja` when `link.txt` is absent (Ninja + CMake 4). Configure-time `TRADING_ENABLE_GROWW=ON` is a fatal error.
-- Open questions: Q-1 through Q-7 unchanged. Q-8: add `.vcpkg/` to `.gitignore` in a follow-up (not in T-0003 files allowed).
+- Open questions: Q-1 through Q-7 unchanged. Q-8 resolved on `main` (`e5c43aa`).
 - Notes for the next tool: T-0002 is Done on `main` at `756a218`. T-0003 is In review. Branch pushed: `origin/feat/T-0003-cmake-superbuild`. Open PR: https://github.com/mayank-890/Tresuryyy/compare/main...feat/T-0003-cmake-superbuild (`gh` CLI not on PATH). CI `build-debug-asan` job is still a placeholder until a later ticket wires real builds into GitHub Actions.
 
 ## Current Phase
@@ -244,7 +244,7 @@ Tickets for Phase 1 are written at the Phase 0 exit review. Do not begin them in
 | Q-5 | Logging library (ADR-0011) | T-0005 (may proceed with the custom sink; decision needed before Phase 3) | Open — agent proposes options, operator decides |
 | Q-6 | Tool-switch notification: how the operator signals Codex limit reached | Process only | Open (operator preference) |
 | Q-7 | Confirm `.gitignore` should anchor `/data/` and `/secrets/` at the repository root. Unanchored `data/` would ignore `research/src/tradelab/data/`. Unanchored `secrets/` would ignore `deploy/secrets/` (layout documentation, no values). T-0001 used the anchored form so those skeleton paths stay tracked. | none for T-0001 review | Open |
-| Q-8 | Add `.vcpkg/` to `.gitignore` (local vcpkg clone from `just setup-vcpkg`). Not in T-0003 files allowed. | none for T-0003 review | Open |
+| Q-8 | Add `.vcpkg/` to `.gitignore` (local vcpkg clone from `just setup-vcpkg`). | none | Done — merged to `main` at `e5c43aa` (2026-10-29) |
 
 ## Decisions Log
 
