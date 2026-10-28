@@ -1,0 +1,36 @@
+# Build outputs
+build/
+out/
+cmake-build-*/
+
+# Interrupted-session patches (PROCESS_PROJECT_MANAGEMENT.md §7.5)
+.handoff/
+
+# Python and Node
+.venv/
+__pycache__/
+node_modules/
+
+# Environment files. Never commit secret values.
+*.env
+.env
+.env.*
+
+# Root secret-values directory.
+# Anchored so deploy/secrets/ (layout documentation, no values) stays tracked.
+/secrets/
+
+# External data root (market-data archives). Anchored so
+# research/src/tradelab/data/ (source layout) stays tracked.
+/data/
+
+# Journals and columnar data. Small fixtures under tests/fixtures/ stay tracked.
+*.journal
+*.parquet
+!tests/fixtures/**/*.parquet
+
+# IDE and tool settings
+.vscode/
+.idea/
+.cursor/
+.codex/
