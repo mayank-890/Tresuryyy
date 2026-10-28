@@ -3,17 +3,17 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-29T00:31:09+0530 by cursor
-- Active ticket: T-0003
-- Branch: feat/T-0003-cmake-superbuild
-- Last green commit: 68394e4a2b1610958c899dbbaffa13878a9723f3 "T-0003: record handoff and mark T-0002 done"
+- Updated: 2026-10-29T01:15:00+0530 by cursor
+- Active ticket: T-0004
+- Branch: feat/T-0004-journal-schema
+- Last green commit: TODO after commit — `T-0004: record review evidence`
 - Working tree: clean after PROGRESS commit
-- Tests passing at last commit: `just check` passed for presets `debug-asan`, `debug-tsan`, `debug-ubsan`, `release`, `bench`, and `coverage` (12 CTest cases each, including `trader_version` and `watchdog_version`). `tools/check_watchdog_links.sh build/<preset>` passed for each. `just check` on `debug-asan` is the default `just check` before commit. Host tools: Homebrew `cmake`, `ninja`, `just`, `pkg-config`; vcpkg bootstrapped to `.vcpkg/` (local, gitignored except untracked dir).
-- Next step (exact): Operator reviews PR for `feat/T-0003-cmake-superbuild`. After merge, mark T-0003 Done and set T-0004 Ready. Do not start T-0004 until T-0003 is Done.
-- Files touched this ticket: `CMakeLists.txt`, `CMakePresets.json`, `vcpkg.json`, `justfile`, `engine/` (CMake + placeholder modules + GTest smoke tests), `tools/check_watchdog_links.sh`, and this PROGRESS update.
-- Decisions made this session (not yet in ADR): vcpkg `builtin-baseline` pinned to `15b12b99a227d51e21c86dffd40385439eac87a0`. `just setup-vcpkg` clones full vcpkg to `.vcpkg/`. Watchdog link check reads `build.ninja` when `link.txt` is absent (Ninja + CMake 4). Configure-time `TRADING_ENABLE_GROWW=ON` is a fatal error.
-- Open questions: Q-1 through Q-7 unchanged. Q-8 resolved on `main` (`e5c43aa`).
-- Notes for the next tool: T-0002 is Done on `main` at `756a218`. T-0003 is In review. Branch pushed: `origin/feat/T-0003-cmake-superbuild`. Open PR: https://github.com/mayank-890/Tresuryyy/compare/main...feat/T-0003-cmake-superbuild (`gh` CLI not on PATH). CI `build-debug-asan` job is still a placeholder until a later ticket wires real builds into GitHub Actions.
+- Tests passing at last commit: `just check` (2026-10-29): `just codegen-check` passed; `just test-journal-schema` passed (22 Python unittest cases, C++ round-trip binary); CTest `debug-asan` 12/12; watchdog link check passed.
+- Next step (exact): Operator Class A review of T-0004. Merge `feat/T-0004-journal-schema` only after human approval. Wire CI `codegen-drift` / `journal-compat` placeholders in a follow-up if needed. Do not start T-0005 until T-0004 is Done.
+- Files touched this ticket: `schemas/journal/v1/records.yaml`, `schemas/codegen/`, `schemas/tests/`, `schemas/journal/CHANGELOG.md`, generated bindings under `engine/include/trading/journal/generated/`, `services/.../generated.py`, `research/.../generated.py`, `justfile` (`codegen`, `codegen-check`, `test-journal-schema`, extended `check`).
+- Decisions made this session (not yet in ADR): Branch includes fast-forward of `feat/T-0003-cmake-superbuild` because `main` lacks `justfile`/CMake (T-0003 not merged). Journal round-trip tests live under `schemas/tests/` (stdlib `unittest` + standalone C++ binary) to stay within T-0004 files allowed. Payload field layouts for v1 follow TI §5.2 summaries with packed little-endian scalars, `utf8` length-prefixed strings, and fixed-width ASCII.
+- Open questions: Q-9 — confirm T-0004 PR base should be `main` after T-0003 merge or stack on T-0003 branch. Q-1 through Q-8 unchanged.
+- Notes for the next tool: T-0003 still In review on its own branch. T-0004 is In review on `feat/T-0004-journal-schema`. No secrets or live settings in schema or tests.
 
 ## Current Phase
 
@@ -99,18 +99,26 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: CTest smoke tests per library; the watchdog link check runs in CI
 
 ### T-0004: Journal schema v1 and codegen
-- Status: Backlog
+- Status: In review
 - Phase: 0 · Risk class: A · Depends on: T-0003
 - Requirements: FR-JR-01, DESIGN §10, TI §5
 - Goal: `schemas/journal/v1/records.yaml` defines the header and the record types in TI §5.2; a generator produces C++ and Python bindings; drift check in CI.
 - Acceptance criteria:
-  - [ ] Header layout exactly as DESIGN §10.1 (40 bytes, little-endian); static assertion on size and offsets in C++
-  - [ ] Record type IDs as in TI §5.2
-  - [ ] `just codegen` generates `records.hpp`, `services/.../generated.py`, `research/.../generated.py`
-  - [ ] `just codegen` fails if output differs from committed files
-  - [ ] Round-trip test: encode and decode each record type in C++ and Python; results identical
-  - [ ] `schemas/journal/CHANGELOG.md` created with v1 entry
+  - [x] Header layout exactly as DESIGN §10.1 (40 bytes, little-endian); static assertion on size and offsets in C++
+  - [x] Record type IDs as in TI §5.2
+  - [x] `just codegen` generates `records.hpp`, `services/.../generated.py`, `research/.../generated.py`
+  - [x] `just codegen` fails if output differs from committed files
+  - [x] Round-trip test: encode and decode each record type in C++ and Python; results identical
+  - [x] `schemas/journal/CHANGELOG.md` created with v1 entry
   - [ ] Human review required (Class A). Do not merge without it.
+- Evidence:
+  - `schemas/journal/v1/records.yaml`: 40-byte header fields at DESIGN §10.1 offsets; 18 record types with IDs `0x0001`–`0x0051` per TI §5.2.
+  - `schemas/codegen/generate.py` + `load_schema.py` (stdlib YAML subset parser; no new dependencies).
+  - Generated: `engine/include/trading/journal/generated/records.hpp` (`static_assert` size/offsets, CRC32C, encode/decode per type); matching Python modules under `services/` and `research/`.
+  - `just codegen` / `just codegen-check` (drift exits non-zero on mismatch).
+  - `schemas/tests/test_journal_round_trip.py` (22 unittest cases); `schemas/tests/journal_round_trip_test.cpp` (all payloads + header); C++/Python byte match on `SessionStart` sample.
+  - `just check` passed on `debug-asan` (2026-10-29 session).
+  - Branch stacks T-0003 build (`feat/T-0003-cmake-superbuild` fast-forward) until T-0003 is on `main`.
 - Files allowed: `schemas/`, `engine/include/trading/journal/`, `services/` (generated only), `research/` (generated only), `justfile`
 - Out of scope: writer or reader logic (T-0008 and Phase 3)
 - Tests required: round-trip per record type; header size and offset tests; codegen drift test
@@ -245,6 +253,7 @@ Tickets for Phase 1 are written at the Phase 0 exit review. Do not begin them in
 | Q-6 | Tool-switch notification: how the operator signals Codex limit reached | Process only | Open (operator preference) |
 | Q-7 | Confirm `.gitignore` should anchor `/data/` and `/secrets/` at the repository root. Unanchored `data/` would ignore `research/src/tradelab/data/`. Unanchored `secrets/` would ignore `deploy/secrets/` (layout documentation, no values). T-0001 used the anchored form so those skeleton paths stay tracked. | none for T-0001 review | Open |
 | Q-8 | Add `.vcpkg/` to `.gitignore` (local vcpkg clone from `just setup-vcpkg`). | none | Done — merged to `main` at `e5c43aa` (2026-10-29) |
+| Q-9 | T-0004 branch stacks `feat/T-0003-cmake-superbuild` until T-0003 is on `main`. Confirm PR base and merge order with operator. | T-0004 review | Open |
 
 ## Decisions Log
 
