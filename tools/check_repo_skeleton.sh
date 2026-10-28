@@ -261,6 +261,7 @@ paths=(
   .github/workflows/README.md
   engine/src/risk
   tools
+  tools/README.md
   docs/adr
   docs/tickets
   docs/reviews
