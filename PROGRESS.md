@@ -6,14 +6,14 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-29T00:31:09+0530 by cursor
 - Active ticket: T-0003
 - Branch: feat/T-0003-cmake-superbuild
-- Last green commit: 4e544e6 (after this block: PROGRESS commit on same branch)
+- Last green commit: 68394e4a2b1610958c899dbbaffa13878a9723f3 "T-0003: record handoff and mark T-0002 done"
 - Working tree: clean after PROGRESS commit
 - Tests passing at last commit: `just check` passed for presets `debug-asan`, `debug-tsan`, `debug-ubsan`, `release`, `bench`, and `coverage` (12 CTest cases each, including `trader_version` and `watchdog_version`). `tools/check_watchdog_links.sh build/<preset>` passed for each. `just check` on `debug-asan` is the default `just check` before commit. Host tools: Homebrew `cmake`, `ninja`, `just`, `pkg-config`; vcpkg bootstrapped to `.vcpkg/` (local, gitignored except untracked dir).
 - Next step (exact): Operator reviews PR for `feat/T-0003-cmake-superbuild`. After merge, mark T-0003 Done and set T-0004 Ready. Do not start T-0004 until T-0003 is Done.
 - Files touched this ticket: `CMakeLists.txt`, `CMakePresets.json`, `vcpkg.json`, `justfile`, `engine/` (CMake + placeholder modules + GTest smoke tests), `tools/check_watchdog_links.sh`, and this PROGRESS update.
 - Decisions made this session (not yet in ADR): vcpkg `builtin-baseline` pinned to `15b12b99a227d51e21c86dffd40385439eac87a0`. `just setup-vcpkg` clones full vcpkg to `.vcpkg/`. Watchdog link check reads `build.ninja` when `link.txt` is absent (Ninja + CMake 4). Configure-time `TRADING_ENABLE_GROWW=ON` is a fatal error.
 - Open questions: Q-1 through Q-7 unchanged. Q-8: add `.vcpkg/` to `.gitignore` in a follow-up (not in T-0003 files allowed).
-- Notes for the next tool: T-0002 is Done on `main` at `756a218`. T-0003 is In review. PR URL recorded below after push. CI `build-debug-asan` job is still a placeholder until a later ticket wires real builds into GitHub Actions.
+- Notes for the next tool: T-0002 is Done on `main` at `756a218`. T-0003 is In review. Branch pushed: `origin/feat/T-0003-cmake-superbuild`. Open PR: https://github.com/mayank-890/Tresuryyy/compare/main...feat/T-0003-cmake-superbuild (`gh` CLI not on PATH). CI `build-debug-asan` job is still a placeholder until a later ticket wires real builds into GitHub Actions.
 
 ## Current Phase
 
