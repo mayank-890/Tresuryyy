@@ -3,18 +3,17 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-
-- Updated: 2026-10-25 by human (project kickoff)
+- Updated: 2026-10-29T00:05:06+0530 by cursor
 - Active ticket: T-0001
-- Branch: none yet (create `chore/T-0001-repo-skeleton` from `main`)
-- Last green commit: none (repository not yet initialized)
-- Working tree: n/a
-- Tests passing at last commit: n/a
-- Next step (exact): Create the repository root with the document set (`PRD.md`, `DESIGN_ARCHITECTURE.md`, `TECHNICAL_IMPLEMENTATION.md`, `PROCESS_PROJECT_MANAGEMENT.md`, `TESTING_QA.md`, `USER_OPERATIONS.md`, `AGENTS.md`, `PROGRESS.md`, `AGENT_PROMPTS.md`), then execute T-0001 acceptance criteria.
-- Files touched this ticket: none yet
-- Decisions made this session (not yet in ADR): Codex is the primary implementation agent; Cursor is the fallback. Handoff via this file and `AGENTS.md`.
-- Open questions: see §Open Questions below
-- Notes for the next tool: Phase 0 only. Do not begin Phase 1+ work. Do not add any trading logic in Phase 0.
+- Branch: chore/T-0001-repo-skeleton
+- Last green commit: a9defd7e7d84c420e3d2ccf68aa29bda5e24b982 "T-0001: repository skeleton"
+- Working tree: clean
+- Tests passing at last commit: `tools/check_repo_skeleton.sh` printed `skeleton check passed (286 paths)`. A missing-path run printed `MISSING: engine/cmake/toolchains/README.md` and `skeleton check failed` and exited 1; the file was restored and the check passed again. `just check` was not run: `just` is not on PATH, and `justfile` is out of scope for T-0001.
+- Next step (exact): Operator reviews branch `chore/T-0001-repo-skeleton`. Do not start T-0002. PR not opened: no remote.
+- Files touched this ticket: ten root documents and `.gitignore` in `8086b9fdb8a63bcef4461950ccf1b759449df7b2` on `main`; directory skeleton from REPO_STRUCTURE.md §2–§6, READMEs, `.editorconfig`, `CHANGELOG.md`, root `README.md`, `docs/adr/ADR-0001.md` through `ADR-0012.md`, `docs/tickets/.gitkeep`, `docs/reviews/.gitkeep`, `engine/src/risk/limits.hpp` (comment only), and `tools/check_repo_skeleton.sh` in `a9defd7e7d84c420e3d2ccf68aa29bda5e24b982`. This handoff update follows that commit.
+- Decisions made this session (not yet in ADR): `.gitignore` anchors `/data/` and `/secrets/` at the repository root so `research/src/tradelab/data/` and `deploy/secrets/` stay tracked (Q-7). First commit is on `main`; skeleton work is on `chore/T-0001-repo-skeleton`.
+- Open questions: Q-1 through Q-6 unchanged. Q-7 asks the operator to confirm the anchored ignore rules.
+- Notes for the next tool: T-0001 is In review. Do not start T-0002. No remote configured. PR not opened: no remote. Do not merge. Do not push to `main`. `just` is not installed; do not install it without operator approval. `.handoff/` is gitignored and exists only locally; a fresh clone must run `mkdir -p .handoff` before `tools/check_repo_skeleton.sh`. `engine/src/risk/limits.hpp` has no limit values. That path is Class A; the ticket stays Class C, and the file is a comment only. A review of this branch should still inspect that path. No trading logic, broker code, build files, CI, database files, or live configuration values were added. If `git log -1` is `T-0001: record handoff for review`, that commit only updates this block and its parent is the skeleton commit above.
 
 ## Current Phase
 
@@ -25,20 +24,30 @@ Single source of truth for the current state of work. Read this first in every s
 Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` · `Blocked`
 
 ### T-0001: Repository skeleton
-- Status: Ready
+- Status: In review
 - Phase: 0 · Risk class: C · Depends on: none
 - Requirements: PRD §5 (roles), TI §2 (layout)
 - Goal: Repository initialized with the full document set and the directory skeleton from the repository structure. No code.
 - Acceptance criteria:
-  - [ ] Git repository initialized; `main` branch exists; first commit contains only the documents and `.gitignore`
-  - [ ] `.gitignore` excludes: build outputs, `.handoff/`, `.venv/`, `*.env`, `secrets/`, `data/`, `*.journal`, IDE and tool-local settings
-  - [ ] `.editorconfig` present (UTF-8, LF, final newline, 4-space C++, 4-space Python, 2-space YAML/TOML/JSON)
-  - [ ] Directory skeleton exists with `README.md` placeholders in each top-level folder: `engine/`, `research/`, `services/`, `ui/`, `schemas/`, `proto/`, `db/`, `config/`, `deploy/`, `tests/`, `tools/`, `docs/`, `docker/`, `.github/workflows/`
-  - [ ] `docs/adr/` contains ADR-0001 to ADR-0012 as stubs with status and title from DESIGN_ARCHITECTURE.md §18
-  - [ ] `docs/tickets/` and `docs/reviews/` exist with `.gitkeep`
-  - [ ] `README.md` at root: one-paragraph description, pointer to `AGENTS.md`, pointer to the docs set, status "Phase 0"
-  - [ ] `CHANGELOG.md` with an `Unreleased` section
-- Files allowed: all new files listed above; no other paths
+  - [x] Git repository initialized; `main` branch exists; first commit contains only the documents and `.gitignore`
+  - [x] `.gitignore` excludes: build outputs, `.handoff/`, `.venv/`, `*.env`, `secrets/`, `data/`, `*.journal`, IDE and tool-local settings
+  - [x] `.editorconfig` present (UTF-8, LF, final newline, 4-space C++, 4-space Python, 2-space YAML/TOML/JSON)
+  - [x] Directory skeleton exists with `README.md` placeholders in each top-level folder: `engine/`, `research/`, `services/`, `ui/`, `schemas/`, `proto/`, `db/`, `config/`, `deploy/`, `tests/`, `tools/`, `docs/`, `docker/`, `.github/workflows/`
+  - [x] `docs/adr/` contains ADR-0001 to ADR-0012 as stubs with status and title from DESIGN_ARCHITECTURE.md §18
+  - [x] `docs/tickets/` and `docs/reviews/` exist with `.gitkeep`
+  - [x] `README.md` at root: one-paragraph description, pointer to `AGENTS.md`, pointer to the docs set, status "Phase 0"
+  - [x] `CHANGELOG.md` with an `Unreleased` section
+- Evidence:
+  - `main` is `8086b9fdb8a63bcef4461950ccf1b759449df7b2`, message `T-0001: add document set and gitignore`. `git show --name-only` lists only `.gitignore`, `AGENTS.md`, `AGENT_PROMPTS.md`, `DESIGN_ARCHITECTURE.md`, `PRD.md`, `PROCESS_PROJECT_MANAGEMENT.md`, `PROGRESS.md`, `REPO_STRUCTURE.md`, `TECHNICAL_IMPLEMENTATION.md`, `TESTING_QA.md`, and `USER_OPERATIONS.md`.
+  - `.gitignore` excludes `build/`, `out/`, `cmake-build-*/`, `.handoff/`, `.venv/`, `__pycache__/`, `node_modules/`, `*.env`, `.env`, `/secrets/`, `/data/`, `*.journal`, `*.parquet` except `tests/fixtures/**/*.parquet`, and `.vscode/`, `.idea/`, `.cursor/`, `.codex/`. `/data/` and `/secrets/` are anchored so required skeleton paths stay tracked. See Q-7.
+  - `.editorconfig` sets UTF-8, LF, a final newline, trimmed trailing whitespace, 4-space C++ and Python, and 2-space YAML, TOML, and JSON.
+  - Nested directories from REPO_STRUCTURE.md §2–§6 exist. A directory with no other file has a one- or two-line `README.md`. `tools/` has `check_repo_skeleton.sh` and no README. `engine/src/risk/` has `limits.hpp` and no README.
+  - ADR stubs ADR-0001 through ADR-0012 use the template in PROCESS_PROJECT_MANAGEMENT.md §5.6. Titles and statuses match DESIGN_ARCHITECTURE.md §18, including Proposed for ADR-0011 and Pending for ADR-0012. ADR-0012 contains no numeric limits.
+  - `docs/tickets/.gitkeep` and `docs/reviews/.gitkeep` exist.
+  - Root `README.md` has one description paragraph, a pointer to `AGENTS.md`, the document list, and `Status: Phase 0`.
+  - `CHANGELOG.md` contains `## Unreleased`.
+  - `tools/check_repo_skeleton.sh` is executable and printed `skeleton check passed (286 paths)`.
+- Files allowed: the files in the acceptance criteria, plus the nested directories required by the operator instructions and REPO_STRUCTURE.md §2–§6, ADR stubs, comment-only `engine/src/risk/limits.hpp`, and `tools/check_repo_skeleton.sh`. The ticket text did not list every nested path; those paths are required by REPO_STRUCTURE.md and the operator session instructions.
 - Out of scope: any source code, build configuration, CI, database, config profiles
 - Tests required: none beyond a script check that every required file exists (`tools/check_repo_skeleton.sh`, added in this ticket)
 
@@ -218,6 +227,7 @@ Tickets for Phase 1 are written at the Phase 0 exit review. Do not begin them in
 | Q-4 | Capital allocation and risk budget for Phase 7 | G-LIVE-5 | Open |
 | Q-5 | Logging library (ADR-0011) | T-0005 (may proceed with the custom sink; decision needed before Phase 3) | Open — agent proposes options, operator decides |
 | Q-6 | Tool-switch notification: how the operator signals Codex limit reached | Process only | Open (operator preference) |
+| Q-7 | Confirm `.gitignore` should anchor `/data/` and `/secrets/` at the repository root. Unanchored `data/` would ignore `research/src/tradelab/data/`. Unanchored `secrets/` would ignore `deploy/secrets/` (layout documentation, no values). T-0001 used the anchored form so those skeleton paths stay tracked. | none for T-0001 review | Open |
 
 ## Decisions Log
 
@@ -226,6 +236,8 @@ Tickets for Phase 1 are written at the Phase 0 exit review. Do not begin them in
 | 2026-10-25 | Codex is primary; Cursor is fallback; both read AGENTS.md | PROCESS §1.1, §7.6 |
 | 2026-10-25 | Phase 0 scope is limited to tickets T-0001 to T-0011 | PROCESS §6.2 |
 | 2026-10-25 | Groww adapter remains behind OFF flag; mock only until G-LIVE-1 and G-LIVE-2 | PRD §12; ADR-0004 |
+| 2026-10-29 | `.gitignore` anchors `/data/` and `/secrets/` at the repository root | Q-7; T-0001 |
+| 2026-10-29 | T-0001 document commit is on `main`; skeleton commit is on `chore/T-0001-repo-skeleton` | PROCESS §4.1 |
 
 ## Session Log
 
@@ -233,6 +245,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-10-29 | cursor | T-0001 | `8086b9f`, `a9defd7`, and the commit that adds this row | In review | Repo was empty. `git` 2.54.0. `user.name` and `user.email` were set. No remote configured. `just` is not on PATH and was not installed. `tools/check_repo_skeleton.sh`: `skeleton check passed (286 paths)`. PR not opened: no remote. Do not start T-0002. |
 | 2026-10-25 | human | — | — | Kickoff documents created | Starting point for T-0001 |
 
 ## Blockers
