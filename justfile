@@ -23,7 +23,21 @@ test preset=default_preset:
 check-watchdog preset=default_preset:
     tools/check_watchdog_links.sh "build/{{preset}}"
 
+codegen:
+    python3 schemas/codegen/generate.py --write
+
+codegen-check:
+    python3 schemas/codegen/generate.py --check
+
+test-journal-schema:
+    mkdir -p build
+    g++ -std=c++20 -I engine/include -fsanitize=address,undefined schemas/tests/journal_round_trip_test.cpp -o build/journal_round_trip_test
+    ./build/journal_round_trip_test
+    python3 schemas/tests/test_journal_round_trip.py
+
 check preset=default_preset:
+    just codegen-check
+    just test-journal-schema
     just test "{{preset}}"
     just check-watchdog "{{preset}}"
 

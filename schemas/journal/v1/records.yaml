@@ -1,0 +1,230 @@
+# Journal format v1 — source of truth (DESIGN_ARCHITECTURE.md §10.1, TECHNICAL_IMPLEMENTATION.md §5.2).
+# All multi-byte integers are little-endian. Payload fields are packed with no implicit padding.
+
+schema: journal.v1
+format_version: 1
+magic: TJNL
+
+header:
+  size: 40
+  fields:
+    - { name: magic, type: ascii4, offset: 0 }
+    - { name: format_version, type: u16, offset: 4 }
+    - { name: record_type, type: u16, offset: 6 }
+    - { name: sequence, type: u64, offset: 8 }
+    - { name: monotonic_ns, type: u64, offset: 16 }
+    - { name: wall_ns, type: u64, offset: 24 }
+    - { name: payload_length, type: u32, offset: 32 }
+    - { name: crc32c, type: u32, offset: 36 }
+
+enums:
+  SessionEndReason:
+    - { name: NormalShutdown, value: 1 }
+    - { name: OperatorKill, value: 2 }
+    - { name: WatchdogIntervention, value: 3 }
+    - { name: FatalError, value: 4 }
+  EngineRunState:
+    - { name: Starting, value: 1 }
+    - { name: Running, value: 2 }
+    - { name: Halting, value: 3 }
+    - { name: Halted, value: 4 }
+  FeedHealthState:
+    - { name: Live, value: 1 }
+    - { name: Stale, value: 2 }
+    - { name: Disconnected, value: 3 }
+  Side:
+    - { name: Unknown, value: 0 }
+    - { name: Buy, value: 1 }
+    - { name: Sell, value: 2 }
+  TimeInForce:
+    - { name: Day, value: 1 }
+    - { name: ImmediateOrCancel, value: 2 }
+    - { name: FillOrKill, value: 3 }
+  EndpointCategory:
+    - { name: OrderEntry, value: 1 }
+    - { name: OrderQuery, value: 2 }
+    - { name: Cancel, value: 3 }
+  OrderState:
+    - { name: IntentJournaled, value: 1 }
+    - { name: PendingNew, value: 2 }
+    - { name: Acked, value: 3 }
+    - { name: PartiallyFilled, value: 4 }
+    - { name: Filled, value: 5 }
+    - { name: PendingCancel, value: 6 }
+    - { name: Cancelled, value: 7 }
+    - { name: Rejected, value: 8 }
+    - { name: Expired, value: 9 }
+    - { name: Unknown, value: 10 }
+  ReconciliationScope:
+    - { name: Global, value: 1 }
+    - { name: Instrument, value: 2 }
+    - { name: Strategy, value: 3 }
+  ReconciliationOutcome:
+    - { name: Clean, value: 1 }
+    - { name: Mismatch, value: 2 }
+    - { name: Aborted, value: 3 }
+  ControlCommandKind:
+    - { name: Halt, value: 1 }
+    - { name: Resume, value: 2 }
+    - { name: CancelAll, value: 3 }
+    - { name: Flatten, value: 4 }
+  ControlScope:
+    - { name: Global, value: 1 }
+    - { name: Strategy, value: 2 }
+    - { name: Instrument, value: 3 }
+  CommandOutcome:
+    - { name: Accepted, value: 1 }
+    - { name: Rejected, value: 2 }
+    - { name: Failed, value: 3 }
+  StateDomain:
+    - { name: Engine, value: 1 }
+    - { name: Feed, value: 2 }
+  VerificationOutcome:
+    - { name: Passed, value: 1 }
+    - { name: Failed, value: 2 }
+
+records:
+  - id: 0x0001
+    name: SessionStart
+    fields:
+      - { name: profile_name, type: utf8, max: 64 }
+      - { name: config_hash, type: bytes32 }
+      - { name: engine_build_hash, type: bytes32 }
+      - { name: client_id_prefix, type: ascii4 }
+
+  - id: 0x0002
+    name: SessionEnd
+    fields:
+      - { name: reason, type: enum, enum: SessionEndReason, storage: u16 }
+      - { name: final_state, type: enum, enum: EngineRunState, storage: u8 }
+
+  - id: 0x0010
+    name: MarketQuote
+    fields:
+      - { name: instrument_id, type: u32 }
+      - { name: bid_ticks, type: i64 }
+      - { name: ask_ticks, type: i64 }
+      - { name: bid_size_lots, type: i32 }
+      - { name: ask_size_lots, type: i32 }
+      - { name: exchange_time_ns, type: u64 }
+
+  - id: 0x0011
+    name: MarketTrade
+    fields:
+      - { name: instrument_id, type: u32 }
+      - { name: price_ticks, type: i64 }
+      - { name: size_lots, type: i32 }
+      - { name: side, type: enum, enum: Side, storage: u8 }
+      - { name: exchange_time_ns, type: u64 }
+
+  - id: 0x0012
+    name: FeedState
+    fields:
+      - { name: instrument_id, type: u32 }
+      - { name: state, type: enum, enum: FeedHealthState, storage: u8 }
+      - { name: reason_code, type: u16 }
+
+  - id: 0x0020
+    name: OrderIntent
+    fields:
+      - { name: client_id, type: ascii, size: 24 }
+      - { name: strategy_id, type: u32 }
+      - { name: instrument_id, type: u32 }
+      - { name: side, type: enum, enum: Side, storage: u8 }
+      - { name: qty_lots, type: i32 }
+      - { name: price_ticks, type: i64 }
+      - { name: time_in_force, type: enum, enum: TimeInForce, storage: u8 }
+      - { name: param_version, type: u32 }
+
+  - id: 0x0021
+    name: ApprovalIssued
+    fields:
+      - { name: client_id, type: ascii, size: 24 }
+      - { name: limit_set_version, type: u32 }
+      - { name: expiry_mono_ns, type: u64 }
+
+  - id: 0x0022
+    name: RiskRejected
+    fields:
+      - { name: client_id, type: ascii, size: 24 }
+      - { name: limit_id, type: u16 }
+      - { name: observed, type: i64 }
+      - { name: threshold, type: i64 }
+
+  - id: 0x0023
+    name: OrderSent
+    fields:
+      - { name: client_id, type: ascii, size: 24 }
+      - { name: endpoint_category, type: enum, enum: EndpointCategory, storage: u8 }
+
+  - id: 0x0024
+    name: OrderEvent
+    fields:
+      - { name: client_id, type: ascii, size: 24 }
+      - { name: from_state, type: enum, enum: OrderState, storage: u16 }
+      - { name: to_state, type: enum, enum: OrderState, storage: u16 }
+      - { name: broker_order_id, type: ascii, size: 32 }
+      - { name: reason_code, type: u16 }
+
+  - id: 0x0025
+    name: FillEvent
+    fields:
+      - { name: client_id, type: ascii, size: 24 }
+      - { name: fill_id, type: u64 }
+      - { name: price_ticks, type: i64 }
+      - { name: qty_lots, type: i32 }
+      - { name: fee_ticks, type: i64 }
+      - { name: exchange_time_ns, type: u64 }
+
+  - id: 0x0030
+    name: PositionSnapshot
+    fields:
+      - { name: instrument_id, type: u32 }
+      - { name: net_qty_lots, type: i32 }
+      - { name: avg_price_ticks, type: i64 }
+      - { name: realized_pnl_ticks, type: i64 }
+
+  - id: 0x0031
+    name: ReconciliationResult
+    fields:
+      - { name: scope, type: enum, enum: ReconciliationScope, storage: u8 }
+      - { name: outcome, type: enum, enum: ReconciliationOutcome, storage: u8 }
+      - { name: detail_code, type: u16 }
+      - { name: detail_message, type: utf8, max: 256 }
+
+  - id: 0x0040
+    name: ControlCommand
+    fields:
+      - { name: command, type: enum, enum: ControlCommandKind, storage: u16 }
+      - { name: scope, type: enum, enum: ControlScope, storage: u8 }
+      - { name: operator_ref, type: ascii, size: 32 }
+      - { name: outcome, type: enum, enum: CommandOutcome, storage: u8 }
+
+  - id: 0x0041
+    name: LimitTightened
+    fields:
+      - { name: limit_id, type: u16 }
+      - { name: old_value, type: i64 }
+      - { name: new_value, type: i64 }
+      - { name: operator_ref, type: ascii, size: 32 }
+
+  - id: 0x0042
+    name: StateTransition
+    fields:
+      - { name: domain, type: enum, enum: StateDomain, storage: u8 }
+      - { name: from_state, type: u16 }
+      - { name: to_state, type: u16 }
+      - { name: reason_code, type: u16 }
+
+  - id: 0x0050
+    name: ConfigRecorded
+    fields:
+      - { name: config_hash, type: bytes32 }
+      - { name: content_ref_hash, type: bytes32 }
+
+  - id: 0x0051
+    name: PromotionVerified
+    fields:
+      - { name: promotion_file_hash, type: bytes32 }
+      - { name: config_hash, type: bytes32 }
+      - { name: outcome, type: enum, enum: VerificationOutcome, storage: u8 }
