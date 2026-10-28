@@ -6,7 +6,7 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-29T01:15:00+0530 by cursor
 - Active ticket: T-0004
 - Branch: feat/T-0004-journal-schema
-- Last green commit: TODO after commit — `T-0004: record review evidence`
+- Last green commit: 574d14c2 — `T-0004: record review evidence`
 - Working tree: clean after PROGRESS commit
 - Tests passing at last commit: `just check` (2026-10-29): `just codegen-check` passed; `just test-journal-schema` passed (22 Python unittest cases, C++ round-trip binary); CTest `debug-asan` 12/12; watchdog link check passed.
 - Next step (exact): Operator Class A review of T-0004. Merge `feat/T-0004-journal-schema` only after human approval. Wire CI `codegen-drift` / `journal-compat` placeholders in a follow-up if needed. Do not start T-0005 until T-0004 is Done.
@@ -273,6 +273,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-10-29 | cursor | T-0004 | `890a6c5`, `574d14c` | In review | Journal v1 schema, codegen drift check, C++/Python round-trip tests; branch includes T-0003 build. |
 | 2026-10-29 | cursor | T-0003 | `4e544e6`, PROGRESS commit | In review | CMake superbuild, six presets, vcpkg gtest, empty engine targets, watchdog link check. |
 | 2026-10-29 | cursor | T-0002 | `756a218` on `main` | Done | Hooks + CI skeleton; pushed to GitHub `origin`. |
 | 2026-10-29 | cursor | T-0002 | `09cfc89` (merge T-0001), `e3bf1dc`, PROGRESS commit | Done | Merged T-0001 to `main`. T-0002 hooks + CI skeleton. Pre-commit demo blocked synthetic secret. |
