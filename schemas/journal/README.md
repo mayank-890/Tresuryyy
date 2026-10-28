@@ -1,0 +1,1 @@
+Versioned journal record definitions.

@@ -1,0 +1,1 @@
+Weekly kill-switch exercise.
