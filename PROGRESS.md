@@ -236,7 +236,7 @@ Tickets for Phase 1 are written at the Phase 0 exit review. Do not begin them in
 | Q-5 | Logging library (ADR-0011) | T-0005 (may proceed with the custom sink; decision needed before Phase 3) | Open — agent proposes options, operator decides |
 | Q-6 | Tool-switch notification: how the operator signals Codex limit reached | Process only | Open (operator preference) |
 | Q-7 | Confirm `.gitignore` should anchor `/data/` and `/secrets/` at the repository root. Unanchored `data/` would ignore `research/src/tradelab/data/`. Unanchored `secrets/` would ignore `deploy/secrets/` (layout documentation, no values). T-0001 used the anchored form so those skeleton paths stay tracked. | none for T-0001 review | Open |
-| Q-8 | Add `.vcpkg/` to `.gitignore` (local vcpkg clone from `just setup-vcpkg`). | none | Resolved on chore/Q-8-ignore-vcpkg, pending merge |
+| Q-8 | Add `.vcpkg/` to `.gitignore` (local vcpkg clone from `just setup-vcpkg`). | none | Done — merged to `main` at `e5c43aa` (2026-10-29) |
 
 ## Decisions Log
 
