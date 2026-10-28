@@ -3,6 +3,9 @@ build/
 out/
 cmake-build-*/
 
+# Local vcpkg clone from `just setup-vcpkg` (Q-8).
+.vcpkg/
+
 # Interrupted-session patches (PROCESS_PROJECT_MANAGEMENT.md §7.5)
 .handoff/
 
