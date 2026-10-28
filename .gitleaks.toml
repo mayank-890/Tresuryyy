@@ -1,0 +1,13 @@
+# Gitleaks configuration for the trading system repository.
+# Allowlist entries require operator approval (NFR-SEC-01).
+
+title = "trading-system"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Repository allowlist is intentionally empty."
+paths = []
+regexes = []
+stopwords = []

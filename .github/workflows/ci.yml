@@ -1,0 +1,133 @@
+# T-0002: CI skeleton. Build and test jobs are placeholders until T-0003+.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  secret-scan:
+    name: secret-scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+  large-file-check:
+    name: large-file-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          chmod +x tools/check_large_files.sh
+          ./tools/check_large_files.sh
+
+  skeleton-check:
+    name: skeleton-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir -p .handoff
+          chmod +x tools/check_repo_skeleton.sh
+          ./tools/check_repo_skeleton.sh
+
+  build-debug-asan:
+    name: build-debug-asan
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "TODO(T-0003) build-debug-asan placeholder"
+
+  build-debug-ubsan:
+    name: build-debug-ubsan
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "TODO(T-0003) build-debug-ubsan placeholder"
+
+  tsan-threaded:
+    name: tsan-threaded
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "TODO(T-0003) tsan-threaded placeholder"
+
+  header-self-contained:
+    name: header-self-contained
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "TODO(T-0003) header-self-contained placeholder"
+
+  dependency-rules:
+    name: dependency-rules
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "TODO(T-0003) dependency-rules placeholder"
+
+  watchdog-link-restriction:
+    name: watchdog-link-restriction
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "TODO(T-0003) watchdog-link-restriction placeholder"
+
+  fuzz-smoke:
+    name: fuzz-smoke
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "TODO(T-0003) fuzz-smoke placeholder"
+
+  python-lint-types-tests:
+    name: python-lint-types-tests
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "TODO(T-0009) python-lint-types-tests placeholder"
+
+  ui-lint-playwright:
+    name: ui-lint-playwright
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "TODO(T-0010) ui-lint-playwright placeholder"
+
+  migrations-apply-down:
+    name: migrations-apply-down
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "TODO(T-0006) migrations-apply-down placeholder"
+
+  codegen-drift:
+    name: codegen-drift
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "TODO(T-0004) codegen-drift placeholder"
+
+  journal-compat:
+    name: journal-compat
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "TODO(T-0004) journal-compat placeholder"
+
+  replay-parity:
+    name: replay-parity
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "TODO(T-0003) replay-parity placeholder"
+
+  dependency-vulnerability-scan:
+    name: dependency-vulnerability-scan
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "TODO(T-0003) dependency-vulnerability-scan placeholder"
+
+  coverage-thresholds:
+    name: coverage-thresholds
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "TODO(T-0003) coverage-thresholds placeholder"

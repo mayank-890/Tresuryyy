@@ -1,0 +1,31 @@
+# Phase 0 (T-0002): secret scan and hygiene hooks only.
+# Additional hooks from TECHNICAL_IMPLEMENTATION.md §10.2 arrive in later tickets.
+minimum_pre_commit_version: "3.5.0"
+
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+        args:
+          - --config=.gitleaks.toml
+          - --verbose
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+        name: check added large files (>1 MiB)
+        exclude: ^tests/fixtures/
+        args:
+          - --maxkb=1024
+
+  - repo: local
+    hooks:
+      - id: large-files-outside-fixtures
+        name: large files outside tests/fixtures
+        entry: tools/check_large_files.sh --staged
+        language: script
+        pass_filenames: false
