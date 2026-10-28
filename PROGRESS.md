@@ -3,17 +3,17 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-29T00:05:06+0530 by cursor
-- Active ticket: T-0001
-- Branch: chore/T-0001-repo-skeleton
-- Last green commit: a9defd7e7d84c420e3d2ccf68aa29bda5e24b982 "T-0001: repository skeleton"
-- Working tree: clean
-- Tests passing at last commit: `tools/check_repo_skeleton.sh` printed `skeleton check passed (287 paths)`. A missing-path run printed `MISSING: engine/cmake/toolchains/README.md` and `skeleton check failed` and exited 1; the file was restored and the check passed again. `just check` was not run: `just` is not on PATH, and `justfile` is out of scope for T-0001.
-- Next step (exact): Operator reviews branch `chore/T-0001-repo-skeleton`. Do not start T-0002. PR not opened: no remote.
-- Files touched this ticket: ten root documents and `.gitignore` in `8086b9fdb8a63bcef4461950ccf1b759449df7b2` on `main`; directory skeleton from REPO_STRUCTURE.md §2–§6, READMEs including `tools/README.md`, `.editorconfig`, `CHANGELOG.md`, root `README.md`, `docs/adr/ADR-0001.md` through `ADR-0012.md`, `docs/tickets/.gitkeep`, `docs/reviews/.gitkeep`, `engine/src/risk/limits.hpp` (comment only), and `tools/check_repo_skeleton.sh` in `a9defd7e7d84c420e3d2ccf68aa29bda5e24b982` and the follow-up that adds `tools/README.md`.
-- Decisions made this session (not yet in ADR): `.gitignore` anchors `/data/` and `/secrets/` at the repository root so `research/src/tradelab/data/` and `deploy/secrets/` stay tracked (Q-7). First commit is on `main`; skeleton work is on `chore/T-0001-repo-skeleton`.
-- Open questions: Q-1 through Q-6 unchanged. Q-7 asks the operator to confirm the anchored ignore rules.
-- Notes for the next tool: T-0001 is In review. Do not start T-0002. No remote configured. PR not opened: no remote. Do not merge. Do not push to `main`. `just` is not installed; do not install it without operator approval. `.handoff/` is gitignored and exists only locally; a fresh clone must run `mkdir -p .handoff` before `tools/check_repo_skeleton.sh`. `engine/src/risk/limits.hpp` has no limit values. That path is Class A; the ticket stays Class C, and the file is a comment only. A review of this branch should still inspect that path. No trading logic, broker code, build files, CI, database files, or live configuration values were added. If `git log -1` is `T-0001: add tools directory README`, that commit adds `tools/README.md`, requires it in the skeleton check, and updates this block. Its parent is `f3bb5ef6fa195136988dbdff67f0ca801cf72978`.
+- Updated: 2026-10-29T00:20:46+0530 by cursor
+- Active ticket: T-0002
+- Branch: chore/T-0002-hooks-ci-skeleton
+- Last green commit: e3bf1dca0a24bd04e4c9af4d9a7f4054ef8e3aef "T-0002: add pre-commit hooks, gitleaks config, and CI skeleton"
+- Working tree: clean after PROGRESS commit (revert unstaged `.gitkeep` EOF noise from pre-commit before committing PROGRESS)
+- Tests passing at last commit: `tools/check_repo_skeleton.sh` → `skeleton check passed (287 paths)`; `tools/check_large_files.sh` → `large-file check passed`; `PATH=.venv/bin:$PATH pre-commit run --all-files` → all hooks Passed on the committed tree; `PATH=.venv/bin:$PATH ./tools/precommit_fixture_secret_demo.sh` → gitleaks Failed (exit 1), `generic-api-key` on ephemeral `tools/_precommit_demo_ephemeral.txt`. `just check` not run (`justfile` is T-0003). `actionlint` not available on PATH.
+- Next step (exact): Operator reviews branch `chore/T-0002-hooks-ci-skeleton`. Merge after review. Do not start T-0003 until T-0002 is Done. PR not opened: no remote.
+- Files touched this ticket: `.pre-commit-config.yaml`, `.gitleaks.toml`, `.github/workflows/ci.yml`, `tools/check_large_files.sh`, `tools/precommit_fixture_secret_demo.sh`, and this PROGRESS update.
+- Decisions made this session (not yet in ADR): `.gitleaks.toml` uses `[extend] useDefault = true` with an empty allowlist so default rules run. Synthetic secret demo generates a runtime `api_key=` value (no literal secret in git). Local pre-commit uses `.venv/bin/pre-commit` (`.venv/` is gitignored; not a committed dependency).
+- Open questions: Q-1 through Q-7 unchanged.
+- Notes for the next tool: T-0001 is Done on `main` at merge `09cfc89`. T-0002 is In review. CI job IDs match TESTING_QA.md §10 plus `large-file-check` and `skeleton-check`. Placeholder jobs echo `TODO(T-0003)` or later ticket IDs. Install hooks with `python3 -m venv .venv && .venv/bin/pip install pre-commit && .venv/bin/pre-commit install`.
 
 ## Current Phase
 
@@ -24,7 +24,7 @@ Single source of truth for the current state of work. Read this first in every s
 Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` · `Blocked`
 
 ### T-0001: Repository skeleton
-- Status: In review
+- Status: Done
 - Phase: 0 · Risk class: C · Depends on: none
 - Requirements: PRD §5 (roles), TI §2 (layout)
 - Goal: Repository initialized with the full document set and the directory skeleton from the repository structure. No code.
@@ -47,20 +47,28 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
   - Root `README.md` has one description paragraph, a pointer to `AGENTS.md`, the document list, and `Status: Phase 0`.
   - `CHANGELOG.md` contains `## Unreleased`.
   - `tools/check_repo_skeleton.sh` is executable and printed `skeleton check passed (287 paths)`.
+  - Merged to `main`: `09cfc893` (`T-0001: merge repository skeleton into main`, 2026-10-29).
 - Files allowed: the files in the acceptance criteria, plus the nested directories required by the operator instructions and REPO_STRUCTURE.md §2–§6, ADR stubs, comment-only `engine/src/risk/limits.hpp`, and `tools/check_repo_skeleton.sh`. The ticket text did not list every nested path; those paths are required by REPO_STRUCTURE.md and the operator session instructions.
 - Out of scope: any source code, build configuration, CI, database, config profiles
 - Tests required: none beyond a script check that every required file exists (`tools/check_repo_skeleton.sh`, added in this ticket)
 
 ### T-0002: Hooks, secret scanning, CI skeleton
-- Status: Backlog
+- Status: In review
 - Phase: 0 · Risk class: C (CI safety gates: A) · Depends on: T-0001
 - Requirements: NFR-SEC-01, TI §10.2, TI §10.3, TESTING_QA §10
 - Goal: Pre-commit hooks and a CI workflow that run on every PR and currently build nothing.
 - Acceptance criteria:
-  - [ ] `.pre-commit-config.yaml` with: gitleaks, large-file check (>1 MB outside `tests/fixtures/`), trailing whitespace, end-of-file fixer
-  - [ ] `.gitleaks.toml` with repository allowlist empty
-  - [ ] `.github/workflows/ci.yml` runs: secret scan, large-file check, skeleton check (T-0001 script); all required-check names reserved (job names may be placeholders that pass with a `TODO(T-0003)` note)
-  - [ ] Demonstrated: a test commit containing a fake secret pattern is blocked locally by pre-commit (record the command and output in the PR)
+  - [x] `.pre-commit-config.yaml` with: gitleaks, large-file check (>1 MB outside `tests/fixtures/`), trailing whitespace, end-of-file fixer
+  - [x] `.gitleaks.toml` with repository allowlist empty
+  - [x] `.github/workflows/ci.yml` runs: secret scan, large-file check, skeleton check (T-0001 script); all required-check names reserved (job names may be placeholders that pass with a `TODO(T-0003)` note)
+  - [x] Demonstrated: a test commit containing a fake secret pattern is blocked locally by pre-commit (record the command and output in the PR)
+- Evidence:
+  - `.pre-commit-config.yaml`: gitleaks v8.21.2 with `.gitleaks.toml`; `trailing-whitespace`, `end-of-file-fixer`, `check-added-large-files` (excludes `tests/fixtures/`), local `tools/check_large_files.sh --staged`.
+  - `.gitleaks.toml`: `[allowlist]` `paths`, `regexes`, and `stopwords` are empty arrays; `[extend] useDefault = true`.
+  - `.github/workflows/ci.yml`: jobs `secret-scan`, `large-file-check`, `skeleton-check` run real checks; TESTING_QA.md §10 job IDs are present as placeholders (`build-debug-asan` through `coverage-thresholds`).
+  - Secret demo command: `PATH=.venv/bin:$PATH ./tools/precommit_fixture_secret_demo.sh`. Output included `Detect hardcoded secrets... Failed`, gitleaks exit 1, `RuleID: generic-api-key`, file `tools/_precommit_demo_ephemeral.txt` (removed after run; not committed).
+  - `actionlint`: not available on PATH (recorded; not blocking T-0002).
+  - PR not opened: no remote.
 - Files allowed: `.pre-commit-config.yaml`, `.gitleaks.toml`, `.github/workflows/`, `tools/`
 - Out of scope: any build step
 - Tests required: pre-commit dry-run on a fixture secret; CI workflow linted (`actionlint` if available)
@@ -238,6 +246,8 @@ Tickets for Phase 1 are written at the Phase 0 exit review. Do not begin them in
 | 2026-10-25 | Groww adapter remains behind OFF flag; mock only until G-LIVE-1 and G-LIVE-2 | PRD §12; ADR-0004 |
 | 2026-10-29 | `.gitignore` anchors `/data/` and `/secrets/` at the repository root | Q-7; T-0001 |
 | 2026-10-29 | T-0001 document commit is on `main`; skeleton commit is on `chore/T-0001-repo-skeleton` | PROCESS §4.1 |
+| 2026-10-29 | `.gitleaks.toml` uses default rules via `[extend] useDefault = true` | T-0002 |
+| 2026-10-29 | T-0001 merged to `main` (`09cfc893`) at operator request | T-0002 unblocked |
 
 ## Session Log
 
@@ -245,7 +255,8 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-10-29 | cursor | T-0001 | `8086b9f`, `a9defd7`, and the commit that adds this row | In review | Repo was empty. `git` 2.54.0. `user.name` and `user.email` were set. No remote configured. `just` is not on PATH and was not installed. `tools/check_repo_skeleton.sh`: `skeleton check passed (287 paths)`. PR not opened: no remote. Do not start T-0002. |
+| 2026-10-29 | cursor | T-0002 | `09cfc89` (merge T-0001), `e3bf1dc`, PROGRESS commit | In review | Merged T-0001 to `main`. T-0002 hooks + CI skeleton. Pre-commit demo blocked synthetic secret. PR not opened: no remote. |
+| 2026-10-29 | cursor | T-0001 | `8086b9f`, `a9defd7`, and the commit that adds this row | Done | Repo was empty. `git` 2.54.0. `user.name` and `user.email` were set. No remote configured. `just` is not on PATH and was not installed. `tools/check_repo_skeleton.sh`: `skeleton check passed (287 paths)`. PR not opened: no remote. |
 | 2026-10-25 | human | — | — | Kickoff documents created | Starting point for T-0001 |
 
 ## Blockers
