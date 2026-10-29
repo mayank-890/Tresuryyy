@@ -6,7 +6,7 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-29T13:10:00+0530 by cursor
 - Active ticket: T-0005
 - Branch: feat/T-0005-core-primitives
-- Last green commit: pending — `T-0005: rename to camelCase, wire core tests into CTest and test-tsan`
+- Last green commit: 42bbf60 — `T-0005: rename to camelCase, wire core tests into CTest and test-tsan`
 - Working tree: clean after PROGRESS commit
 - Tests passing at last commit: `just check` on **Darwin arm64** (debug-asan): CTest **13/13** including `core_tests`; `just test-tsan` on **Darwin arm64**: CTest **13/13** including `core_tests` (~8.3s under TSan).
 - Next step (exact): Operator Class A review of T-0005. Do not start T-0006 until T-0005 is Done.
