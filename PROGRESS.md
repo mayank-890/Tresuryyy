@@ -6,7 +6,7 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-29T12:30:00+0530 by cursor
 - Active ticket: T-0005
 - Branch: feat/T-0005-core-primitives
-- Last green commit: pending — `T-0005: record review evidence`
+- Last green commit: 3d11e6c — `T-0005: record review evidence`
 - Working tree: clean after PROGRESS commit
 - Tests passing at last commit: `just check` (debug-asan); `just test debug-tsan` (CTest 12/12); `engine/bench/core/run_core_tests.sh debug-asan` (9/9); TSan core tests 9/9 (manual link).
 - Next step (exact): Operator Class A review of T-0005. Resolve Q-10 (CTest wiring) in a small follow-up ticket touching `engine/CMakeLists.txt`. Do not start T-0006 until T-0005 is Done.
@@ -282,7 +282,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-10-29 | cursor | T-0005 | pending commit | In review | Core Clock, SpscRing, ObjectPool, LogQueue, pin_thread, allocation hook; 10M SPSC stress; TSan clean. |
+| 2026-10-29 | cursor | T-0005 | `e0f2d4d`, `3d11e6c` | In review | Core Clock, SpscRing, ObjectPool, LogQueue, pin_thread, allocation hook; 10M SPSC stress; TSan clean. |
 | 2026-10-29 | cursor | T-0004 | `890a6c5`, `574d14c` | In review | Journal v1 schema, codegen drift check, C++/Python round-trip tests; branch includes T-0003 build. |
 | 2026-10-29 | cursor | T-0003 | `4e544e6`, PROGRESS commit | In review | CMake superbuild, six presets, vcpkg gtest, empty engine targets, watchdog link check. |
 | 2026-10-29 | cursor | T-0002 | `756a218` on `main` | Done | Hooks + CI skeleton; pushed to GitHub `origin`. |
