@@ -15,6 +15,7 @@ endfunction()
 
 trading_add_module(trading_core src/core/module.cpp)
 trading_add_smoke_test(trading_core)
+add_subdirectory(tests/unit/core)
 
 trading_add_module(trading_marketdata src/marketdata/module.cpp)
 target_link_libraries(trading_marketdata PUBLIC trading_core)

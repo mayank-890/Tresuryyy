@@ -16,11 +16,11 @@ std::atomic<std::uint32_t> g_pin_warnings{0};
 
 } // namespace
 
-std::uint32_t pin_thread_warning_count() noexcept {
+std::uint32_t pinThreadWarningCount() noexcept {
   return g_pin_warnings.load(std::memory_order_relaxed);
 }
 
-Result<void, PinThreadError> pin_thread(int core) noexcept {
+Result<void, PinThreadError> pinThread(int core) noexcept {
   if (core < 0) {
     return Result<void, PinThreadError>::err(PinThreadError::SystemError);
   }

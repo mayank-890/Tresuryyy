@@ -131,18 +131,13 @@ TEST(LogQueue, ProducerDrainsToSink) {
 }
 
 TEST(ThreadPin, ReturnsResultOnPlatform) {
-  const auto before = trading::core::pin_thread_warning_count();
-  const auto result = trading::core::pin_thread(0);
+  const auto before = trading::core::pinThreadWarningCount();
+  const auto result = trading::core::pinThread(0);
 #if defined(__linux__)
   EXPECT_TRUE(result.is_ok());
 #else
   EXPECT_FALSE(result.is_ok());
   EXPECT_EQ(result.error(), trading::core::PinThreadError::Unsupported);
-  EXPECT_GE(trading::core::pin_thread_warning_count(), before + 1);
+  EXPECT_GE(trading::core::pinThreadWarningCount(), before + 1);
 #endif
-}
-
-int main(int argc, char** argv) {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

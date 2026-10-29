@@ -4,8 +4,8 @@
 
 namespace trading::core {
 
-[[nodiscard]] Result<void, PinThreadError> pin_thread(int core) noexcept;
+[[nodiscard]] Result<void, PinThreadError> pinThread(int core) noexcept;
 
-[[nodiscard]] std::uint32_t pin_thread_warning_count() noexcept;
+[[nodiscard]] std::uint32_t pinThreadWarningCount() noexcept;
 
 } // namespace trading::core

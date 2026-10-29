@@ -3,17 +3,17 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-29T12:30:00+0530 by cursor
+- Updated: 2026-10-29T13:10:00+0530 by cursor
 - Active ticket: T-0005
 - Branch: feat/T-0005-core-primitives
-- Last green commit: 3d11e6c — `T-0005: record review evidence`
+- Last green commit: pending — `T-0005: rename to camelCase, wire core tests into CTest and test-tsan`
 - Working tree: clean after PROGRESS commit
-- Tests passing at last commit: `just check` (debug-asan); `just test debug-tsan` (CTest 12/12); `engine/bench/core/run_core_tests.sh debug-asan` (9/9); TSan core tests 9/9 (manual link).
-- Next step (exact): Operator Class A review of T-0005. Resolve Q-10 (CTest wiring) in a small follow-up ticket touching `engine/CMakeLists.txt`. Do not start T-0006 until T-0005 is Done.
-- Files touched this ticket: `engine/include/trading/core/*`, `engine/src/core/*`, `engine/tests/unit/core/core_tests.cpp`, `engine/bench/core/*`.
-- Decisions made this session (not yet in ADR): Core `.cpp` sources included from `module.cpp` because CMake lists only one TU for `trading_core`. SPSC baseline uses std::chrono (Q-11). macOS `pin_thread` returns `Unsupported` and increments warning counter.
-- Open questions: Q-10, Q-11; Q-1 through Q-9 unchanged.
-- Notes for the next tool: `just test-tsan` is not in justfile; used `just test debug-tsan`. Nightly 1B SPSC stress not run in PR (10M only).
+- Tests passing at last commit: `just check` on **Darwin arm64** (debug-asan): CTest **13/13** including `core_tests`; `just test-tsan` on **Darwin arm64**: CTest **13/13** including `core_tests` (~8.3s under TSan).
+- Next step (exact): Operator Class A review of T-0005. Do not start T-0006 until T-0005 is Done.
+- Files touched this ticket: core headers/sources/tests/bench; `engine/CMakeLists.txt`, `engine/tests/unit/core/CMakeLists.txt`, `justfile` (operator scope amendment 2026-10-29).
+- Decisions made this session (not yet in ADR): Renamed `pinThread` / `pinThreadWarningCount` (TI §4.1 camelCase). macOS `pinThread` returns `Unsupported`; **Linux CI is authority for affinity success path**.
+- Open questions: Q-11; Q-1 through Q-9 unchanged. Q-10 resolved.
+- Notes for the next tool: `run_core_tests.sh` retained as auxiliary; primary path is CTest `core_tests`.
 
 ## Current Phase
 
@@ -133,18 +133,19 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
   - [x] `SpscRing<T, N>` with `alignas(64)` indices, explicit memory orders with comments, power-of-two capacity
   - [x] `ObjectPool<T>` preallocated, no allocation after construction, double-release detection in debug builds
   - [x] `LogQueue` lock-free producer side, drained by a dedicated thread (stub sink in this ticket)
-  - [x] `pin_thread(core)` helper with error result; warning counter on platforms without affinity support
+  - [x] `pinThread(core)` helper with error result; warning counter on platforms without affinity support
   - [x] Allocation-counting test hook usable by later tests
   - [x] Tests: SPSC stress 10M (PR), wraparound, full/empty boundaries; TSan clean via `core_tests` binary
   - [ ] Human review required (Class A)
 - Evidence:
   - Headers: `clock.hpp`, `spsc_ring.hpp`, `object_pool.hpp`, `log_queue.hpp`, `thread_pin.hpp`, `allocation_hook.hpp`, `result.hpp`.
   - Implementations compiled via `src/core/module.cpp` includes (`log_queue`, `thread_pin`, `allocation_hook`).
-  - Unit tests: `engine/tests/unit/core/core_tests.cpp` (9 GTest cases). Runner: `engine/bench/core/run_core_tests.sh debug-asan` (CTest wiring blocked — Q-10).
-  - `just check` (debug-asan): codegen + journal tests + CTest 12/12 + watchdog link check passed.
-  - `just test debug-tsan`: CTest 12/12 passed; core tests TSan: 9/9 passed (manual link with `-fsanitize=thread`).
+  - Unit tests: `engine/tests/unit/core/core_tests.cpp` (9 GTest cases); CTest target `core_tests` via `engine/tests/unit/core/CMakeLists.txt`.
+  - `just check` (debug-asan, Darwin arm64): codegen + journal tests + CTest **13/13** + watchdog link check passed.
+  - `just test-tsan` (Darwin arm64): CTest **13/13**; `core_tests` passed under TSan (~8.3s).
   - SPSC baseline: `engine/bench/core/baseline.txt` (~27.7M items/s, 5M items, `-O2` chrono bench; Google Benchmark not in vcpkg — Q-11).
-- Files allowed: `engine/include/trading/core/`, `engine/src/core/`, `engine/tests/unit/core/`, `engine/bench/core/`
+  - Rename: `pinThread`, `pinThreadWarningCount` (2026-10-29 follow-up commit).
+- Files allowed: `engine/include/trading/core/`, `engine/src/core/`, `engine/tests/unit/core/`, `engine/bench/core/`, plus operator amendment (2026-10-29): `engine/CMakeLists.txt`, `engine/tests/unit/core/CMakeLists.txt`, `justfile`
 - Out of scope: any use of these primitives in strategy, risk, or broker code
 - Tests required: unit; TSan stress; ASan; benchmark baseline recorded
 
@@ -261,7 +262,7 @@ Tickets for Phase 1 are written at the Phase 0 exit review. Do not begin them in
 | Q-7 | Confirm `.gitignore` should anchor `/data/` and `/secrets/` at the repository root. Unanchored `data/` would ignore `research/src/tradelab/data/`. Unanchored `secrets/` would ignore `deploy/secrets/` (layout documentation, no values). T-0001 used the anchored form so those skeleton paths stay tracked. | none for T-0001 review | Open |
 | Q-8 | Add `.vcpkg/` to `.gitignore` (local vcpkg clone from `just setup-vcpkg`). | none | Done — merged to `main` at `e5c43aa` (2026-10-29) |
 | Q-9 | T-0004 branch stacks `feat/T-0003-cmake-superbuild` until T-0003 is on `main`. Confirm PR base and merge order with operator. | T-0004 review | Open |
-| Q-10 | Wire `engine/tests/unit/core/core_tests.cpp` into CTest (`engine/CMakeLists.txt` or equivalent). Blocked for T-0005 files allowed. | T-0005 CI | Open |
+| Q-10 | Wire `core_tests` into CTest and add `just test-tsan`. | T-0005 CI | Resolved on `feat/T-0005-core-primitives` (2026-10-29); pending merge |
 | Q-11 | Add Google Benchmark to `vcpkg.json` (ADR) for nightly SPSC regression vs `engine/bench/core/baseline.txt`. T-0005 used std::chrono bench only. | Phase 3 perf gates | Open |
 
 ## Decisions Log
