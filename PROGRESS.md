@@ -6,8 +6,8 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-29T17:40:00+0530 by cursor
 - Active ticket: T-0101 (blocked)
 - Branch: `main` (no `feat/T-0101-delta-ohlcv-ingestion` opened)
-- Last green commit: 9a28b43 — `docs: mark T-0006 Done (080a18d); handoff T-0007`
-- Working tree: PROGRESS update pending commit
+- Last green commit: a6ef32e — `docs: block T-0101 until Phase 0 exit on main`
+- Working tree: clean
 - Tests passing at last commit: not re-run (session stopped at process gate)
 - Next step (exact): Merge Phase 0 through **T-0011 Done** on `main` (start with `feat/T-0007-profiles-promotion`, `feat/T-0008-journal-inspector`, then T-0009 → T-0010 → T-0011). Then re-assign T-0101 and create `feat/T-0101-delta-ohlcv-ingestion`.
 - Open questions: Q-13; Q-3 (Indian historical — out of scope for T-0101 Delta candles).
