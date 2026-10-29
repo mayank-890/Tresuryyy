@@ -1,0 +1,10 @@
+# SPSC ring baseline (T-0005)
+# Host: operator machine (Apple Silicon, macOS). Informational until deploy/host profile exists.
+# Method: engine/bench/core/spsc_throughput_bench.cpp, std::chrono, 5M items, ring capacity 4096.
+# Recorded: 2026-10-29 (informational; not deploy/host profile).
+
+method: spsc_throughput_bench.cpp, -O2, header-only SpscRing (no ASan link)
+items: 5000000
+ring_capacity: 4095
+elapsed_ns: 180649208
+throughput_items_per_sec: 27677951
