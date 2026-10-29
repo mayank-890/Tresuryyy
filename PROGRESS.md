@@ -6,8 +6,8 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-29T18:45:00+0530 by cursor
 - Active ticket: none (T-0009 Done on `main`; do not start T-0010 in this session)
 - Branch: `main`
-- Last green commit: f6bbe81 — `Merge T-0009: research skeleton`
-- Working tree: clean (after PROGRESS commit)
+- Last green commit: 3b68a35 — `T-0009: handoff after merge verification on main` (feature merge f6bbe81; `just check` green at handoff)
+- Working tree: clean
 - Tests passing at last commit: **Darwin arm64** — `just check` (codegen drift, journal schema **22/22**, research ruff/mypy/pytest **1/1**, CTest **14/14**, watchdog link check)
 - Next step (exact): Pick up **T-0010** (frontend skeleton) on a new branch from `main` when the operator marks it Ready; complete **T-0011** for Phase 0 exit. Do not start T-0010 without operator go-ahead.
 - Files touched this ticket: `research/pyproject.toml`, `research/uv.lock`, `research/.python-version`, `research/src/tradelab/engine/`, `research/tests/test_smoke.py`, `justfile`
