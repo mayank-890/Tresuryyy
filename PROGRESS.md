@@ -3,15 +3,15 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-29T18:30:00+0530 by cursor
-- Active ticket: T-0009
-- Branch: feat/T-0009-research-skeleton
-- Last green commit: 91f5695 — `T-0009: handoff In review`
-- Working tree: clean
-- Tests passing at last commit: **Darwin arm64** — `just check` (CTest **14/14**, `just research-lint`, `just research-test` **1/1** pytest)
-- Next step (exact): Operator review T-0009; merge `feat/T-0009-research-skeleton` to `main`. Do not start T-0010 until T-0009 is Done on `main`.
+- Updated: 2026-10-29T18:45:00+0530 by cursor
+- Active ticket: none (T-0009 Done on `main`; do not start T-0010 in this session)
+- Branch: `main`
+- Last green commit: f6bbe81 — `Merge T-0009: research skeleton`
+- Working tree: clean (after PROGRESS commit)
+- Tests passing at last commit: **Darwin arm64** — `just check` (codegen drift, journal schema **22/22**, research ruff/mypy/pytest **1/1**, CTest **14/14**, watchdog link check)
+- Next step (exact): Pick up **T-0010** (frontend skeleton) on a new branch from `main` when the operator marks it Ready; complete **T-0011** for Phase 0 exit. Do not start T-0010 without operator go-ahead.
 - Files touched this ticket: `research/pyproject.toml`, `research/uv.lock`, `research/.python-version`, `research/src/tradelab/engine/`, `research/tests/test_smoke.py`, `justfile`
-- Open questions: Q-13; Q-11; Q-1–Q-7; T-0101 blocked until Phase 0 exit (T-0010–T-0011 after T-0009).
+- Open questions: Q-13; Q-11; Q-1–Q-7; T-0101 blocked until Phase 0 exit (T-0010–T-0011 remain).
 - Notes for the next tool: `cd research && uv sync --dev --frozen`; mypy strict scope is `tradelab.engine` only (generated journal excluded from ruff/mypy).
 
 ## Current Phase
@@ -220,7 +220,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: fixture tests for each case; read-only check (file hash unchanged after run)
 
 ### T-0009: Python research package skeleton
-- Status: In review
+- Status: Done (merged `main` @ f6bbe81, 2026-10-29)
 - Phase: 0 · Risk class: B · Depends on: T-0002
 - Requirements: FR-RS-01 (scaffold), TI §4.2
 - Goal: `research/` is a uv project with lint, types, tests, and a `tradelab.engine` stub.
@@ -230,9 +230,10 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
   - [x] `tradelab.engine` module exists as a stub that raises `NotImplementedError` with a message referencing ADR-0005
   - [x] pytest runs with one smoke test
 - Evidence (2026-10-29, **Darwin arm64**):
+  - Commits: `8971057` (uv project + stub), `fa27656` (just research targets), `91f5695` / `58563d5` (handoff); merge `f6bbe81`.
   - `just research-lint`: ruff check/format, mypy strict on `src/tradelab/engine`
   - `just research-test`: pytest **1 passed**
-  - `just check`: full gate including research + CTest **14/14**
+  - `just check`: full gate including research + CTest **14/14** (re-verified on `main` @ f6bbe81)
 - Files allowed: `research/`, `justfile`
 - Out of scope: data ingestion, backtesting, pybind11 build
 - Tests required: smoke test; lint and types clean
@@ -273,7 +274,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Status: Blocked
 - Phase: 1 · Risk class: B · Depends on: Phase 0 exit; T-0009 (research package)
 - Goal: Historical OHLCV loader (Delta public REST), Parquet under external data root, gap/outlier checks, roll-adjust stub, CLI backfill, fixture tests (no network in unit tests).
-- Blocker: Phase 0 **T-0009–T-0011** not Done on `main` (T-0008 merged 2026-10-29). See **Blockers** § below.
+- Blocker: Phase 0 **T-0010–T-0011** not Done on `main` (T-0009 merged 2026-10-29). See **Blockers** § below.
 - Data licensing (record before merge): Delta Exchange API/historical data use is subject to [Delta Exchange terms](https://www.delta.exchange/legal/terms-of-use) and API documentation; operator must confirm redistribution/storage rights for downloaded candles.
 
 ## Phase 1 Backlog (legacy note)
@@ -317,6 +318,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-10-29 | cursor | T-0009 | `f6bbe81` (merge), PROGRESS | Done | Re-verified `just check` on `main`; PROGRESS synced post-merge. |
 | 2026-10-29 | cursor | T-0009 | `8971057`, `fa27656` | In review | uv project, engine ADR-0005 stub, ruff/mypy/pytest wired in `just check`. |
 | 2026-10-29 | cursor | T-0008 | `bcb67f9` | Done | Merged journal inspector to `main`. |
 | 2026-10-29 | cursor | T-0008 | `e5dbd38`, `e9d68a3` | In review | Journal inspector; merged `main` (T-0007); `just check` 14/14 + inspector tests 6/6. |
@@ -335,6 +337,6 @@ Append one entry per session. Newest first.
 
 | ID | Ticket | Reason | Unblock |
 |---|---|---|---|
-| B-0101-1 | T-0101 | **Process gate:** Phase 0 **T-0009–T-0011** not Done on `main` (T-0008 merged 2026-10-29). | Complete T-0009–T-0011 on `main`; phase-0 review note. |
-| B-0101-2 | T-0101 | **Scaffold:** No `research/pyproject.toml` / pytest (T-0009) on `main`. | Complete T-0009 on `main`. |
+| B-0101-1 | T-0101 | **Process gate:** Phase 0 **T-0010–T-0011** not Done on `main` (T-0009 merged 2026-10-29). | Complete T-0010–T-0011 on `main`; phase-0 review note. |
+| B-0101-2 | T-0101 | **Scaffold:** Research uv/pytest skeleton (T-0009). | Done — T-0009 on `main` @ f6bbe81. |
 | B-0101-3 | T-0101 | **Dependencies:** Parquet write likely needs `pyarrow` (no Accepted ADR on `main`). | Operator accepts ADR for research ingestion deps. |
