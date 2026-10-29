@@ -3,21 +3,21 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-30T00:15:00+0530 by cursor
-- Active ticket: T-0101 (**In review**)
-- Branch: `feat/T-0101-delta-ohlcv-ingestion`
-- Last green commit: (pending) — `T-0101: Delta OHLCV ingest, Parquet store, DQ checks, CLI`
+- Updated: 2026-10-30T00:35:00+0530 by cursor
+- Active ticket: T-0102 (**In review**)
+- Branch: `feat/T-0102-live-tick-capture`
+- Last green commit: (pending) — `T-0102: live tick capture to journal (mock feed, recording only)`
 - Working tree: clean after commit
-- Tests passing at last commit: `just check` on **Darwin arm64**, 2026-10-30 (research pytest **11/11**, CTest **14/14**)
-- Next step (exact): Operator open PR from `feat/T-0101-delta-ohlcv-ingestion` → `main`; confirm Delta data licensing (TODO(operator)) before merge; human review (Class B).
-- Files touched this ticket: `research/` (pyarrow, ingest/store/quality/adjust/cli), `tests/fixtures/delta/`, `services/.../ingestion/README.md`, `PROGRESS.md`
-- Decisions made this session (not yet in ADR): none
-- Open questions: Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1 (Phase 0 sign-off); Delta storage/redistribution rights **TODO(operator)** (licensing note in T-0101)
-- Notes for the next tool: Historical backfill CLI is `uv run tradelab-ohlcv-backfill` from `research/` with `TRADELAB_DATA_ROOT` set. Unit tests use `tests/fixtures/delta/` only (no network).
+- Tests passing at last commit: `just check` on **Darwin arm64**, 2026-10-30 (services ingestion **2/2**, research **11/11**, CTest **16/16**)
+- Next step (exact): Operator open PR `feat/T-0102-live-tick-capture` → `main`; decide Q-16–Q-18 (live instrument list, journal retention, Delta live capture licensing); wire Delta public WS/REST when approved (no new deps without ADR).
+- Files touched this ticket: `services/.../ingestion/`, `services/.../journal/writer.py`, `engine/src/journal/writer.cpp`, `engine/src/marketdata/delta_normalize.cpp`, `engine/tests/`, `tests/fixtures/`, `tests/unit/ingestion/`, `justfile`, `engine/CMakeLists.txt` (multi-source `trading_add_module`), `PROGRESS.md`
+- Decisions made this session (not yet in ADR): CI uses **mock NDJSON feed only**; live Delta network deferred pending operator instrument list and optional WS dependency ADR.
+- Open questions: Q-16–Q-18 (T-0102); Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1; Delta licensing (T-0101/T-0102)
+- Notes for the next tool: Run recorder via `PYTHONPATH=services/src python3 -m tradelab_services.ingestion --mode mock --instruments … --mock-feed …`. Journal root: `TRADELAB_JOURNAL_ROOT`. No order/broker code paths in ingestion package.
 
 ## Current Phase
 
-**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** in review on `feat/T-0101-delta-ohlcv-ingestion`.
+**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done on `main` @ `de58b1c`. **T-0102** in review on `feat/T-0102-live-tick-capture`.
 
 ## Phase 0 Backlog
 
@@ -282,7 +282,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 ## Phase 1 Backlog
 
 ### T-0101: Delta historical OHLCV ingestion + data quality
-- Status: In review
+- Status: Done
 - Phase: 1 · Risk class: B · Depends on: Phase 0 exit; T-0009 (research package)
 - Goal: Historical OHLCV loader (Delta public REST), Parquet under external data root, gap/outlier checks, roll-adjust stub, CLI backfill, fixture tests (no network in unit tests).
 - Acceptance criteria:
@@ -299,6 +299,28 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
   - Parquet path: `{TRADELAB_DATA_ROOT}/ohlcv/delta/symbol={SYMBOL}/resolution={RES}/bars.parquet`.
 - Data licensing (record before merge): Delta Exchange API/historical data use is subject to [Delta Exchange terms](https://www.delta.exchange/legal/terms-of-use) and API documentation; **TODO(operator):** confirm redistribution/storage rights for downloaded candles before production backfills.
 - Files allowed: `research/`, `services/ingestion/`, `tests/`, `tools/`, `PROGRESS.md`, `docs/` (licensing note only)
+- Merged to `main`: `de58b1c` (2026-10-30)
+
+### T-0102: Live tick capture to journal (recording only)
+- Status: In review
+- Phase: 1 · Risk class: B · Depends on: T-0101; journal v1 schema (T-0004)
+- Goal: Delta public market-data recorder → normalized `MarketQuote` / `MarketTrade` / `FeedState` in v1 journal; gap/stale health; clean shutdown with fsync; mock-feed tests (no CI network).
+- Acceptance criteria:
+  - [x] Journal segment writer (Python service + C++ `SegmentWriter`) using v1 codegen only
+  - [x] Delta public message normalization (`engine/.../delta_normalize`, `services/.../delta_normalize.py`)
+  - [x] Recording session: SessionStart → market records → SessionEnd; flush on shutdown
+  - [x] Feed health: sequence gap → `FeedState`; stale tracker (configurable threshold)
+  - [x] CLI `python -m tradelab_services.ingestion` mock mode (no order APIs linked)
+  - [x] Tests: `tests/unit/ingestion/` + CTest journal/marketdata; journal inspect **OK**
+- Evidence (2026-10-30, **Darwin arm64**):
+  - `just check`: services-test **2/2**, research **11/11**, CTest **16/16** (adds `trading_journal_writer_tests`, `trading_marketdata_delta_tests`).
+  - Fixtures: `tests/fixtures/delta/public_feed.ndjson`, `tests/fixtures/ingestion/recording_instruments.toml`.
+- Open questions (T-0102):
+  - **Q-16:** Production instrument list and `instrument_id` map for live Delta symbols — **TODO(operator)**
+  - **Q-17:** Journal segment retention path and rotation policy under `TRADELAB_JOURNAL_ROOT` — **TODO(operator)**
+  - **Q-18:** Delta live public feed licensing / terms for continuous capture — **TODO(operator)** ([terms](https://www.delta.exchange/legal/terms-of-use))
+- Live network: mock feed only in CI; Delta public WS/REST wiring deferred until Q-16–Q-18 and any WS client ADR.
+- Files allowed: `services/ingestion/`, `engine/src/journal/`, `engine/src/marketdata/`, `tests/`, `tools/`, `PROGRESS.md`, `docs/` (notes only). **Amendment:** `engine/CMakeLists.txt` (`trading_add_module` multi-source + test targets), `justfile` (`services-test`).
 
 ## Phase 1 Backlog (legacy note)
 
@@ -323,6 +345,9 @@ Tickets above supersede “Not Yet Ready” once Phase 0 exit is recorded in `do
 | Q-11 | Add Google Benchmark to `vcpkg.json` (ADR) for nightly SPSC regression vs `engine/bench/core/baseline.txt`. T-0005 used std::chrono bench only. | Phase 3 perf gates | Open |
 | Q-14 | Accept `engine/CMakeLists.txt` amendment for T-0011 (`trading_profile` links `trading_core`, exposes `engine/include`). | T-0011 merge | Open — required for loaders |
 | Q-15 | Accept **ADR-0015** (pyarrow, research Parquet only) to clear B-0101-3. | T-0101 | Done — Accepted on `main` @ `ac6c987` (2026-10-30) |
+| Q-16 | Live Delta recording instrument list and `instrument_id` mapping | T-0102 live | Open — fixture map only in repo |
+| Q-17 | Journal segment retention / rotation under `TRADELAB_JOURNAL_ROOT` | T-0102 ops | Open |
+| Q-18 | Delta live public feed capture licensing | T-0102 live | Open — operator confirm terms |
 
 ## Decisions Log
 
@@ -344,6 +369,8 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-10-30 | cursor | T-0102 | (feature commit) | In review | Tick recorder → journal; mock feed tests; no trading. |
+| 2026-10-30 | cursor | T-0101 | `de58b1c` merge | Done | Delta OHLCV on `main`. |
 | 2026-10-30 | cursor | T-0101 | (feature commits) | In review | Delta OHLCV ingest + Parquet + DQ + CLI; ADR-0015 Accepted on main. |
 | 2026-10-29 | cursor | Phase 0 exit | (docs commit) | Pending operator | `docs/reviews/phase-0.md`, ADR-0015 Proposed; T-0101 not started. |
 | 2026-10-29 | cursor | T-0011 | `8726a22` (merge) | Done | Calendar/instrument loaders on `main`. |

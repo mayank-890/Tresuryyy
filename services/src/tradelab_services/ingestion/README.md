@@ -1,5 +1,18 @@
-Tick recorder for paper and live capture, and backfill jobs.
+Tick recorder for paper and live capture (recording only — no order APIs).
 
-Historical OHLCV backfill (Delta public REST → Parquet) is implemented in the research
-package for Phase 1: run `uv run tradelab-ohlcv-backfill` from `research/` with
-`TRADELAB_DATA_ROOT` set. Live tick capture to the journal is a later Phase 1 deliverable.
+## Tick capture (T-0102)
+
+From the repository root:
+
+```bash
+export TRADELAB_JOURNAL_ROOT=/path/to/journal/segments  # TODO(operator): host path
+PYTHONPATH=services/src python3 -m tradelab_services.ingestion \
+  --mode mock \
+  --instruments tests/fixtures/ingestion/recording_instruments.toml \
+  --mock-feed tests/fixtures/delta/public_feed.ndjson
+```
+
+Live Delta public WebSocket or REST polling is not enabled in CI; use mock fixtures.
+TODO(operator): confirm instrument list, retention, and Delta licensing for live capture.
+
+Historical OHLCV backfill remains in the research package (`tradelab-ohlcv-backfill`).
