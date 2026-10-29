@@ -3,17 +3,16 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-29T15:00:00+0530 by cursor
+- Updated: 2026-10-29T18:00:00+0530 by cursor
 - Active ticket: T-0007
 - Branch: feat/T-0007-profiles-promotion
-- Last green commit: 98f83bb — `T-0007: profiles, validator, promotion verifier, paper trader`
-- Working tree: clean
-- Tests passing at last commit: **Darwin arm64** — `just check` (CTest **14/14** incl. `profile_tests`, `trader_version`); `just test-tsan` (**14/14**)
-- Next step (exact): Operator Class A review of T-0007; confirm **ADR-0014** / **Q-13** (vcpkg deps + `engine/CMakeLists.txt` scope). Do not start T-0008 until Done.
-- Files touched this ticket: core headers/sources/tests/bench; `engine/CMakeLists.txt`, `engine/tests/unit/core/CMakeLists.txt`, `justfile` (operator scope amendment 2026-10-29).
-- Decisions made this session (not yet in ADR): Renamed `pinThread` / `pinThreadWarningCount` (TI §4.1 camelCase). macOS `pinThread` returns `Unsupported`; **Linux CI is authority for affinity success path**.
-- Open questions: Q-11; Q-1 through Q-9 unchanged. Q-10 resolved.
-- Notes for the next tool: `run_core_tests.sh` retained as auxiliary; primary path is CTest `core_tests`.
+- Last green commit: 15aa4d6 — `T-0007: update handoff commit SHA` (implementation @ `98f83bb`)
+- Working tree: clean (after PROGRESS commit)
+- Tests passing at last commit: **Darwin arm64** — `just check` (CTest **14/14**); `just test-tsan` (**14/14**); re-verified 2026-10-29 session
+- Next step (exact): Operator Class A review of T-0007; accept **ADR-0014** / resolve **Q-13**; merge `feat/T-0007-profiles-promotion` to `main`. Do not start T-0008 until T-0007 is Done on `main`.
+- Files touched this ticket: `config/`, `engine/src/apps/trader/`, `engine/src/calendar/stub.cpp`, `engine/tests/unit/profile/`, `engine/CMakeLists.txt`, `vcpkg.json`, `docs/adr/ADR-0014.md`, `justfile`, `tools/` (test keys/fixtures only)
+- Open questions: **Q-13** (ADR-0014 vcpkg deps); Q-11; Q-1–Q-7 open; Q-9 resolved (T-0003/T-0004 on `main`).
+- Notes for the next tool: `profile_tests` covers TC-CF-01–09; promotion test keys under `config/qa/` or test fixtures only — no real secrets.
 
 ## Current Phase
 
@@ -74,7 +73,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: pre-commit dry-run on a fixture secret; CI workflow linted (`actionlint` if available)
 
 ### T-0003: CMake superbuild, presets, vcpkg manifest, CTest
-- Status: In review
+- Status: Done (on `main`; build verified via downstream merges through `b98a565`, 2026-10-29)
 - Phase: 0 · Risk class: B · Depends on: T-0002
 - Requirements: TI §3.1–§3.4
 - Goal: Engine builds with each preset; empty targets exist; CTest runs; the watchdog link-restriction check exists (currently passes trivially).
@@ -99,7 +98,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: CTest smoke tests per library; the watchdog link check runs in CI
 
 ### T-0004: Journal schema v1 and codegen
-- Status: In review
+- Status: Done (merged `main` @ b98a565, 2026-10-29)
 - Phase: 0 · Risk class: A · Depends on: T-0003
 - Requirements: FR-JR-01, DESIGN §10, TI §5
 - Goal: `schemas/journal/v1/records.yaml` defines the header and the record types in TI §5.2; a generator produces C++ and Python bindings; drift check in CI.
@@ -118,7 +117,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
   - `just codegen` / `just codegen-check` (drift exits non-zero on mismatch).
   - `schemas/tests/test_journal_round_trip.py` (22 unittest cases); `schemas/tests/journal_round_trip_test.cpp` (all payloads + header); C++/Python byte match on `SessionStart` sample.
   - `just check` passed on `debug-asan` (2026-10-29 session).
-  - Branch stacks T-0003 build (`feat/T-0003-cmake-superbuild` fast-forward) until T-0003 is on `main`.
+  - Merged to `main`: `b98a565` (`Merge T-0004: journal schema v1 and codegen`, 2026-10-29).
 - Files allowed: `schemas/`, `engine/include/trading/journal/`, `services/` (generated only), `research/` (generated only), `justfile`
 - Out of scope: writer or reader logic (T-0008 and Phase 3)
 - Tests required: round-trip per record type; header size and offset tests; codegen drift test
@@ -193,6 +192,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
   - `just check`: CTest **14/14** (`profile_tests`, `trader_version` with secret env)
   - `just test-tsan`: CTest **14/14**
   - ADR-0014 Proposed (`tomlplusplus`, `nlohmann-json`, `openssl` in `vcpkg.json`); **Q-13** open for operator acceptance + CMake scope
+  - Re-verified on branch tip `15aa4d6` (same green results, 2026-10-29 evening session)
 - Files allowed: `config/`, `engine/src/apps/trader/`, `engine/src/calendar/` (stub only), `engine/tests/`, `tools/`
 - Out of scope: strategies, orders, broker adapters
 - Tests required: TC-CF-01 to TC-CF-09 as applicable at Phase 0
@@ -272,7 +272,7 @@ Tickets for Phase 1 are written at the Phase 0 exit review. Do not begin them in
 | Q-6 | Tool-switch notification: how the operator signals Codex limit reached | Process only | Open (operator preference) |
 | Q-7 | Confirm `.gitignore` should anchor `/data/` and `/secrets/` at the repository root. Unanchored `data/` would ignore `research/src/tradelab/data/`. Unanchored `secrets/` would ignore `deploy/secrets/` (layout documentation, no values). T-0001 used the anchored form so those skeleton paths stay tracked. | none for T-0001 review | Open |
 | Q-8 | Add `.vcpkg/` to `.gitignore` (local vcpkg clone from `just setup-vcpkg`). | none | Done — merged to `main` at `e5c43aa` (2026-10-29) |
-| Q-9 | T-0004 branch stacks `feat/T-0003-cmake-superbuild` until T-0003 is on `main`. Confirm PR base and merge order with operator. | T-0004 review | Open |
+| Q-9 | T-0004 branch stacks `feat/T-0003-cmake-superbuild` until T-0003 is on `main`. Confirm PR base and merge order with operator. | T-0004 review | Done — T-0003/T-0004 on `main` (`b98a565`); PROGRESS updated 2026-10-29 |
 | Q-10 | Wire `core_tests` into CTest and add `just test-tsan`. | T-0005 CI | Done — merged in `ffaece3` |
 | Q-12 | Partitioned-table unique keys include `event_time` (option A). | T-0006 | Done — operator approved 2026-10-29; ADR-0013 Accepted |
 | Q-13 | Accept ADR-0014 (`tomlplusplus`, `nlohmann-json`, `openssl` in `vcpkg.json`) and `engine/CMakeLists.txt` / `vcpkg.json` edits for T-0007. | T-0007 merge | Open — implemented pending operator sign-off |
@@ -297,6 +297,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-10-29 | cursor | T-0007 | (pending) | In review | Re-ran `just check` + `test-tsan` 14/14; marked T-0003/T-0004 Done on `main`; handoff refreshed. |
 | 2026-10-29 | cursor | T-0005 | `e0f2d4d`, `3d11e6c` | In review | Core Clock, SpscRing, ObjectPool, LogQueue, pin_thread, allocation hook; 10M SPSC stress; TSan clean. |
 | 2026-10-29 | cursor | T-0004 | `890a6c5`, `574d14c` | In review | Journal v1 schema, codegen drift check, C++/Python round-trip tests; branch includes T-0003 build. |
 | 2026-10-29 | cursor | T-0003 | `4e544e6`, PROGRESS commit | In review | CMake superbuild, six presets, vcpkg gtest, empty engine targets, watchdog link check. |
