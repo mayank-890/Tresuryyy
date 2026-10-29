@@ -1,4 +1,7 @@
 find_package(GTest CONFIG REQUIRED)
+find_package(tomlplusplus CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 function(trading_add_module target source)
   add_library(${target} STATIC ${source})
@@ -53,21 +56,32 @@ trading_add_module(trading_control src/control/module.cpp)
 target_link_libraries(trading_control PUBLIC trading_core trading_journal)
 trading_add_smoke_test(trading_control)
 
+add_library(trading_profile STATIC
+            src/apps/trader/toml_json.cpp
+            src/apps/trader/content_hash.cpp
+            src/apps/trader/schema_validator.cpp
+            src/apps/trader/secret_store.cpp
+            src/apps/trader/promotion_verifier.cpp
+            src/apps/trader/profile_startup.cpp
+            src/calendar/stub.cpp)
+target_include_directories(trading_profile PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/apps/trader")
+target_link_libraries(
+  trading_profile
+  PUBLIC tomlplusplus::tomlplusplus nlohmann_json::nlohmann_json OpenSSL::Crypto)
+target_compile_features(trading_profile PUBLIC cxx_std_20)
+
 add_executable(trader src/apps/trader/main.cpp)
 target_compile_definitions(trader PRIVATE TRADING_SYSTEM_VERSION="${CMAKE_PROJECT_VERSION}")
-target_link_libraries(
-  trader
-  PRIVATE trading_marketdata
-          trading_strategy
-          trading_risk
-          trading_orders
-          trading_journal
-          trading_broker_common
-          trading_broker_delta
-          trading_broker_mock
-          trading_control)
-add_test(NAME trader_version COMMAND trader)
-set_tests_properties(trader_version PROPERTIES PASS_REGULAR_EXPRESSION "trading-engine 0\\.1\\.0")
+target_link_libraries(trader PRIVATE trading_profile)
+add_test(NAME trader_version COMMAND trader --profile paper --config-root
+                                             "${CMAKE_SOURCE_DIR}/config" --smoke)
+set_tests_properties(
+  trader_version
+  PROPERTIES
+    ENVIRONMENT "TRADING_SECRET_TRADING_PG_PROJECTOR=ci-test-secret-not-real"
+    PASS_REGULAR_EXPRESSION "RUNNING \\(no trading logic\\)")
+
+add_subdirectory(tests/unit/profile)
 
 if(TRADING_BUILD_WATCHDOG)
   add_executable(watchdog src/apps/watchdog/main.cpp)

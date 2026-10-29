@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://trading.local/schema/profile.schema.json",
+  "title": "Trading engine profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile",
+    "execution",
+    "market_data",
+    "journal",
+    "risk",
+    "database",
+    "control"
+  ],
+  "properties": {
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "mode", "engine_build_required"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "mode": { "type": "string", "enum": ["paper", "testnet", "live"] },
+        "engine_build_required": { "type": "string", "minLength": 1 }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapter", "client_id_prefix_source"],
+      "properties": {
+        "adapter": {
+          "type": "string",
+          "enum": ["mock", "delta_testnet", "delta_live", "groww"]
+        },
+        "client_id_prefix_source": { "type": "string", "minLength": 1 }
+      }
+    },
+    "market_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["instruments_file", "calendar", "stale_threshold_ms"],
+      "properties": {
+        "instruments_file": { "type": "string", "minLength": 1 },
+        "calendar": { "type": "string", "minLength": 1 },
+        "stale_threshold_ms": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "journal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["root", "segment_max_mb", "group_commit_ms"],
+      "properties": {
+        "root": { "type": "string", "minLength": 1 },
+        "segment_max_mb": { "type": "integer", "minimum": 1 },
+        "group_commit_ms": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "risk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["limits_source", "tighten_overrides_file"],
+      "properties": {
+        "limits_source": { "type": "string", "enum": ["compiled"] },
+        "tighten_overrides_file": { "type": "string", "minLength": 1 }
+      }
+    },
+    "database": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url_secret"],
+      "properties": {
+        "url_secret": { "type": "string", "minLength": 1 }
+      }
+    },
+    "control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["socket"],
+      "properties": {
+        "socket": { "type": "string", "minLength": 1 }
+      }
+    },
+    "promotion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "public_key_pem"],
+      "properties": {
+        "file": { "type": "string", "minLength": 1 },
+        "public_key_pem": { "type": "string", "minLength": 1 }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "profile": { "properties": { "mode": { "const": "live" } } } }
+      },
+      "then": { "required": ["promotion"] }
+    }
+  ]
+}

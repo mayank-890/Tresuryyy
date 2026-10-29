@@ -3,13 +3,13 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-29T14:30:00+0530 by cursor
-- Active ticket: T-0006
-- Branch: feat/T-0006-db-migrations
-- Last green commit: 773ba95 — `T-0006: resolve Q-12, deterministic event_time`
-- Working tree: clean
-- Tests passing at last commit: **Darwin arm64** — `just check` (CTest 13/13); `just db-migrate-cycle`; `just test-db` (partitions, ON CONFLICT, privilege deny, drop guard)
-- Next step (exact): Operator Class A review of T-0006 (Q-12 resolved, ADR-0013); do not start T-0007 until Done.
+- Updated: 2026-10-29T15:00:00+0530 by cursor
+- Active ticket: T-0007
+- Branch: feat/T-0007-profiles-promotion
+- Last green commit: (pending) — `T-0007: profiles, validator, promotion verifier, paper trader`
+- Working tree: pending commit
+- Tests passing at last commit: **Darwin arm64** — `just check` (CTest **14/14** incl. `profile_tests`, `trader_version`); `just test-tsan` (**14/14**)
+- Next step (exact): Operator Class A review of T-0007; confirm **ADR-0014** / **Q-13** (vcpkg deps + `engine/CMakeLists.txt` scope). Do not start T-0008 until Done.
 - Files touched this ticket: core headers/sources/tests/bench; `engine/CMakeLists.txt`, `engine/tests/unit/core/CMakeLists.txt`, `justfile` (operator scope amendment 2026-10-29).
 - Decisions made this session (not yet in ADR): Renamed `pinThread` / `pinThreadWarningCount` (TI §4.1 camelCase). macOS `pinThread` returns `Unsupported`; **Linux CI is authority for affinity success path**.
 - Open questions: Q-11; Q-1 through Q-9 unchanged. Q-10 resolved.
@@ -175,20 +175,24 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: migration apply, down, re-apply; partition creation test; constraint tests (duplicate insert ignored by ON CONFLICT pattern)
 
 ### T-0007: Profiles, validator, promotion verifier, paper start
-- Status: Backlog
+- Status: In review
 - Phase: 0 · Risk class: A · Depends on: T-0003
 - Requirements: FR-OP-01, FR-OP-02 (scaffold only), TI §8, DESIGN §13
 - Goal: Profiles are validated strictly; the engine starts in paper mode with no trading; live refuses without a valid promotion file.
 - Acceptance criteria:
-  - [ ] `config/schema/profile.schema.json` and `config/profiles/paper.toml`, `testnet.toml`, `live.toml` (live has no active values; placeholders marked `TODO(operator)`)
-  - [ ] Validator rejects unknown keys and missing name (TC-CF-01, TC-CF-02)
-  - [ ] Profile content hash computed and printed at start
-  - [ ] Promotion verifier implemented against a documented format; tests use test keys only, never real keys (TC-CF-03 to TC-CF-06)
-  - [ ] Live profile refuses to start without a valid promotion file (TC-CF-03)
-  - [ ] Groww adapter referenced while flag OFF fails startup (TC-CF-08)
-  - [ ] Secret references resolved by name; a missing secret fails startup without printing values (TC-CF-09)
-  - [ ] `trader --profile paper` starts, logs `RUNNING (no trading logic)`, and exits cleanly on SIGTERM
+  - [x] `config/schema/profile.schema.json`, `promotion.schema.json`; `config/profiles/paper.toml`, `testnet.toml`, `live.toml` (live placeholders `TODO(operator)`)
+  - [x] Validator rejects unknown keys and missing name (TC-CF-01, TC-CF-02) — `profile_tests`
+  - [x] Profile content hash computed and printed at start (`config_hash=`, `journal_config_hash_recorded=`)
+  - [x] Promotion verifier (JSON + Ed25519 via OpenSSL); runtime test keys only (TC-CF-03–TC-CF-06, valid signed promotion pass)
+  - [x] Live without promotion file fails (TC-CF-03); logs `event=AL-13-equiv`
+  - [x] Groww adapter with `TRADING_ENABLE_GROWW=OFF` fails (TC-CF-08)
+  - [x] Missing secret fails without printing value (TC-CF-09)
+  - [x] `trader --profile paper --config-root config --smoke` → `RUNNING (no trading logic)`; SIGTERM path in `main` (manual / future UI test)
   - [ ] Human review required (Class A)
+- Evidence (2026-10-29, **Darwin arm64**):
+  - `just check`: CTest **14/14** (`profile_tests`, `trader_version` with secret env)
+  - `just test-tsan`: CTest **14/14**
+  - ADR-0014 Proposed (`tomlplusplus`, `nlohmann-json`, `openssl` in `vcpkg.json`); **Q-13** open for operator acceptance + CMake scope
 - Files allowed: `config/`, `engine/src/apps/trader/`, `engine/src/calendar/` (stub only), `engine/tests/`, `tools/`
 - Out of scope: strategies, orders, broker adapters
 - Tests required: TC-CF-01 to TC-CF-09 as applicable at Phase 0
@@ -271,6 +275,7 @@ Tickets for Phase 1 are written at the Phase 0 exit review. Do not begin them in
 | Q-9 | T-0004 branch stacks `feat/T-0003-cmake-superbuild` until T-0003 is on `main`. Confirm PR base and merge order with operator. | T-0004 review | Open |
 | Q-10 | Wire `core_tests` into CTest and add `just test-tsan`. | T-0005 CI | Done — merged in `ffaece3` |
 | Q-12 | Partitioned-table unique keys include `event_time` (option A). | T-0006 | Done — operator approved 2026-10-29; ADR-0013 Accepted |
+| Q-13 | Accept ADR-0014 (`tomlplusplus`, `nlohmann-json`, `openssl` in `vcpkg.json`) and `engine/CMakeLists.txt` / `vcpkg.json` edits for T-0007. | T-0007 merge | Open — implemented pending operator sign-off |
 | Q-11 | Add Google Benchmark to `vcpkg.json` (ADR) for nightly SPSC regression vs `engine/bench/core/baseline.txt`. T-0005 used std::chrono bench only. | Phase 3 perf gates | Open |
 
 ## Decisions Log

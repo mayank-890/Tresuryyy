@@ -1,0 +1,30 @@
+# SAMPLE — Delta testnet profile (no secrets in repo).
+
+[profile]
+name = "testnet"
+mode = "testnet"
+engine_build_required = ">=0.1.0"
+
+[execution]
+adapter = "delta_testnet"
+client_id_prefix_source = "counter"
+
+[market_data]
+instruments_file = "config/instruments/delta_crypto.toml"
+calendar = "config/calendars/crypto_24x7.toml"
+stale_threshold_ms = 3000 # TODO(operator): confirm per instrument class
+
+[journal]
+root = "data/journal"
+segment_max_mb = 256
+group_commit_ms = 2
+
+[risk]
+limits_source = "compiled"
+tighten_overrides_file = "config/risk/overrides.toml"
+
+[database]
+url_secret = "trading/pg/projector"
+
+[control]
+socket = "/tmp/trading/control.sock"

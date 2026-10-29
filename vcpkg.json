@@ -3,7 +3,10 @@
   "name": "trading-system",
   "version-string": "0.1.0",
   "dependencies": [
-    "gtest"
+    "gtest",
+    "tomlplusplus",
+    "nlohmann-json",
+    "openssl"
   ],
   "builtin-baseline": "15b12b99a227d51e21c86dffd40385439eac87a0"
 }

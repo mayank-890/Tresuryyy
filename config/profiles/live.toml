@@ -1,0 +1,34 @@
+# SAMPLE — NOT FOR TRADING. Class A. No active operator values.
+
+[profile]
+name = "live"
+mode = "live"
+engine_build_required = "TODO(operator)"
+
+[execution]
+adapter = "TODO(operator)"
+client_id_prefix_source = "TODO(operator)"
+
+[market_data]
+instruments_file = "TODO(operator)"
+calendar = "TODO(operator)"
+stale_threshold_ms = 0 # TODO(operator)
+
+[journal]
+root = "TODO(operator)"
+segment_max_mb = 0 # TODO(operator)
+group_commit_ms = 0 # TODO(operator)
+
+[risk]
+limits_source = "compiled"
+tighten_overrides_file = "TODO(operator)"
+
+[database]
+url_secret = "TODO(operator)"
+
+[control]
+socket = "TODO(operator)"
+
+[promotion]
+file = "TODO(operator)"
+public_key_pem = "TODO(operator)"
