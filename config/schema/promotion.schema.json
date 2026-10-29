@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://trading.local/schema/promotion.schema.json",
+  "title": "Live promotion file (DESIGN §13.2)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "release_tag",
+    "engine_build_hash",
+    "config_hash",
+    "paper_report_hash",
+    "approver",
+    "approved_at",
+    "expires_at",
+    "signature"
+  ],
+  "properties": {
+    "format_version": { "type": "integer", "const": 1 },
+    "release_tag": { "type": "string", "minLength": 1 },
+    "engine_build_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "config_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "paper_report_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "approver": { "type": "string", "minLength": 1 },
+    "approved_at": { "type": "string", "minLength": 1 },
+    "expires_at": { "type": "string", "minLength": 1 },
+    "signature": { "type": "string", "minLength": 1 }
+  }
+}
