@@ -297,7 +297,16 @@ Total fixed header: 40 bytes.
 
 ## 11. Persistence Projection (PostgreSQL)
 
-The projector reads journal records in sequence order and writes batches with `COPY`. Every projected row includes the source sequence number. Inserts use `ON CONFLICT DO NOTHING` on `(source_segment, sequence)` so replays are harmless.
+The projector reads journal records in sequence order and writes batches with `COPY`. Every projected row includes:
+
+- `source_segment` — journal segment file identifier
+- `source_sequence` — the record header `sequence` field (DESIGN §10.1)
+- `event_time` — `timestamptz` converted from the record header `wall_ns` field (UTC audit time, §10.1 offset 24). The projector must not use `now()`, ingestion time, or any other clock for `event_time`.
+
+Idempotent inserts use `ON CONFLICT DO NOTHING`:
+
+- Non-partitioned projected tables: `(source_segment, source_sequence)`
+- Range-partitioned append tables: `(source_segment, source_sequence, event_time)` (PostgreSQL requires the partition key in unique constraints; ADR-0013)
 
 | Table | Content | Write pattern | Partitioning |
 |---|---|---|---|
@@ -425,5 +434,6 @@ Log redaction is applied at the logger. Any value tagged as secret is rendered a
 | ADR-0010 | Watchdog is a separate process with separate credentials and a minimal link set | Accepted |
 | ADR-0011 | Logging library selection | Proposed (see TECHNICAL_IMPLEMENTATION.md §7) |
 | ADR-0012 | Numeric production risk limits | Pending (Phase 7 gate) |
+| ADR-0013 | Partitioned projection unique keys include `event_time` | Accepted |
 
 New ADRs go in `docs/adr/` using the template in PROCESS_PROJECT_MANAGEMENT.md §5.6. ADRs are never deleted; superseded ADRs are marked as such.

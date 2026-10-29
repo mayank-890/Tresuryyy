@@ -352,10 +352,13 @@ Initial migration creates:
 - Roles: `projector_writer`, `control_api_reader`, `report_reader`. Least privilege; no superuser for applications.
 - Tables from DESIGN_ARCHITECTURE.md §11, with partitioning
 - Indexes:
-  - BRIN on time columns for tick and event tables
+  - BRIN on `event_time` for tick and event tables
   - B-tree on `(client_order_id)` for `orders`
-  - B-tree on `(strategy_id, instrument_id, time)` for `fills`
-- Unique constraints on `(source_segment, source_sequence)` for every projected table
+  - B-tree on `(strategy_id, instrument_id, event_time)` for `fills`
+- Unique constraints (idempotency):
+  - Non-partitioned projected tables: `(source_segment, source_sequence)`
+  - Partitioned append tables: `(source_segment, source_sequence, event_time)` (ADR-0013)
+- Column `event_time` on every projected row is `timestamptz` from the journal header `wall_ns` field (DESIGN §10.1). No `DEFAULT now()` on projected `event_time` columns.
 
 ### 11.2 Partition Management
 
@@ -365,6 +368,7 @@ Initial migration creates:
 
 ### 11.3 Projector Batching
 
+- Map each journal record to PostgreSQL with `event_time = timestamptz from header.wall_ns` (integer nanoseconds since Unix epoch, UTC). Replaying the same segment and sequence must produce the same `event_time`.
 - Batch size: 5,000 rows or 500 ms, whichever first.
 - Each batch is one transaction. `synchronous_commit = off` allowed only for `market_ticks` and `candles_1m`.
 - Batch commit writes the last projected journal sequence to `projection_checkpoint`. Restart resumes from that checkpoint.
