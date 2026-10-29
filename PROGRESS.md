@@ -3,17 +3,17 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-29T00:20:46+0530 by cursor
-- Active ticket: T-0002
-- Branch: chore/T-0002-hooks-ci-skeleton
-- Last green commit: e3bf1dca0a24bd04e4c9af4d9a7f4054ef8e3aef "T-0002: add pre-commit hooks, gitleaks config, and CI skeleton"
-- Working tree: clean after PROGRESS commit (revert unstaged `.gitkeep` EOF noise from pre-commit before committing PROGRESS)
-- Tests passing at last commit: `tools/check_repo_skeleton.sh` → `skeleton check passed (287 paths)`; `tools/check_large_files.sh` → `large-file check passed`; `PATH=.venv/bin:$PATH pre-commit run --all-files` → all hooks Passed on the committed tree; `PATH=.venv/bin:$PATH ./tools/precommit_fixture_secret_demo.sh` → gitleaks Failed (exit 1), `generic-api-key` on ephemeral `tools/_precommit_demo_ephemeral.txt`. `just check` not run (`justfile` is T-0003). `actionlint` not available on PATH.
-- Next step (exact): Operator reviews branch `chore/T-0002-hooks-ci-skeleton`. Merge after review. Do not start T-0003 until T-0002 is Done. PR not opened: no remote.
-- Files touched this ticket: `.pre-commit-config.yaml`, `.gitleaks.toml`, `.github/workflows/ci.yml`, `tools/check_large_files.sh`, `tools/precommit_fixture_secret_demo.sh`, and this PROGRESS update.
-- Decisions made this session (not yet in ADR): `.gitleaks.toml` uses `[extend] useDefault = true` with an empty allowlist so default rules run. Synthetic secret demo generates a runtime `api_key=` value (no literal secret in git). Local pre-commit uses `.venv/bin/pre-commit` (`.venv/` is gitignored; not a committed dependency).
-- Open questions: Q-1 through Q-7 unchanged.
-- Notes for the next tool: T-0001 is Done on `main` at merge `09cfc89`. T-0002 is In review. CI job IDs match TESTING_QA.md §10 plus `large-file-check` and `skeleton-check`. Placeholder jobs echo `TODO(T-0003)` or later ticket IDs. Install hooks with `python3 -m venv .venv && .venv/bin/pip install pre-commit && .venv/bin/pre-commit install`.
+- Updated: 2026-10-29T01:15:00+0530 by cursor
+- Active ticket: T-0004
+- Branch: feat/T-0004-journal-schema
+- Last green commit: 574d14c2 — `T-0004: record review evidence`
+- Working tree: clean after PROGRESS commit
+- Tests passing at last commit: `just check` (2026-10-29): `just codegen-check` passed; `just test-journal-schema` passed (22 Python unittest cases, C++ round-trip binary); CTest `debug-asan` 12/12; watchdog link check passed.
+- Next step (exact): Operator Class A review of T-0004. Merge `feat/T-0004-journal-schema` only after human approval. Wire CI `codegen-drift` / `journal-compat` placeholders in a follow-up if needed. Do not start T-0005 until T-0004 is Done.
+- Files touched this ticket: `schemas/journal/v1/records.yaml`, `schemas/codegen/`, `schemas/tests/`, `schemas/journal/CHANGELOG.md`, generated bindings under `engine/include/trading/journal/generated/`, `services/.../generated.py`, `research/.../generated.py`, `justfile` (`codegen`, `codegen-check`, `test-journal-schema`, extended `check`).
+- Decisions made this session (not yet in ADR): Branch includes fast-forward of `feat/T-0003-cmake-superbuild` because `main` lacks `justfile`/CMake (T-0003 not merged). Journal round-trip tests live under `schemas/tests/` (stdlib `unittest` + standalone C++ binary) to stay within T-0004 files allowed. Payload field layouts for v1 follow TI §5.2 summaries with packed little-endian scalars, `utf8` length-prefixed strings, and fixed-width ASCII.
+- Open questions: Q-9 — confirm T-0004 PR base should be `main` after T-0003 merge or stack on T-0003 branch. Q-1 through Q-8 unchanged.
+- Notes for the next tool: T-0003 still In review on its own branch. T-0004 is In review on `feat/T-0004-journal-schema`. No secrets or live settings in schema or tests.
 
 ## Current Phase
 
@@ -53,7 +53,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: none beyond a script check that every required file exists (`tools/check_repo_skeleton.sh`, added in this ticket)
 
 ### T-0002: Hooks, secret scanning, CI skeleton
-- Status: In review
+- Status: Done
 - Phase: 0 · Risk class: C (CI safety gates: A) · Depends on: T-0001
 - Requirements: NFR-SEC-01, TI §10.2, TI §10.3, TESTING_QA §10
 - Goal: Pre-commit hooks and a CI workflow that run on every PR and currently build nothing.
@@ -68,41 +68,57 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
   - `.github/workflows/ci.yml`: jobs `secret-scan`, `large-file-check`, `skeleton-check` run real checks; TESTING_QA.md §10 job IDs are present as placeholders (`build-debug-asan` through `coverage-thresholds`).
   - Secret demo command: `PATH=.venv/bin:$PATH ./tools/precommit_fixture_secret_demo.sh`. Output included `Detect hardcoded secrets... Failed`, gitleaks exit 1, `RuleID: generic-api-key`, file `tools/_precommit_demo_ephemeral.txt` (removed after run; not committed).
   - `actionlint`: not available on PATH (recorded; not blocking T-0002).
-  - PR not opened: no remote.
+  - Merged to `main`: `756a218` (includes hooks, CI skeleton, and PROGRESS handoff). Remote: `origin` → https://github.com/mayank-890/Tresuryyy.git
 - Files allowed: `.pre-commit-config.yaml`, `.gitleaks.toml`, `.github/workflows/`, `tools/`
 - Out of scope: any build step
 - Tests required: pre-commit dry-run on a fixture secret; CI workflow linted (`actionlint` if available)
 
 ### T-0003: CMake superbuild, presets, vcpkg manifest, CTest
-- Status: Backlog
+- Status: In review
 - Phase: 0 · Risk class: B · Depends on: T-0002
 - Requirements: TI §3.1–§3.4
 - Goal: Engine builds with each preset; empty targets exist; CTest runs; the watchdog link-restriction check exists (currently passes trivially).
 - Acceptance criteria:
-  - [ ] Top-level `CMakeLists.txt` and `CMakePresets.json` with presets: `debug-asan`, `debug-tsan`, `debug-ubsan`, `release`, `bench`, `coverage`
-  - [ ] Options: `TRADING_ENABLE_GROWW=OFF`, `TRADING_BUILD_BINDINGS=OFF`, `TRADING_BUILD_WATCHDOG=ON`, `TRADING_ENABLE_LIVE_PROFILE=OFF`. Groww option verified OFF in every preset.
-  - [ ] `vcpkg.json` with GoogleTest only at this stage; baseline pinned
-  - [ ] Empty static libraries from TI §3.3 exist with one smoke test each
-  - [ ] `trader` and `watchdog` placeholder executables print version and exit 0
-  - [ ] `just build` and `just test` work on each preset
-  - [ ] A check script fails if `watchdog` links any `trading_strategy` or `trading_risk` target
+  - [x] Top-level `CMakeLists.txt` and `CMakePresets.json` with presets: `debug-asan`, `debug-tsan`, `debug-ubsan`, `release`, `bench`, `coverage`
+  - [x] Options: `TRADING_ENABLE_GROWW=OFF`, `TRADING_BUILD_BINDINGS=OFF`, `TRADING_BUILD_WATCHDOG=ON`, `TRADING_ENABLE_LIVE_PROFILE=OFF`. Groww option verified OFF in every preset.
+  - [x] `vcpkg.json` with GoogleTest only at this stage; baseline pinned
+  - [x] Empty static libraries from TI §3.3 exist with one smoke test each
+  - [x] `trader` and `watchdog` placeholder executables print version and exit 0
+  - [x] `just build` and `just test` work on each preset
+  - [x] A check script fails if `watchdog` links any `trading_strategy` or `trading_risk` target
+- Evidence:
+  - `CMakePresets.json` defines six configure/build/test presets; each sets `TRADING_ENABLE_GROWW=OFF` via hidden `vcpkg-base`.
+  - `CMakeLists.txt` declares options with Groww fatal if enabled; `enable_testing()` before `add_subdirectory(engine)`.
+  - `vcpkg.json` lists only `gtest`; `builtin-baseline` `15b12b99a227d51e21c86dffd40385439eac87a0`.
+  - `engine/CMakeLists.txt` builds TI §3.3 libraries (Groww adapter omitted), `trader`, `watchdog`, and `*_tests` smoke executables (10 libraries).
+  - `trader` / `watchdog` print `trading-engine 0.1.0 (placeholder)` and `trading-watchdog 0.1.0 (placeholder)`; CTest `trader_version` and `watchdog_version` pass.
+  - `just check <preset>` passed for all six presets (2026-10-29 session).
+  - `tools/check_watchdog_links.sh` inspects Ninja link line; passes on all preset build dirs.
 - Files allowed: `engine/`, `CMakeLists.txt`, `CMakePresets.json`, `vcpkg.json`, `justfile`, `tools/`
 - Out of scope: real logic in any module; third-party libraries beyond GoogleTest (each needs an ADR)
 - Tests required: CTest smoke tests per library; the watchdog link check runs in CI
 
 ### T-0004: Journal schema v1 and codegen
-- Status: Backlog
+- Status: In review
 - Phase: 0 · Risk class: A · Depends on: T-0003
 - Requirements: FR-JR-01, DESIGN §10, TI §5
 - Goal: `schemas/journal/v1/records.yaml` defines the header and the record types in TI §5.2; a generator produces C++ and Python bindings; drift check in CI.
 - Acceptance criteria:
-  - [ ] Header layout exactly as DESIGN §10.1 (40 bytes, little-endian); static assertion on size and offsets in C++
-  - [ ] Record type IDs as in TI §5.2
-  - [ ] `just codegen` generates `records.hpp`, `services/.../generated.py`, `research/.../generated.py`
-  - [ ] `just codegen` fails if output differs from committed files
-  - [ ] Round-trip test: encode and decode each record type in C++ and Python; results identical
-  - [ ] `schemas/journal/CHANGELOG.md` created with v1 entry
+  - [x] Header layout exactly as DESIGN §10.1 (40 bytes, little-endian); static assertion on size and offsets in C++
+  - [x] Record type IDs as in TI §5.2
+  - [x] `just codegen` generates `records.hpp`, `services/.../generated.py`, `research/.../generated.py`
+  - [x] `just codegen` fails if output differs from committed files
+  - [x] Round-trip test: encode and decode each record type in C++ and Python; results identical
+  - [x] `schemas/journal/CHANGELOG.md` created with v1 entry
   - [ ] Human review required (Class A). Do not merge without it.
+- Evidence:
+  - `schemas/journal/v1/records.yaml`: 40-byte header fields at DESIGN §10.1 offsets; 18 record types with IDs `0x0001`–`0x0051` per TI §5.2.
+  - `schemas/codegen/generate.py` + `load_schema.py` (stdlib YAML subset parser; no new dependencies).
+  - Generated: `engine/include/trading/journal/generated/records.hpp` (`static_assert` size/offsets, CRC32C, encode/decode per type); matching Python modules under `services/` and `research/`.
+  - `just codegen` / `just codegen-check` (drift exits non-zero on mismatch).
+  - `schemas/tests/test_journal_round_trip.py` (22 unittest cases); `schemas/tests/journal_round_trip_test.cpp` (all payloads + header); C++/Python byte match on `SessionStart` sample.
+  - `just check` passed on `debug-asan` (2026-10-29 session).
+  - Branch stacks T-0003 build (`feat/T-0003-cmake-superbuild` fast-forward) until T-0003 is on `main`.
 - Files allowed: `schemas/`, `engine/include/trading/journal/`, `services/` (generated only), `research/` (generated only), `justfile`
 - Out of scope: writer or reader logic (T-0008 and Phase 3)
 - Tests required: round-trip per record type; header size and offset tests; codegen drift test
@@ -237,6 +253,7 @@ Tickets for Phase 1 are written at the Phase 0 exit review. Do not begin them in
 | Q-6 | Tool-switch notification: how the operator signals Codex limit reached | Process only | Open (operator preference) |
 | Q-7 | Confirm `.gitignore` should anchor `/data/` and `/secrets/` at the repository root. Unanchored `data/` would ignore `research/src/tradelab/data/`. Unanchored `secrets/` would ignore `deploy/secrets/` (layout documentation, no values). T-0001 used the anchored form so those skeleton paths stay tracked. | none for T-0001 review | Open |
 | Q-8 | Add `.vcpkg/` to `.gitignore` (local vcpkg clone from `just setup-vcpkg`). | none | Done — merged to `main` at `e5c43aa` (2026-10-29) |
+| Q-9 | T-0004 branch stacks `feat/T-0003-cmake-superbuild` until T-0003 is on `main`. Confirm PR base and merge order with operator. | T-0004 review | Open |
 
 ## Decisions Log
 
@@ -256,7 +273,10 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-10-29 | cursor | T-0002 | `09cfc89` (merge T-0001), `e3bf1dc`, PROGRESS commit | In review | Merged T-0001 to `main`. T-0002 hooks + CI skeleton. Pre-commit demo blocked synthetic secret. PR not opened: no remote. |
+| 2026-10-29 | cursor | T-0004 | `890a6c5`, `574d14c` | In review | Journal v1 schema, codegen drift check, C++/Python round-trip tests; branch includes T-0003 build. |
+| 2026-10-29 | cursor | T-0003 | `4e544e6`, PROGRESS commit | In review | CMake superbuild, six presets, vcpkg gtest, empty engine targets, watchdog link check. |
+| 2026-10-29 | cursor | T-0002 | `756a218` on `main` | Done | Hooks + CI skeleton; pushed to GitHub `origin`. |
+| 2026-10-29 | cursor | T-0002 | `09cfc89` (merge T-0001), `e3bf1dc`, PROGRESS commit | Done | Merged T-0001 to `main`. T-0002 hooks + CI skeleton. Pre-commit demo blocked synthetic secret. |
 | 2026-10-29 | cursor | T-0001 | `8086b9f`, `a9defd7`, and the commit that adds this row | Done | Repo was empty. `git` 2.54.0. `user.name` and `user.email` were set. No remote configured. `just` is not on PATH and was not installed. `tools/check_repo_skeleton.sh`: `skeleton check passed (287 paths)`. PR not opened: no remote. |
 | 2026-10-25 | human | — | — | Kickoff documents created | Starting point for T-0001 |
 
