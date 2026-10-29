@@ -3,17 +3,17 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-29T01:15:00+0530 by cursor
-- Active ticket: T-0004
-- Branch: feat/T-0004-journal-schema
-- Last green commit: 574d14c2 — `T-0004: record review evidence`
+- Updated: 2026-10-29T13:10:00+0530 by cursor
+- Active ticket: T-0005
+- Branch: feat/T-0005-core-primitives
+- Last green commit: 42bbf60 — `T-0005: rename to camelCase, wire core tests into CTest and test-tsan`
 - Working tree: clean after PROGRESS commit
-- Tests passing at last commit: `just check` (2026-10-29): `just codegen-check` passed; `just test-journal-schema` passed (22 Python unittest cases, C++ round-trip binary); CTest `debug-asan` 12/12; watchdog link check passed.
-- Next step (exact): Operator Class A review of T-0004. Merge `feat/T-0004-journal-schema` only after human approval. Wire CI `codegen-drift` / `journal-compat` placeholders in a follow-up if needed. Do not start T-0005 until T-0004 is Done.
-- Files touched this ticket: `schemas/journal/v1/records.yaml`, `schemas/codegen/`, `schemas/tests/`, `schemas/journal/CHANGELOG.md`, generated bindings under `engine/include/trading/journal/generated/`, `services/.../generated.py`, `research/.../generated.py`, `justfile` (`codegen`, `codegen-check`, `test-journal-schema`, extended `check`).
-- Decisions made this session (not yet in ADR): Branch includes fast-forward of `feat/T-0003-cmake-superbuild` because `main` lacks `justfile`/CMake (T-0003 not merged). Journal round-trip tests live under `schemas/tests/` (stdlib `unittest` + standalone C++ binary) to stay within T-0004 files allowed. Payload field layouts for v1 follow TI §5.2 summaries with packed little-endian scalars, `utf8` length-prefixed strings, and fixed-width ASCII.
-- Open questions: Q-9 — confirm T-0004 PR base should be `main` after T-0003 merge or stack on T-0003 branch. Q-1 through Q-8 unchanged.
-- Notes for the next tool: T-0003 still In review on its own branch. T-0004 is In review on `feat/T-0004-journal-schema`. No secrets or live settings in schema or tests.
+- Tests passing at last commit: `just check` on **Darwin arm64** (debug-asan): CTest **13/13** including `core_tests`; `just test-tsan` on **Darwin arm64**: CTest **13/13** including `core_tests` (~8.3s under TSan).
+- Next step (exact): Operator Class A review of T-0005. Do not start T-0006 until T-0005 is Done.
+- Files touched this ticket: core headers/sources/tests/bench; `engine/CMakeLists.txt`, `engine/tests/unit/core/CMakeLists.txt`, `justfile` (operator scope amendment 2026-10-29).
+- Decisions made this session (not yet in ADR): Renamed `pinThread` / `pinThreadWarningCount` (TI §4.1 camelCase). macOS `pinThread` returns `Unsupported`; **Linux CI is authority for affinity success path**.
+- Open questions: Q-11; Q-1 through Q-9 unchanged. Q-10 resolved.
+- Notes for the next tool: `run_core_tests.sh` retained as auxiliary; primary path is CTest `core_tests`.
 
 ## Current Phase
 
@@ -124,20 +124,28 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: round-trip per record type; header size and offset tests; codegen drift test
 
 ### T-0005: Core primitives
-- Status: Backlog
+- Status: In review
 - Phase: 0 · Risk class: A · Depends on: T-0004
 - Requirements: NFR-PERF-02, TI §4.1, DESIGN §4
 - Goal: Clock, SPSC ring, object pool, lock-free log queue, thread-pinning helper. Tested under TSan and ASan.
 - Acceptance criteria:
-  - [ ] `trading::core::Clock` wrapping `steady_clock` for mono and wall time, with no allocation
-  - [ ] `SpscRing<T, N>` with `alignas(64)` indices, explicit memory orders with comments, power-of-two capacity
-  - [ ] `ObjectPool<T>` preallocated, no allocation after construction, double-release detection in debug builds
-  - [ ] `LogQueue` lock-free producer side, drained by a dedicated thread (stub sink in this ticket)
-  - [ ] `pinThread(core)` helper with error result; no-op with a logged warning on platforms without affinity support
-  - [ ] Allocation-counting test hook usable by later tests
-  - [ ] Tests: single-producer single-consumer stress (1 billion items in nightly, 10 million in PR); wraparound; full and empty boundaries; TSan clean
+  - [x] `trading::core::Clock` wrapping `steady_clock` for mono and wall time, with no allocation
+  - [x] `SpscRing<T, N>` with `alignas(64)` indices, explicit memory orders with comments, power-of-two capacity
+  - [x] `ObjectPool<T>` preallocated, no allocation after construction, double-release detection in debug builds
+  - [x] `LogQueue` lock-free producer side, drained by a dedicated thread (stub sink in this ticket)
+  - [x] `pinThread(core)` helper with error result; warning counter on platforms without affinity support
+  - [x] Allocation-counting test hook usable by later tests
+  - [x] Tests: SPSC stress 10M (PR), wraparound, full/empty boundaries; TSan clean via `core_tests` binary
   - [ ] Human review required (Class A)
-- Files allowed: `engine/include/trading/core/`, `engine/src/core/`, `engine/tests/unit/core/`, `engine/bench/core/`
+- Evidence:
+  - Headers: `clock.hpp`, `spsc_ring.hpp`, `object_pool.hpp`, `log_queue.hpp`, `thread_pin.hpp`, `allocation_hook.hpp`, `result.hpp`.
+  - Implementations compiled via `src/core/module.cpp` includes (`log_queue`, `thread_pin`, `allocation_hook`).
+  - Unit tests: `engine/tests/unit/core/core_tests.cpp` (9 GTest cases); CTest target `core_tests` via `engine/tests/unit/core/CMakeLists.txt`.
+  - `just check` (debug-asan, Darwin arm64): codegen + journal tests + CTest **13/13** + watchdog link check passed.
+  - `just test-tsan` (Darwin arm64): CTest **13/13**; `core_tests` passed under TSan (~8.3s).
+  - SPSC baseline: `engine/bench/core/baseline.txt` (~27.7M items/s, 5M items, `-O2` chrono bench; Google Benchmark not in vcpkg — Q-11).
+  - Rename: `pinThread`, `pinThreadWarningCount` (2026-10-29 follow-up commit).
+- Files allowed: `engine/include/trading/core/`, `engine/src/core/`, `engine/tests/unit/core/`, `engine/bench/core/`, plus operator amendment (2026-10-29): `engine/CMakeLists.txt`, `engine/tests/unit/core/CMakeLists.txt`, `justfile`
 - Out of scope: any use of these primitives in strategy, risk, or broker code
 - Tests required: unit; TSan stress; ASan; benchmark baseline recorded
 
@@ -254,6 +262,8 @@ Tickets for Phase 1 are written at the Phase 0 exit review. Do not begin them in
 | Q-7 | Confirm `.gitignore` should anchor `/data/` and `/secrets/` at the repository root. Unanchored `data/` would ignore `research/src/tradelab/data/`. Unanchored `secrets/` would ignore `deploy/secrets/` (layout documentation, no values). T-0001 used the anchored form so those skeleton paths stay tracked. | none for T-0001 review | Open |
 | Q-8 | Add `.vcpkg/` to `.gitignore` (local vcpkg clone from `just setup-vcpkg`). | none | Done — merged to `main` at `e5c43aa` (2026-10-29) |
 | Q-9 | T-0004 branch stacks `feat/T-0003-cmake-superbuild` until T-0003 is on `main`. Confirm PR base and merge order with operator. | T-0004 review | Open |
+| Q-10 | Wire `core_tests` into CTest and add `just test-tsan`. | T-0005 CI | Resolved on `feat/T-0005-core-primitives` (2026-10-29); pending merge |
+| Q-11 | Add Google Benchmark to `vcpkg.json` (ADR) for nightly SPSC regression vs `engine/bench/core/baseline.txt`. T-0005 used std::chrono bench only. | Phase 3 perf gates | Open |
 
 ## Decisions Log
 
@@ -273,6 +283,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-10-29 | cursor | T-0005 | `e0f2d4d`, `3d11e6c` | In review | Core Clock, SpscRing, ObjectPool, LogQueue, pin_thread, allocation hook; 10M SPSC stress; TSan clean. |
 | 2026-10-29 | cursor | T-0004 | `890a6c5`, `574d14c` | In review | Journal v1 schema, codegen drift check, C++/Python round-trip tests; branch includes T-0003 build. |
 | 2026-10-29 | cursor | T-0003 | `4e544e6`, PROGRESS commit | In review | CMake superbuild, six presets, vcpkg gtest, empty engine targets, watchdog link check. |
 | 2026-10-29 | cursor | T-0002 | `756a218` on `main` | Done | Hooks + CI skeleton; pushed to GitHub `origin`. |

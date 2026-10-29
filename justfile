@@ -20,6 +20,10 @@ test preset=default_preset:
     just build "{{preset}}"
     ctest --preset "{{preset}}"
 
+test-tsan:
+    just build debug-tsan
+    ctest --preset debug-tsan
+
 check-watchdog preset=default_preset:
     tools/check_watchdog_links.sh "build/{{preset}}"
 
