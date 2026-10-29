@@ -6,10 +6,10 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-29T14:30:00+0530 by cursor
 - Active ticket: T-0006
 - Branch: feat/T-0006-db-migrations
-- Last green commit: 3990b57 — `T-0006: PostgreSQL migrations, partition scripts, and CI db job`
+- Last green commit: (pending) — `T-0006: resolve Q-12, deterministic event_time`
 - Working tree: clean
 - Tests passing at last commit: **Darwin arm64** — `just check` (CTest 13/13); `just db-migrate-cycle`; `just test-db` (partitions, ON CONFLICT, privilege deny, drop guard)
-- Next step (exact): Operator Class A review of T-0006; confirm **Q-12** (partitioned-table unique includes `event_time`); do not start T-0007 until Done.
+- Next step (exact): Operator Class A review of T-0006 (Q-12 resolved, ADR-0013); do not start T-0007 until Done.
 - Files touched this ticket: core headers/sources/tests/bench; `engine/CMakeLists.txt`, `engine/tests/unit/core/CMakeLists.txt`, `justfile` (operator scope amendment 2026-10-29).
 - Decisions made this session (not yet in ADR): Renamed `pinThread` / `pinThreadWarningCount` (TI §4.1 camelCase). macOS `pinThread` returns `Unsupported`; **Linux CI is authority for affinity success path**.
 - Open questions: Q-11; Q-1 through Q-9 unchanged. Q-10 resolved.
@@ -157,7 +157,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Acceptance criteria:
   - [x] `docker/compose.yml` with PostgreSQL 16 bound to localhost (`127.0.0.1`; optional `DEV_DB_PORT`)
   - [x] dbmate migrations: schema `trading`; tables from DESIGN §11; roles `projector_writer`, `control_api_reader`, `report_reader` with least privilege
-  - [x] Unique idempotency keys: `(source_segment, source_sequence)` on non-partitioned tables; partitioned append tables use `(source_segment, source_sequence, event_time)` — **Q-12** pending operator confirmation (PostgreSQL partition-key rule)
+  - [x] Unique idempotency keys per ADR-0013: `(source_segment, source_sequence)` non-partitioned; `(source_segment, source_sequence, event_time)` partitioned
   - [x] Indexes per TI §11.1 (BRIN on event time for tick/event tables; B-tree on `client_order_id` for `orders`; B-tree on `(strategy_id, instrument_id, event_time)` for `fills`)
   - [x] Partition scripts create daily (3 days ahead) and monthly (2 months ahead) partitions; `drop_partition.sh` requires `ARCHIVE_VERIFIED=1`
   - [x] `projection_checkpoint` table
@@ -166,9 +166,10 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Evidence (2026-10-29, **Darwin arm64**):
   - `just migrate`: Applied `20260129100000_trading_initial.sql`
   - `just db-migrate-cycle`: rollback + re-apply clean
-  - `just test-db`: daily/monthly partitions created; ON CONFLICT DO NOTHING; `t0006_no_priv` INSERT denied; drop refused without archive flag
+  - `just test-db`: daily/monthly partitions; **project same record twice** → one row (`wall_ns=1705326896789000000` → `event_time=2024-01-15 12:34:56.789+00`); privilege deny; drop guard
   - `just check`: codegen drift + journal tests + CTest **13/13** + watchdog link check
   - dbmate: `DBMATE_MIGRATIONS_TABLE=public.schema_migrations` (avoids collision with schema `trading`)
+  - **Deterministic `event_time` (step 2):** Journal header `wall_ns` at offset 24 (`schemas/journal/v1/records.yaml`, DESIGN §10.1). No projector code in repo yet (`services/.../projector/` README only). Migration defines `event_time timestamptz NOT NULL` with **no DEFAULT** on projected tables; only `projection_checkpoint.updated_at` uses `DEFAULT now()` (checkpoint metadata, not journal projection). DESIGN §11 / TI §11.3 / ADR-0013 require projector to map `wall_ns` → `event_time`; no `now()` on projection path in code or schema defaults for `event_time`.
 - Files allowed: `db/`, `docker/`, `.github/workflows/` (database job only), `justfile`
 - Out of scope: projector code (Phase 1)
 - Tests required: migration apply, down, re-apply; partition creation test; constraint tests (duplicate insert ignored by ON CONFLICT pattern)
@@ -269,13 +270,14 @@ Tickets for Phase 1 are written at the Phase 0 exit review. Do not begin them in
 | Q-8 | Add `.vcpkg/` to `.gitignore` (local vcpkg clone from `just setup-vcpkg`). | none | Done — merged to `main` at `e5c43aa` (2026-10-29) |
 | Q-9 | T-0004 branch stacks `feat/T-0003-cmake-superbuild` until T-0003 is on `main`. Confirm PR base and merge order with operator. | T-0004 review | Open |
 | Q-10 | Wire `core_tests` into CTest and add `just test-tsan`. | T-0005 CI | Done — merged in `ffaece3` |
-| Q-12 | Partitioned tables: PostgreSQL requires unique constraints to include the partition key (`event_time`). TI §11.1 asks for `(source_segment, source_sequence)` only. Options: (A) extend unique to `(source_segment, source_sequence, event_time)` — replay idempotency unchanged if `event_time` is fixed per journal record; (B) drop parent-level unique and enforce per-partition indexes only; (C) stop partitioning projected append tables until ADR; (D) partition by a key that includes `source_segment`. | T-0006 acceptance; projector ON CONFLICT target | Open — agent implements (A) pending operator confirmation |
+| Q-12 | Partitioned-table unique keys include `event_time` (option A). | T-0006 | Done — operator approved 2026-10-29; ADR-0013 Accepted |
 | Q-11 | Add Google Benchmark to `vcpkg.json` (ADR) for nightly SPSC regression vs `engine/bench/core/baseline.txt`. T-0005 used std::chrono bench only. | Phase 3 perf gates | Open |
 
 ## Decisions Log
 
 | Date | Decision | Reference |
 |---|---|---|
+| 2026-10-29 | Partitioned projection unique keys include `event_time` from journal `wall_ns` | ADR-0013 |
 | 2026-10-25 | Codex is primary; Cursor is fallback; both read AGENTS.md | PROCESS §1.1, §7.6 |
 | 2026-10-25 | Phase 0 scope is limited to tickets T-0001 to T-0011 | PROCESS §6.2 |
 | 2026-10-25 | Groww adapter remains behind OFF flag; mock only until G-LIVE-1 and G-LIVE-2 | PRD §12; ADR-0004 |

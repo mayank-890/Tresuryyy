@@ -1,6 +1,7 @@
 -- migrate:up
 -- Schema trading, roles, and projected tables (DESIGN §11, TI §11.1).
--- Partitioned append tables: unique includes event_time (partition key) per PostgreSQL; see Q-12.
+-- Partitioned append tables: UNIQUE (source_segment, source_sequence, event_time); ADR-0013.
+-- event_time is populated by the projector from journal header wall_ns (no DEFAULT on projected rows).
 
 CREATE SCHEMA trading;
 

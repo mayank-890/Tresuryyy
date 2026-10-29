@@ -9,6 +9,11 @@ export PATH="/opt/homebrew/bin:/usr/local/bin:${PATH}"
 # shellcheck source=db/partitions/lib.sh
 source "${ROOT}/db/partitions/lib.sh"
 
+# Simulated journal header wall_ns (UTC): 2024-01-15 12:34:56.789 — DESIGN §10.1 offset 24.
+# Projector maps event_time = timestamptz from wall_ns; tests must not use now() for projected event_time.
+FIXED_WALL_NS=1705326896789000000
+FIXED_EVENT_TIME='2024-01-15 12:34:56.789+00'
+
 if [[ -z "${DATABASE_URL:-}" ]]; then
   if [[ ! -f docker/.env ]]; then
     echo "docker/.env missing; copy docker/env.example to docker/.env and set TRADING_DEV_DB_PASSWORD" >&2
@@ -69,30 +74,34 @@ month_suffix="$(date -u +%Y%m)"
 monthly_part="trading.fills_${month_suffix}"
 psql_super -c "SELECT to_regclass('${monthly_part}') IS NOT NULL AS monthly_partition_exists;" -tA | grep -qx t
 
-echo "== ON CONFLICT DO NOTHING (market_ticks) =="
-psql_super -c "DELETE FROM trading.market_ticks WHERE source_segment = 'test-seg';"
-psql_super <<'SQL'
+echo "== project same journal record twice (wall_ns -> event_time, ON CONFLICT) =="
+echo "    wall_ns=${FIXED_WALL_NS} event_time=${FIXED_EVENT_TIME}"
+psql_super -c "CREATE TABLE IF NOT EXISTS trading.market_ticks_20240115 PARTITION OF trading.market_ticks
+  FOR VALUES FROM ('2024-01-15 00:00:00+00') TO ('2024-01-16 00:00:00+00');"
+psql_super -c "DELETE FROM trading.market_ticks WHERE source_segment = 'proj-replay-seg';"
+psql_super <<SQL
 INSERT INTO trading.market_ticks (
     source_segment, source_sequence, event_time, instrument_id, last_ticks
 ) VALUES (
-    'test-seg', 1, date_trunc('day', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC' + interval '1 hour',
-    42, 100
+    'proj-replay-seg', 42, '${FIXED_EVENT_TIME}'::timestamptz, 7, 100
 );
 INSERT INTO trading.market_ticks (
     source_segment, source_sequence, event_time, instrument_id, last_ticks
 ) VALUES (
-    'test-seg', 1, date_trunc('day', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC' + interval '1 hour',
-    42, 999
+    'proj-replay-seg', 42, '${FIXED_EVENT_TIME}'::timestamptz, 7, 999
 ) ON CONFLICT (source_segment, source_sequence, event_time) DO NOTHING;
-SELECT count(*) = 1 AS single_row
-FROM trading.market_ticks
-WHERE source_segment = 'test-seg' AND source_sequence = 1;
 SQL
-rows="$(psql_super -tA -c "SELECT count(*) FROM trading.market_ticks WHERE source_segment = 'test-seg' AND source_sequence = 1;")"
+rows="$(psql_super -tA -c "SELECT count(*) FROM trading.market_ticks WHERE source_segment = 'proj-replay-seg' AND source_sequence = 42;")"
 if [[ "${rows}" != "1" ]]; then
-  echo "expected one market_ticks row after ON CONFLICT, got ${rows}" >&2
+  echo "expected one row after projecting the same record twice, got ${rows}" >&2
   exit 1
 fi
+last_ticks="$(psql_super -tA -c "SELECT last_ticks FROM trading.market_ticks WHERE source_segment = 'proj-replay-seg' AND source_sequence = 42;")"
+if [[ "${last_ticks}" != "100" ]]; then
+  echo "expected first projection to win (last_ticks=100), got ${last_ticks}" >&2
+  exit 1
+fi
+echo "project twice: one row, last_ticks=${last_ticks}"
 
 echo "== role without privileges refused =="
 psql_super <<'SQL'
@@ -108,7 +117,7 @@ SQL
 
 set +e
 psql_as t0006_no_priv local-test-only \
-  -c "INSERT INTO trading.control_commands (source_segment, source_sequence, event_time, operator_id, command_type) VALUES ('x', 1, now(), 'op', 'HALT');" \
+  -c "INSERT INTO trading.control_commands (source_segment, source_sequence, event_time, operator_id, command_type) VALUES ('x', 1, '${FIXED_EVENT_TIME}', 'op', 'HALT');" \
   2>/dev/null
 denied=$?
 set -e
