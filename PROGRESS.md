@@ -3,16 +3,16 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-29T18:05:00+0530 by cursor
+- Updated: 2026-10-29T18:15:00+0530 by cursor
 - Active ticket: T-0008
-- Branch: `main`
-- Last green commit: a3019bf — `Merge T-0007: profiles, validator, promotion verifier, paper trader`
+- Branch: feat/T-0008-journal-inspector
+- Last green commit: 4c0012a — `T-0008: handoff In review`
 - Working tree: clean
-- Tests passing at last commit: **Darwin arm64** — `just check` post-merge (CTest **14/14**)
-- Next step (exact): **T-0007 merged; next is T-0008.** Continue on `feat/T-0008-journal-inspector`, complete acceptance criteria, set In review. Do not start T-0009 until T-0008 is Done on `main`.
-- Files touched T-0007: `config/`, `engine/src/apps/trader/`, `engine/src/calendar/stub.cpp`, `engine/tests/unit/profile/`, `engine/CMakeLists.txt`, `vcpkg.json`, `docs/adr/ADR-0014.md`
-- Open questions: **Q-13** (ADR-0014 landed with T-0007 — operator formal Accept recommended); Q-11; Q-1–Q-7; Q-3 (T-0101 Delta licensing in Phase 1 backlog).
-- Notes for the next tool: `profile_tests` covers TC-CF-01–09; T-0101 still blocked until Phase 0 exit (T-0008–T-0011).
+- Tests passing at last commit: **Darwin arm64** — `just check` (CTest **14/14**); `bash tools/journal_inspect/run_tests.sh` (**6/6**)
+- Next step (exact): Operator review T-0008; merge `feat/T-0008-journal-inspector` to `main`. Do not start T-0009 until T-0008 is Done on `main`.
+- Files touched this ticket: `tools/journal_inspect/*`, `tests/fixtures/compat/v1/*`
+- Open questions: Q-13 (ADR-0014); Q-11; Q-1–Q-7; T-0101 blocked until Phase 0 exit (T-0009–T-0011 after T-0008).
+- Notes for the next tool: `python3 tools/journal_inspect/__main__.py <segment>`; no segment footer until DESIGN §10.2 specifies format; CI wiring for `run_tests.sh` out of allowed files.
 
 ## Current Phase
 
@@ -199,16 +199,21 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: TC-CF-01 to TC-CF-09 as applicable at Phase 0
 
 ### T-0008: Journal inspector
-- Status: Backlog
+- Status: In review
 - Phase: 0 · Risk class: C · Depends on: T-0004, T-0005
 - Requirements: FR-JR-02, TC-JR-02, TC-JR-10
 - Goal: Read-only tool that validates journal segments, reports torn tails, and pretty-prints records.
 - Acceptance criteria:
-  - [ ] Reads v1 segments; validates CRC and sequence continuity
-  - [ ] Detects a torn tail and reports it without modifying the file (`--repair` is NOT implemented in this ticket)
-  - [ ] Mid-file CRC failure reported as fatal with byte offset
-  - [ ] Filtering by record type and sequence range
-  - [ ] Fixture set in `tests/fixtures/compat/v1/` (small, synthetic) covering normal, torn-tail, and CRC-corrupt cases
+  - [x] Reads v1 segments; validates CRC and sequence continuity
+  - [x] Detects a torn tail and reports it without modifying the file (`--repair` is NOT implemented in this ticket)
+  - [x] Mid-file CRC failure reported as fatal with byte offset
+  - [x] Filtering by record type and sequence range
+  - [x] Fixture set in `tests/fixtures/compat/v1/` (small, synthetic) covering normal, torn-tail, and CRC-corrupt cases
+- Evidence (2026-10-29, **Darwin arm64**):
+  - CLI: `python3 tools/journal_inspect/__main__.py tests/fixtures/compat/v1/normal.segment`
+  - Tests: `bash tools/journal_inspect/run_tests.sh` — 6 unittest cases (normal, torn AL-14, CRC fatal offset, filters, SHA-256 unchanged)
+  - `just check`: CTest **14/14**, journal schema tests, watchdog link check (on branch rebased with T-0007 on `main`)
+  - Re-verified 2026-10-29 after merge `main` into branch
 - Files allowed: `tools/journal_inspect/`, `tests/fixtures/compat/v1/`
 - Out of scope: writer; repair; any change to the journal format
 - Tests required: fixture tests for each case; read-only check (file hash unchanged after run)
@@ -307,6 +312,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-10-29 | cursor | T-0008 | `e5dbd38`, `e9d68a3` | In review | Journal inspector; merged `main` (T-0007); `just check` 14/14 + inspector tests 6/6. |
 | 2026-10-29 | cursor | T-0007 | `a3019bf` | Done | Merge to `main`; PROGRESS conflict resolved; `just check` 14/14 post-merge. |
 | 2026-10-29 | cursor | T-0101 | — | Blocked | Phase 0 gate; Blockers B-0101-1..3 (T-0007 now unblocks B-0101-1 partially). |
 | 2026-10-29 | cursor | T-0007 | `e7c052f`, `98f83bb` | In review → Done | Re-ran `just check` + `test-tsan` 14/14; marked T-0003/T-0004 Done on `main`. |
