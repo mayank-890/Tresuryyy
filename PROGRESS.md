@@ -6,7 +6,7 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-29T18:15:00+0530 by cursor
 - Active ticket: T-0008
 - Branch: feat/T-0008-journal-inspector
-- Last green commit: (pending merge commit on branch)
+- Last green commit: e9d68a3 — `T-0008: merge main (T-0007); resolve PROGRESS handoff`
 - Working tree: clean
 - Tests passing at last commit: **Darwin arm64** — `just check` (CTest **14/14**); `bash tools/journal_inspect/run_tests.sh` (**6/6**)
 - Next step (exact): Operator review T-0008; merge `feat/T-0008-journal-inspector` to `main`. Do not start T-0009 until T-0008 is Done on `main`.
@@ -312,7 +312,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-10-29 | cursor | T-0008 | (pending) | In review | Journal inspector; merged `main` (T-0007); `just check` 14/14 + inspector tests 6/6. |
+| 2026-10-29 | cursor | T-0008 | `e5dbd38`, `e9d68a3` | In review | Journal inspector; merged `main` (T-0007); `just check` 14/14 + inspector tests 6/6. |
 | 2026-10-29 | cursor | T-0007 | `a3019bf` | Done | Merge to `main`; PROGRESS conflict resolved; `just check` 14/14 post-merge. |
 | 2026-10-29 | cursor | T-0101 | — | Blocked | Phase 0 gate; Blockers B-0101-1..3 (T-0007 now unblocks B-0101-1 partially). |
 | 2026-10-29 | cursor | T-0007 | `e7c052f`, `98f83bb` | In review → Done | Re-ran `just check` + `test-tsan` 14/14; marked T-0003/T-0004 Done on `main`. |
