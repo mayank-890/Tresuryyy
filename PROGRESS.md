@@ -6,8 +6,8 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-29T14:30:00+0530 by cursor
 - Active ticket: T-0006
 - Branch: feat/T-0006-db-migrations
-- Last green commit: (pending commit) — `T-0006: PostgreSQL migrations, partitions, CI db job`
-- Working tree: pending commit after green checks
+- Last green commit: 3990b57 — `T-0006: PostgreSQL migrations, partition scripts, and CI db job`
+- Working tree: clean
 - Tests passing at last commit: **Darwin arm64** — `just check` (CTest 13/13); `just db-migrate-cycle`; `just test-db` (partitions, ON CONFLICT, privilege deny, drop guard)
 - Next step (exact): Operator Class A review of T-0006; confirm **Q-12** (partitioned-table unique includes `event_time`); do not start T-0007 until Done.
 - Files touched this ticket: core headers/sources/tests/bench; `engine/CMakeLists.txt`, `engine/tests/unit/core/CMakeLists.txt`, `justfile` (operator scope amendment 2026-10-29).
