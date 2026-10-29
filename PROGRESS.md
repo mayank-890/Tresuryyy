@@ -3,16 +3,16 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-29T18:45:00+0530 by cursor
-- Active ticket: none (T-0009 Done on `main`; do not start T-0010 in this session)
-- Branch: `main`
-- Last green commit: 4893795 — `T-0009: handoff after merge verification on main` (feature merge f6bbe81; `just check` green at handoff)
+- Updated: 2026-10-29T19:40:00+0530 by cursor
+- Active ticket: T-0010
+- Branch: feat/T-0010-frontend-skeleton
+- Last green commit: 4dfe742 — `T-0010: handoff In review`
 - Working tree: clean
-- Tests passing at last commit: **Darwin arm64** — `just check` (codegen drift, journal schema **22/22**, research ruff/mypy/pytest **1/1**, CTest **14/14**, watchdog link check)
-- Next step (exact): Pick up **T-0010** (frontend skeleton) on a new branch from `main` when the operator marks it Ready; complete **T-0011** for Phase 0 exit. Do not start T-0010 without operator go-ahead.
-- Files touched this ticket: `research/pyproject.toml`, `research/uv.lock`, `research/.python-version`, `research/src/tradelab/engine/`, `research/tests/test_smoke.py`, `justfile`
-- Open questions: Q-13; Q-11; Q-1–Q-7; T-0101 blocked until Phase 0 exit (T-0010–T-0011 remain).
-- Notes for the next tool: `cd research && uv sync --dev --frozen`; mypy strict scope is `tradelab.engine` only (generated journal excluded from ruff/mypy).
+- Tests passing at last commit: **Darwin arm64** — `just check` (journal **22/22**, research **1/1**, ui unit **4/4**, CTest **14/14**); `just ui-test` Playwright **1/1**; `cd ui && npm run test:e2e` **1 passed**
+- Next step (exact): Operator review T-0010; merge `feat/T-0010-frontend-skeleton` to `main`. Do not start T-0011 until T-0010 is Done on `main`.
+- Files touched this ticket: `ui/index.html`, `ui/css/dashboard.css`, `ui/js/`, `ui/tests/`, `ui/e2e/`, `ui/package.json`, `ui/package-lock.json`, `ui/playwright.config.js`, `justfile`
+- Open questions: Q-13; Q-11; Q-1–Q-7; T-0101 blocked until Phase 0 exit (T-0011 after T-0010).
+- Notes for the next tool: Reducer tests use Node built-in `node:test` (no new ADR). Playwright is TI §2 current dep; local `just ui-test` uses system Chrome (`channel: chrome`); CI should use `just ui-test-ci`. `just check` runs `ui-unit-test` only (includes innerHTML guard test).
 
 ## Current Phase
 
@@ -239,16 +239,21 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: smoke test; lint and types clean
 
 ### T-0010: Frontend skeleton with smoke test
-- Status: Backlog
+- Status: In review
 - Phase: 0 · Risk class: B · Depends on: T-0002
 - Requirements: FR-UI-01 (scaffold), TI §4.3
 - Goal: Static dashboard shell with module structure, a reducer, and a Playwright smoke test. No live data.
 - Acceptance criteria:
-  - [ ] `ui/index.html`, `ui/css/`, `ui/js/state/`, `ui/js/views/`, `ui/js/transport/`
-  - [ ] Pure reducer with unit tests (Node test runner or Vitest; choice recorded in an ADR if a new dependency is needed)
-  - [ ] Dashboard shell shows the panels in USER_OPERATIONS §5.1 with placeholder "no data" state
-  - [ ] Playwright smoke test loads the page and checks every panel heading exists
-  - [ ] No `innerHTML` with data; lint rule enforces this if a linter is configured
+  - [x] `ui/index.html`, `ui/css/`, `ui/js/state/`, `ui/js/views/`, `ui/js/transport/`
+  - [x] Pure reducer with unit tests (Node test runner or Vitest; choice recorded in an ADR if a new dependency is needed)
+  - [x] Dashboard shell shows the panels in USER_OPERATIONS §5.1 with placeholder "no data" state
+  - [x] Playwright smoke test loads the page and checks every panel heading exists
+  - [x] No `innerHTML` with data; lint rule enforces this if a linter is configured
+- Evidence (2026-10-29, **Darwin arm64**):
+  - `5899d71`: ES module shell, `dashboardReducer` + store, `textContent` rendering, poll stub.
+  - `npm run test:unit` in `ui/`: **4 passed** (reducer + innerHTML guard); Node `node:test` (no extra test framework ADR).
+  - `just ui-test` / `npm run test:e2e`: **1 passed** (all ten §5.1 panel `<h2>` headings).
+  - `just check`: ui-unit + CTest **14/14** + prior gates green at commit.
 - Files allowed: `ui/`, `justfile`
 - Out of scope: control API; live data; kill controls (Phase 5)
 - Tests required: reducer unit tests; Playwright smoke
@@ -318,6 +323,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-10-29 | cursor | T-0010 | `5899d71` | In review | Dashboard §5.1 panels, reducer unit tests, Playwright smoke; `just ui-test-ci` for CI browsers. |
 | 2026-10-29 | cursor | T-0009 | `f6bbe81` (merge), PROGRESS | Done | Re-verified `just check` on `main`; PROGRESS synced post-merge. |
 | 2026-10-29 | cursor | T-0009 | `8971057`, `fa27656` | In review | uv project, engine ADR-0005 stub, ruff/mypy/pytest wired in `just check`. |
 | 2026-10-29 | cursor | T-0008 | `bcb67f9` | Done | Merged journal inspector to `main`. |
