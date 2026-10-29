@@ -3,16 +3,16 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-29T23:35:00+0530 by cursor
-- Active ticket: none (Phase 0 exit recorded; **T-0101 not started** — waiting on operator)
+- Updated: 2026-10-29T23:50:00+0530 by cursor
+- Active ticket: T-0101 (**Blocked** — preconditions not met)
 - Branch: `main`
-- Last green commit: `8726a22` — `Merge T-0011: calendar and instrument loaders` (`just check` re-verified before docs commit)
-- Working tree: clean (after Phase 0 docs commit)
-- Tests passing at last commit: **Darwin arm64** — `just check` (codegen, journal **22/22**, research **1/1**, ui unit **4/4**, CTest **14/14**, watchdog link)
-- Next step (exact): Operator **sign `docs/reviews/phase-0.md`**, **Accept ADR-0015** (pyarrow), then authorize **T-0101** on `feat/T-0101-delta-ohlcv-ingestion`. Do not add pyarrow to `research/` until ADR-0015 is **Accepted**.
-- Files touched (Phase 0 exit session): `docs/reviews/phase-0.md`, `docs/adr/ADR-0015.md`, `PROGRESS.md`
-- Open questions: Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-3 → **ADR-0015 Proposed** (pending Accept).
-- Notes for the next tool: Part B (T-0101) starts only after operator confirms Phase 0 exit + Accepted ADR-0015 on `main`.
+- Last green commit: `88eb50f` — `docs: Phase 0 exit record and pyarrow ADR (Proposed)`
+- Working tree: clean (PROGRESS-only update pending commit)
+- Tests passing at last commit: not re-run this session (no code changes attempted)
+- Next step (exact): Operator set **ADR-0015** status to **Accepted** in `docs/adr/ADR-0015.md` and commit (or merge) on `main`; confirm Phase 0 sign-off in `docs/reviews/phase-0.md`. Then re-run T-0101 agent on `feat/T-0101-delta-ohlcv-ingestion`.
+- Blocker: **ADR-0015 is still Proposed** on `main` @ `88eb50f` — hard stop per T-0101 session rules; pyarrow must not be added until Accepted.
+- Open questions: Q-15 (ADR-0015 Accept); Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1 (Phase 0 operator sign-off).
+- Notes for the next tool: Do not start ingestion code until ADR-0015 Accepted is on `main`.
 
 ## Current Phase
 
