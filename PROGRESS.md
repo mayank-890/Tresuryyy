@@ -3,20 +3,20 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-29T22:30:00+0530 by cursor
-- Active ticket: T-0011
-- Branch: feat/T-0011-calendar-instruments
-- Last green commit: d0a2697 — `T-0011: add calendar and instrument loaders with sample configs`
-- Working tree: clean (after PROGRESS commit)
-- Tests passing at last commit: **Darwin arm64** — `just check` (journal **22/22**, research **1/1**, ui unit **4/4**, CTest **14/14** incl. expanded `profile_tests`, watchdog link)
-- Next step (exact): Operator review **T-0011**; merge `feat/T-0011-calendar-instruments` to `main`. Then record **Phase 0 exit** per PROCESS §6.1 (`docs/reviews/phase-0.md`). Do **not** start Phase 1 (T-0101) until operator signs Phase 0 exit and B-0101-3 (pyarrow ADR) is resolved.
-- Files touched this ticket: `engine/src/calendar/`, `engine/src/instruments/`, `config/calendars/crypto_24x7.toml`, `config/instruments/delta_crypto.toml`, `engine/tests/unit/profile/`, `engine/CMakeLists.txt` (operator amendment: link `trading_core` + `engine/include` on `trading_profile`)
-- Open questions: Q-13; Q-11; Q-1–Q-7; Q-14 (proposed): accept `engine/CMakeLists.txt` amendment for T-0011.
-- Notes for the next tool: Calendars Phase 0 UTC-only; loaders require `# SAMPLE — NOT FOR TRADING` banner on repo sample configs. Session query API: `trading::calendar::query_session`.
+- Updated: 2026-10-29T23:35:00+0530 by cursor
+- Active ticket: none (Phase 0 exit recorded; **T-0101 not started** — waiting on operator)
+- Branch: `main`
+- Last green commit: `8726a22` — `Merge T-0011: calendar and instrument loaders` (`just check` re-verified before docs commit)
+- Working tree: clean (after Phase 0 docs commit)
+- Tests passing at last commit: **Darwin arm64** — `just check` (codegen, journal **22/22**, research **1/1**, ui unit **4/4**, CTest **14/14**, watchdog link)
+- Next step (exact): Operator **sign `docs/reviews/phase-0.md`**, **Accept ADR-0015** (pyarrow), then authorize **T-0101** on `feat/T-0101-delta-ohlcv-ingestion`. Do not add pyarrow to `research/` until ADR-0015 is **Accepted**.
+- Files touched (Phase 0 exit session): `docs/reviews/phase-0.md`, `docs/adr/ADR-0015.md`, `PROGRESS.md`
+- Open questions: Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-3 → **ADR-0015 Proposed** (pending Accept).
+- Notes for the next tool: Part B (T-0101) starts only after operator confirms Phase 0 exit + Accepted ADR-0015 on `main`.
 
 ## Current Phase
 
-**Phase 0: Foundation (weeks 1–2).** Exit criteria: PROCESS_PROJECT_MANAGEMENT.md §6.1, row 0.
+**Phase 0: Foundation — exit recorded 2026-10-29** (`docs/reviews/phase-0.md`; operator sign-off pending). Phase 1 blocked on **B-0101-3** until ADR-0015 is **Accepted**.
 
 ## Phase 0 Backlog
 
@@ -259,7 +259,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: reducer unit tests; Playwright smoke
 
 ### T-0011: Calendar and instrument master loader
-- Status: In review
+- Status: Done (merged `main` @ 8726a22, 2026-10-29)
 - Phase: 0 · Risk class: B · Depends on: T-0007
 - Requirements: FR-MD-04 (session data), TI §8, DESIGN §8.3
 - Goal: Load and validate trading calendars and instrument master files. No real operator data.
@@ -284,7 +284,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Status: Blocked
 - Phase: 1 · Risk class: B · Depends on: Phase 0 exit; T-0009 (research package)
 - Goal: Historical OHLCV loader (Delta public REST), Parquet under external data root, gap/outlier checks, roll-adjust stub, CLI backfill, fixture tests (no network in unit tests).
-- Blocker: Phase 0 **T-0010–T-0011** not Done on `main` (T-0009 merged 2026-10-29). See **Blockers** § below.
+- Blocker: **B-0101-3** (ADR-0015 Accept) and operator Phase 0 sign-off. See **Blockers** § below.
 - Data licensing (record before merge): Delta Exchange API/historical data use is subject to [Delta Exchange terms](https://www.delta.exchange/legal/terms-of-use) and API documentation; operator must confirm redistribution/storage rights for downloaded candles.
 
 ## Phase 1 Backlog (legacy note)
@@ -309,6 +309,7 @@ Tickets above supersede “Not Yet Ready” once Phase 0 exit is recorded in `do
 | Q-13 | Accept ADR-0014 (`tomlplusplus`, `nlohmann-json`, `openssl` in `vcpkg.json`) and `engine/CMakeLists.txt` / `vcpkg.json` edits for T-0007. | T-0007 merge | Open — implemented pending operator sign-off |
 | Q-11 | Add Google Benchmark to `vcpkg.json` (ADR) for nightly SPSC regression vs `engine/bench/core/baseline.txt`. T-0005 used std::chrono bench only. | Phase 3 perf gates | Open |
 | Q-14 | Accept `engine/CMakeLists.txt` amendment for T-0011 (`trading_profile` links `trading_core`, exposes `engine/include`). | T-0011 merge | Open — required for loaders |
+| Q-15 | Accept **ADR-0015** (pyarrow, research Parquet only) to clear B-0101-3. | T-0101 | Open — ADR Proposed 2026-10-29 |
 
 ## Decisions Log
 
@@ -329,6 +330,8 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-10-29 | cursor | Phase 0 exit | (docs commit) | Pending operator | `docs/reviews/phase-0.md`, ADR-0015 Proposed; T-0101 not started. |
+| 2026-10-29 | cursor | T-0011 | `8726a22` (merge) | Done | Calendar/instrument loaders on `main`. |
 | 2026-10-29 | cursor | T-0011 | `d0a2697` | In review | Calendar/instrument TOML loaders, sample configs, profile_tests coverage. |
 | 2026-10-29 | cursor | T-0010 | `8251a18` (merge) | Done | Frontend skeleton on `main`. |
 | 2026-10-29 | cursor | T-0010 | `5899d71` | In review | Dashboard §5.1 panels, reducer unit tests, Playwright smoke; `just ui-test-ci` for CI browsers. |
@@ -351,6 +354,6 @@ Append one entry per session. Newest first.
 
 | ID | Ticket | Reason | Unblock |
 |---|---|---|---|
-| B-0101-1 | T-0101 | **Process gate:** T-0011 not Done on `main`; Phase 0 exit not recorded (T-0009–T-0010 on `main`). | Merge T-0011; operator Phase 0 exit note. |
+| B-0101-1 | T-0101 | **Process gate:** Phase 0 exit note needs operator sign-off. | Operator confirms `docs/reviews/phase-0.md`. |
 | B-0101-2 | T-0101 | **Scaffold:** Research uv/pytest skeleton (T-0009). | Done — T-0009 on `main` @ f6bbe81. |
-| B-0101-3 | T-0101 | **Dependencies:** Parquet write likely needs `pyarrow` (no Accepted ADR on `main`). | Operator accepts ADR for research ingestion deps. |
+| B-0101-3 | T-0101 | **Dependencies:** pyarrow for research Parquet I/O. | **ADR-0015 Proposed** — operator **Accept**; then T-0101 may add `pyarrow` to `research/`. |
