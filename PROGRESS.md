@@ -3,17 +3,15 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-29T14:30:00+0530 by cursor
-- Active ticket: T-0006
-- Branch: feat/T-0006-db-migrations
-- Last green commit: 773ba95 — `T-0006: resolve Q-12, deterministic event_time`
-- Working tree: clean
-- Tests passing at last commit: **Darwin arm64** — `just check` (CTest 13/13); `just db-migrate-cycle`; `just test-db` (partitions, ON CONFLICT, privilege deny, drop guard)
-- Next step (exact): Operator Class A review of T-0006 (Q-12 resolved, ADR-0013); do not start T-0007 until Done.
-- Files touched this ticket: core headers/sources/tests/bench; `engine/CMakeLists.txt`, `engine/tests/unit/core/CMakeLists.txt`, `justfile` (operator scope amendment 2026-10-29).
-- Decisions made this session (not yet in ADR): Renamed `pinThread` / `pinThreadWarningCount` (TI §4.1 camelCase). macOS `pinThread` returns `Unsupported`; **Linux CI is authority for affinity success path**.
-- Open questions: Q-11; Q-1 through Q-9 unchanged. Q-10 resolved.
-- Notes for the next tool: `run_core_tests.sh` retained as auxiliary; primary path is CTest `core_tests`.
+- Updated: 2026-10-29T17:40:00+0530 by cursor
+- Active ticket: T-0101 (blocked)
+- Branch: `main` (no `feat/T-0101-delta-ohlcv-ingestion` opened)
+- Last green commit: 9a28b43 — `docs: mark T-0006 Done (080a18d); handoff T-0007`
+- Working tree: PROGRESS update pending commit
+- Tests passing at last commit: not re-run (session stopped at process gate)
+- Next step (exact): Merge Phase 0 through **T-0011 Done** on `main` (start with `feat/T-0007-profiles-promotion`, `feat/T-0008-journal-inspector`, then T-0009 → T-0010 → T-0011). Then re-assign T-0101 and create `feat/T-0101-delta-ohlcv-ingestion`.
+- Open questions: Q-13; Q-3 (Indian historical — out of scope for T-0101 Delta candles).
+- Notes for the next tool: T-0101 licensing note drafted under Phase 1 **T-0101** in this file; confirm Delta terms before production backfill.
 
 ## Current Phase
 
@@ -252,9 +250,18 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Out of scope: real instrument data; roll logic (Phase 2); session behavior in strategies
 - Tests required: validator tests; lookup tests; session query at boundaries
 
-## Phase 1 Backlog (Not Yet Ready)
+## Phase 1 Backlog
 
-Tickets for Phase 1 are written at the Phase 0 exit review. Do not begin them in Phase 0.
+### T-0101: Delta historical OHLCV ingestion + data quality
+- Status: Blocked
+- Phase: 1 · Risk class: B · Depends on: Phase 0 exit; T-0009 (research package)
+- Goal: Historical OHLCV loader (Delta public REST), Parquet under external data root, gap/outlier checks, roll-adjust stub, CLI backfill, fixture tests (no network in unit tests).
+- Blocker: Phase 0 tickets **T-0007–T-0011** not Done on `main` (2026-10-29 session gate). See **Blockers** § below.
+- Data licensing (record before merge): Delta Exchange API/historical data use is subject to [Delta Exchange terms](https://www.delta.exchange/legal/terms-of-use) and API documentation; operator must confirm redistribution/storage rights for downloaded candles.
+
+## Phase 1 Backlog (legacy note)
+
+Tickets above supersede “Not Yet Ready” once Phase 0 exit is recorded in `docs/reviews/phase-0.md`.
 
 ## Open Questions
 
@@ -292,6 +299,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-10-29 | cursor | T-0101 | (pending) | Blocked | Process gate: Phase 0 T-0007–T-0011 not Done on `main`. Blockers B-0101-1..3 recorded. |
 | 2026-10-29 | cursor | T-0005 | `e0f2d4d`, `3d11e6c` | In review | Core Clock, SpscRing, ObjectPool, LogQueue, pin_thread, allocation hook; 10M SPSC stress; TSan clean. |
 | 2026-10-29 | cursor | T-0004 | `890a6c5`, `574d14c` | In review | Journal v1 schema, codegen drift check, C++/Python round-trip tests; branch includes T-0003 build. |
 | 2026-10-29 | cursor | T-0003 | `4e544e6`, PROGRESS commit | In review | CMake superbuild, six presets, vcpkg gtest, empty engine targets, watchdog link check. |
@@ -302,4 +310,8 @@ Append one entry per session. Newest first.
 
 ## Blockers
 
-None recorded.
+| ID | Ticket | Reason | Unblock |
+|---|---|---|---|
+| B-0101-1 | T-0101 | **Process gate:** `main` @ `9a28b43` does not have Phase 0 **T-0007–T-0011** Done. Merged through T-0006 only; T-0004/T-0005 merged earlier; PROGRESS still lists T-0003/T-0004 In review. Local branches: `feat/T-0007-profiles-promotion`, `feat/T-0008-journal-inspector`. | Merge Phase 0 backlog through T-0011; update PROGRESS statuses; phase-0 review note. |
+| B-0101-2 | T-0101 | **Scaffold:** No `research/pyproject.toml` / pytest (T-0009) on `main`. | Complete T-0009 on `main`. |
+| B-0101-3 | T-0101 | **Dependencies:** Parquet write likely needs `pyarrow` (no Accepted ADR on `main`). | Operator accepts ADR for research ingestion deps. |
