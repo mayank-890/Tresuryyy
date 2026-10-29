@@ -6,9 +6,9 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-29T18:05:00+0530 by cursor
 - Active ticket: T-0008
 - Branch: `main`
-- Last green commit: (set after merge commit — `just check` post-merge)
+- Last green commit: a3019bf — `Merge T-0007: profiles, validator, promotion verifier, paper trader`
 - Working tree: clean
-- Tests passing at last commit: **Darwin arm64** — `just check` (CTest **14/14**); `just test-tsan` (**14/14**) on feature branch before merge
+- Tests passing at last commit: **Darwin arm64** — `just check` post-merge (CTest **14/14**)
 - Next step (exact): **T-0007 merged; next is T-0008.** Continue on `feat/T-0008-journal-inspector`, complete acceptance criteria, set In review. Do not start T-0009 until T-0008 is Done on `main`.
 - Files touched T-0007: `config/`, `engine/src/apps/trader/`, `engine/src/calendar/stub.cpp`, `engine/tests/unit/profile/`, `engine/CMakeLists.txt`, `vcpkg.json`, `docs/adr/ADR-0014.md`
 - Open questions: **Q-13** (ADR-0014 landed with T-0007 — operator formal Accept recommended); Q-11; Q-1–Q-7; Q-3 (T-0101 Delta licensing in Phase 1 backlog).
@@ -193,7 +193,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
   - `just test-tsan`: CTest **14/14**
   - ADR-0014 Proposed (`tomlplusplus`, `nlohmann-json`, `openssl` in `vcpkg.json`); **Q-13** open for operator acceptance + CMake scope
   - Re-verified on branch tip `15aa4d6` / `e7c052f` (same green results, 2026-10-29 evening session)
-  - Merged to `main`: `Merge T-0007: profiles, validator, promotion verifier, paper trader` (2026-10-29)
+  - Merged to `main`: `a3019bf` (`Merge T-0007: profiles, validator, promotion verifier, paper trader`, 2026-10-29)
 - Files allowed: `config/`, `engine/src/apps/trader/`, `engine/src/calendar/` (stub only), `engine/tests/`, `tools/`
 - Out of scope: strategies, orders, broker adapters
 - Tests required: TC-CF-01 to TC-CF-09 as applicable at Phase 0
@@ -307,7 +307,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-10-29 | cursor | T-0007 | merge to `main` | Done | Resolved PROGRESS merge conflict; `just check` post-merge. |
+| 2026-10-29 | cursor | T-0007 | `a3019bf` | Done | Merge to `main`; PROGRESS conflict resolved; `just check` 14/14 post-merge. |
 | 2026-10-29 | cursor | T-0101 | — | Blocked | Phase 0 gate; Blockers B-0101-1..3 (T-0007 now unblocks B-0101-1 partially). |
 | 2026-10-29 | cursor | T-0007 | `e7c052f`, `98f83bb` | In review → Done | Re-ran `just check` + `test-tsan` 14/14; marked T-0003/T-0004 Done on `main`. |
 | 2026-10-29 | cursor | T-0005 | `e0f2d4d`, `3d11e6c` | In review | Core Clock, SpscRing, ObjectPool, LogQueue, pin_thread, allocation hook; 10M SPSC stress; TSan clean. |
