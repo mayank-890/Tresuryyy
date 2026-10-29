@@ -150,7 +150,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: unit; TSan stress; ASan; benchmark baseline recorded
 
 ### T-0006: PostgreSQL migrations and partition scripts
-- Status: In review
+- Status: Done (merged `main` @ 080a18d, 2026-10-29)
 - Phase: 0 · Risk class: A · Depends on: T-0002
 - Requirements: FR-JR-03, DESIGN §11, TI §11
 - Goal: Initial schema, roles, indexes, partition management; applied and rolled back in CI.
