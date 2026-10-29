@@ -6,7 +6,7 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-29T18:15:00+0530 by cursor
 - Active ticket: T-0008
 - Branch: feat/T-0008-journal-inspector
-- Last green commit: e9d68a3 — `T-0008: merge main (T-0007); resolve PROGRESS handoff`
+- Last green commit: 4c0012a — `T-0008: handoff In review`
 - Working tree: clean
 - Tests passing at last commit: **Darwin arm64** — `just check` (CTest **14/14**); `bash tools/journal_inspect/run_tests.sh` (**6/6**)
 - Next step (exact): Operator review T-0008; merge `feat/T-0008-journal-inspector` to `main`. Do not start T-0009 until T-0008 is Done on `main`.
