@@ -6,7 +6,7 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-29T16:45:00+0530 by cursor
 - Active ticket: T-0008
 - Branch: feat/T-0008-journal-inspector
-- Last green commit: (pending) — `T-0008: handoff In review`
+- Last green commit: e85243c — `T-0008: handoff In review`
 - Working tree: clean (after commit)
 - Tests passing at last commit: **Darwin arm64** — `just check` (CTest 13/13); `bash tools/journal_inspect/run_tests.sh` (6/6)
 - Next step (exact): Operator review T-0008; merge to `main`. Do not start T-0009 until T-0008 is Done on `main`. Note: T-0007 remains In review on branch `feat/T-0007-profiles-promotion` (not on `main`).
