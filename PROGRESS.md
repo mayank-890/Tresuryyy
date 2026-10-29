@@ -3,13 +3,13 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-29T14:00:00+0530 by cursor
+- Updated: 2026-10-29T14:30:00+0530 by cursor
 - Active ticket: T-0006
 - Branch: feat/T-0006-db-migrations
-- Last green commit: (pending) — T-0006 work in progress
-- Working tree: clean at branch start from `main` @ ffaece3
-- Tests passing at last commit: (pending T-0006)
-- Next step (exact): Implement db migrations, partition scripts, just db recipes, CI migrations job; run `just check` and migration cycle on **Darwin arm64**.
+- Last green commit: (pending commit) — `T-0006: PostgreSQL migrations, partitions, CI db job`
+- Working tree: pending commit after green checks
+- Tests passing at last commit: **Darwin arm64** — `just check` (CTest 13/13); `just db-migrate-cycle`; `just test-db` (partitions, ON CONFLICT, privilege deny, drop guard)
+- Next step (exact): Operator Class A review of T-0006; confirm **Q-12** (partitioned-table unique includes `event_time`); do not start T-0007 until Done.
 - Files touched this ticket: core headers/sources/tests/bench; `engine/CMakeLists.txt`, `engine/tests/unit/core/CMakeLists.txt`, `justfile` (operator scope amendment 2026-10-29).
 - Decisions made this session (not yet in ADR): Renamed `pinThread` / `pinThreadWarningCount` (TI §4.1 camelCase). macOS `pinThread` returns `Unsupported`; **Linux CI is authority for affinity success path**.
 - Open questions: Q-11; Q-1 through Q-9 unchanged. Q-10 resolved.
@@ -150,19 +150,25 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: unit; TSan stress; ASan; benchmark baseline recorded
 
 ### T-0006: PostgreSQL migrations and partition scripts
-- Status: In progress
+- Status: In review
 - Phase: 0 · Risk class: A · Depends on: T-0002
 - Requirements: FR-JR-03, DESIGN §11, TI §11
 - Goal: Initial schema, roles, indexes, partition management; applied and rolled back in CI.
 - Acceptance criteria:
-  - [ ] `docker/compose.yml` with PostgreSQL 16 bound to localhost
-  - [ ] dbmate migrations: schema `trading`; tables from DESIGN §11; roles `projector_writer`, `control_api_reader`, `report_reader` with least privilege
-  - [ ] Unique constraints on `(source_segment, source_sequence)` in every projected table
-  - [ ] Indexes per TI §11.1
-  - [ ] Partition scripts create daily and monthly partitions ahead of time; drop only after archive verification flag is set
-  - [ ] `projection_checkpoint` table
-  - [ ] CI: apply all migrations to a fresh database; run down-migrations; re-apply
+  - [x] `docker/compose.yml` with PostgreSQL 16 bound to localhost (`127.0.0.1`; optional `DEV_DB_PORT`)
+  - [x] dbmate migrations: schema `trading`; tables from DESIGN §11; roles `projector_writer`, `control_api_reader`, `report_reader` with least privilege
+  - [x] Unique idempotency keys: `(source_segment, source_sequence)` on non-partitioned tables; partitioned append tables use `(source_segment, source_sequence, event_time)` — **Q-12** pending operator confirmation (PostgreSQL partition-key rule)
+  - [x] Indexes per TI §11.1 (BRIN on event time for tick/event tables; B-tree on `client_order_id` for `orders`; B-tree on `(strategy_id, instrument_id, event_time)` for `fills`)
+  - [x] Partition scripts create daily (3 days ahead) and monthly (2 months ahead) partitions; `drop_partition.sh` requires `ARCHIVE_VERIFIED=1`
+  - [x] `projection_checkpoint` table
+  - [x] CI job `migrations-apply-down`: apply → `db/tests/run_migration_tests.sh` → down → re-apply
   - [ ] Human review required (Class A)
+- Evidence (2026-10-29, **Darwin arm64**):
+  - `just migrate`: Applied `20260129100000_trading_initial.sql`
+  - `just db-migrate-cycle`: rollback + re-apply clean
+  - `just test-db`: daily/monthly partitions created; ON CONFLICT DO NOTHING; `t0006_no_priv` INSERT denied; drop refused without archive flag
+  - `just check`: codegen drift + journal tests + CTest **13/13** + watchdog link check
+  - dbmate: `DBMATE_MIGRATIONS_TABLE=public.schema_migrations` (avoids collision with schema `trading`)
 - Files allowed: `db/`, `docker/`, `.github/workflows/` (database job only), `justfile`
 - Out of scope: projector code (Phase 1)
 - Tests required: migration apply, down, re-apply; partition creation test; constraint tests (duplicate insert ignored by ON CONFLICT pattern)

@@ -55,3 +55,78 @@ check-all-presets:
     just check release
     just check bench
     just check coverage
+
+db-env-file := justfile_directory() / "docker" / ".env"
+
+dbmate-run command:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    eval "$(just load-db-env)"
+    root="$(cd "$(dirname "{{justfile()}}")" && pwd)"
+    dbmate_url="${DATABASE_URL}"
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+      dbmate_url="${dbmate_url/127.0.0.1/host.docker.internal}"
+    fi
+    docker run --rm \
+      -v "${root}/db/migrations:/db/migrations" \
+      -e "DATABASE_URL=${dbmate_url}" \
+      -e DBMATE_MIGRATIONS_TABLE=public.schema_migrations \
+      -e DBMATE_NO_DUMP_SCHEMA=true \
+      ghcr.io/amacneil/dbmate:2 \
+      --migrations-dir /db/migrations \
+      "{{command}}"
+
+load-db-env:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [[ -f "{{db-env-file}}" ]]; then
+      set -a
+      source "{{db-env-file}}"
+      set +a
+    elif [[ -z "${DATABASE_URL:-}" ]]; then
+      :
+    fi
+    if [[ -n "${DATABASE_URL:-}" ]]; then
+      export DATABASE_URL="${DATABASE_URL/host.docker.internal/127.0.0.1}"
+    fi
+    if [[ -z "${DATABASE_URL:-}" ]]; then
+      if [[ -z "${TRADING_DEV_DB_PASSWORD:-}" ]]; then
+        echo "Set TRADING_DEV_DB_PASSWORD in docker/.env or export DATABASE_URL" >&2
+        exit 1
+      fi
+      export DATABASE_URL="postgres://trading:${TRADING_DEV_DB_PASSWORD}@127.0.0.1:5432/trading_dev?sslmode=disable"
+    fi
+    printf 'export DATABASE_URL=%q\n' "${DATABASE_URL}"
+
+db-up:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    args=(-f docker/compose.yml)
+    if [[ -f docker/.env ]]; then
+      args+=(--env-file docker/.env)
+    fi
+    docker compose "${args[@]}" up -d --wait
+
+db-down:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    args=(-f docker/compose.yml)
+    if [[ -f docker/.env ]]; then
+      args+=(--env-file docker/.env)
+    fi
+    docker compose "${args[@]}" down -v
+
+migrate:
+    just dbmate-run up
+
+migrate-down:
+    just dbmate-run down
+
+db-migrate-cycle: migrate migrate-down migrate
+
+test-db: migrate
+    #!/usr/bin/env bash
+    set -euo pipefail
+    chmod +x db/partitions/*.sh db/tests/run_migration_tests.sh
+    eval "$(just load-db-env)"
+    ./db/tests/run_migration_tests.sh

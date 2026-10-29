@@ -99,8 +99,61 @@ jobs:
   migrations-apply-down:
     name: migrations-apply-down
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-bookworm
+        env:
+          POSTGRES_USER: trading
+          POSTGRES_PASSWORD: ci_ephemeral_db_password
+          POSTGRES_DB: trading_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U trading -d trading_dev"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://trading:ci_ephemeral_db_password@127.0.0.1:5432/trading_dev?sslmode=disable
+      TRADING_DEV_DB_PASSWORD: ci_ephemeral_db_password
     steps:
-      - run: echo "TODO(T-0006) migrations-apply-down placeholder"
+      - uses: actions/checkout@v4
+      - name: Apply migrations
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/db/migrations:/db/migrations" \
+            -e DATABASE_URL \
+            --network host \
+            -e DBMATE_MIGRATIONS_TABLE=public.schema_migrations \
+            -e DBMATE_NO_DUMP_SCHEMA=true \
+            ghcr.io/amacneil/dbmate:2 \
+            --migrations-dir /db/migrations up
+      - name: DB tests and partition scripts
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client
+          chmod +x db/partitions/*.sh db/tests/run_migration_tests.sh
+          ./db/tests/run_migration_tests.sh
+      - name: Roll back migrations
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/db/migrations:/db/migrations" \
+            -e DATABASE_URL \
+            --network host \
+            -e DBMATE_MIGRATIONS_TABLE=public.schema_migrations \
+            -e DBMATE_NO_DUMP_SCHEMA=true \
+            ghcr.io/amacneil/dbmate:2 \
+            --migrations-dir /db/migrations down
+      - name: Re-apply migrations
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/db/migrations:/db/migrations" \
+            -e DATABASE_URL \
+            --network host \
+            -e DBMATE_MIGRATIONS_TABLE=public.schema_migrations \
+            -e DBMATE_NO_DUMP_SCHEMA=true \
+            ghcr.io/amacneil/dbmate:2 \
+            --migrations-dir /db/migrations up
 
   codegen-drift:
     name: codegen-drift
