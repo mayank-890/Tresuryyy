@@ -52,11 +52,26 @@ research-lint: research-sync
 research-test: research-sync
     cd "{{research-dir}}" && uv run pytest -q
 
+ui-dir := justfile_directory() / "ui"
+
+ui-install:
+    cd "{{ui-dir}}" && npm ci
+
+ui-unit-test: ui-install
+    cd "{{ui-dir}}" && npm run test:unit
+
+ui-test: ui-install
+    cd "{{ui-dir}}" && env -u FORCE_COLOR npm run test:e2e
+
+ui-test-ci: ui-install
+    cd "{{ui-dir}}" && npx playwright install chromium && npm run test:e2e
+
 check preset=default_preset:
     just codegen-check
     just test-journal-schema
     just research-lint
     just research-test
+    just ui-unit-test
     just test "{{preset}}"
     just check-watchdog "{{preset}}"
 
