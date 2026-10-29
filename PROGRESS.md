@@ -3,16 +3,16 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-29T19:40:00+0530 by cursor
-- Active ticket: T-0010
-- Branch: feat/T-0010-frontend-skeleton
-- Last green commit: 4dfe742 — `T-0010: handoff In review`
-- Working tree: clean
-- Tests passing at last commit: **Darwin arm64** — `just check` (journal **22/22**, research **1/1**, ui unit **4/4**, CTest **14/14**); `just ui-test` Playwright **1/1**; `cd ui && npm run test:e2e` **1 passed**
-- Next step (exact): Operator review T-0010; merge `feat/T-0010-frontend-skeleton` to `main`. Do not start T-0011 until T-0010 is Done on `main`.
-- Files touched this ticket: `ui/index.html`, `ui/css/dashboard.css`, `ui/js/`, `ui/tests/`, `ui/e2e/`, `ui/package.json`, `ui/package-lock.json`, `ui/playwright.config.js`, `justfile`
-- Open questions: Q-13; Q-11; Q-1–Q-7; T-0101 blocked until Phase 0 exit (T-0011 after T-0010).
-- Notes for the next tool: Reducer tests use Node built-in `node:test` (no new ADR). Playwright is TI §2 current dep; local `just ui-test` uses system Chrome (`channel: chrome`); CI should use `just ui-test-ci`. `just check` runs `ui-unit-test` only (includes innerHTML guard test).
+- Updated: 2026-10-29T22:30:00+0530 by cursor
+- Active ticket: T-0011
+- Branch: feat/T-0011-calendar-instruments
+- Last green commit: d0a2697 — `T-0011: add calendar and instrument loaders with sample configs`
+- Working tree: clean (after PROGRESS commit)
+- Tests passing at last commit: **Darwin arm64** — `just check` (journal **22/22**, research **1/1**, ui unit **4/4**, CTest **14/14** incl. expanded `profile_tests`, watchdog link)
+- Next step (exact): Operator review **T-0011**; merge `feat/T-0011-calendar-instruments` to `main`. Then record **Phase 0 exit** per PROCESS §6.1 (`docs/reviews/phase-0.md`). Do **not** start Phase 1 (T-0101) until operator signs Phase 0 exit and B-0101-3 (pyarrow ADR) is resolved.
+- Files touched this ticket: `engine/src/calendar/`, `engine/src/instruments/`, `config/calendars/crypto_24x7.toml`, `config/instruments/delta_crypto.toml`, `engine/tests/unit/profile/`, `engine/CMakeLists.txt` (operator amendment: link `trading_core` + `engine/include` on `trading_profile`)
+- Open questions: Q-13; Q-11; Q-1–Q-7; Q-14 (proposed): accept `engine/CMakeLists.txt` amendment for T-0011.
+- Notes for the next tool: Calendars Phase 0 UTC-only; loaders require `# SAMPLE — NOT FOR TRADING` banner on repo sample configs. Session query API: `trading::calendar::query_session`.
 
 ## Current Phase
 
@@ -239,7 +239,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: smoke test; lint and types clean
 
 ### T-0010: Frontend skeleton with smoke test
-- Status: In review
+- Status: Done (merged `main` @ 8251a18, 2026-10-29)
 - Phase: 0 · Risk class: B · Depends on: T-0002
 - Requirements: FR-UI-01 (scaffold), TI §4.3
 - Goal: Static dashboard shell with module structure, a reducer, and a Playwright smoke test. No live data.
@@ -259,16 +259,21 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: reducer unit tests; Playwright smoke
 
 ### T-0011: Calendar and instrument master loader
-- Status: Backlog
+- Status: In review
 - Phase: 0 · Risk class: B · Depends on: T-0007
 - Requirements: FR-MD-04 (session data), TI §8, DESIGN §8.3
 - Goal: Load and validate trading calendars and instrument master files. No real operator data.
 - Acceptance criteria:
-  - [ ] Calendar format supports sessions per product, holidays, early closes, and maintenance windows
-  - [ ] Instrument master format: symbol, venue, lot size, tick size, expiry, strike, option type, underlying
-  - [ ] Validator rejects overlapping sessions, zero or negative tick or lot sizes, and duplicate symbols
-  - [ ] Sample files use synthetic values and are marked `# SAMPLE — NOT FOR TRADING`
-  - [ ] Loader exposes lookup by symbol and session query by time, with a fixed-clock test
+  - [x] Calendar format supports sessions per product, holidays, early closes, and maintenance windows
+  - [x] Instrument master format: symbol, venue, lot size, tick size, expiry, strike, option type, underlying
+  - [x] Validator rejects overlapping sessions, zero or negative tick or lot sizes, and duplicate symbols
+  - [x] Sample files use synthetic values and are marked `# SAMPLE — NOT FOR TRADING`
+  - [x] Loader exposes lookup by symbol and session query by time, with a fixed-clock test
+- Evidence (2026-10-29, **Darwin arm64**):
+  - `d0a2697`: TOML loaders (`calendar_load`, `instrument_load`), validators, `query_session` with holidays/early close/maintenance.
+  - Sample configs: `config/calendars/crypto_24x7.toml`, `config/instruments/delta_crypto.toml` (referenced by paper profile).
+  - Tests: `engine/tests/unit/profile/calendar_instrument_tests.cpp` (overlap reject, boundary session query, duplicate symbol, lookup).
+  - `just check`: CTest **14/14** including expanded `profile_tests`.
 - Files allowed: `engine/src/calendar/`, `engine/src/instruments/`, `config/calendars/`, `config/instruments/`, `engine/tests/`
 - Out of scope: real instrument data; roll logic (Phase 2); session behavior in strategies
 - Tests required: validator tests; lookup tests; session query at boundaries
@@ -303,6 +308,7 @@ Tickets above supersede “Not Yet Ready” once Phase 0 exit is recorded in `do
 | Q-12 | Partitioned-table unique keys include `event_time` (option A). | T-0006 | Done — operator approved 2026-10-29; ADR-0013 Accepted |
 | Q-13 | Accept ADR-0014 (`tomlplusplus`, `nlohmann-json`, `openssl` in `vcpkg.json`) and `engine/CMakeLists.txt` / `vcpkg.json` edits for T-0007. | T-0007 merge | Open — implemented pending operator sign-off |
 | Q-11 | Add Google Benchmark to `vcpkg.json` (ADR) for nightly SPSC regression vs `engine/bench/core/baseline.txt`. T-0005 used std::chrono bench only. | Phase 3 perf gates | Open |
+| Q-14 | Accept `engine/CMakeLists.txt` amendment for T-0011 (`trading_profile` links `trading_core`, exposes `engine/include`). | T-0011 merge | Open — required for loaders |
 
 ## Decisions Log
 
@@ -323,6 +329,8 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-10-29 | cursor | T-0011 | `d0a2697` | In review | Calendar/instrument TOML loaders, sample configs, profile_tests coverage. |
+| 2026-10-29 | cursor | T-0010 | `8251a18` (merge) | Done | Frontend skeleton on `main`. |
 | 2026-10-29 | cursor | T-0010 | `5899d71` | In review | Dashboard §5.1 panels, reducer unit tests, Playwright smoke; `just ui-test-ci` for CI browsers. |
 | 2026-10-29 | cursor | T-0009 | `f6bbe81` (merge), PROGRESS | Done | Re-verified `just check` on `main`; PROGRESS synced post-merge. |
 | 2026-10-29 | cursor | T-0009 | `8971057`, `fa27656` | In review | uv project, engine ADR-0005 stub, ruff/mypy/pytest wired in `just check`. |
@@ -343,6 +351,6 @@ Append one entry per session. Newest first.
 
 | ID | Ticket | Reason | Unblock |
 |---|---|---|---|
-| B-0101-1 | T-0101 | **Process gate:** Phase 0 **T-0010–T-0011** not Done on `main` (T-0009 merged 2026-10-29). | Complete T-0010–T-0011 on `main`; phase-0 review note. |
+| B-0101-1 | T-0101 | **Process gate:** T-0011 not Done on `main`; Phase 0 exit not recorded (T-0009–T-0010 on `main`). | Merge T-0011; operator Phase 0 exit note. |
 | B-0101-2 | T-0101 | **Scaffold:** Research uv/pytest skeleton (T-0009). | Done — T-0009 on `main` @ f6bbe81. |
 | B-0101-3 | T-0101 | **Dependencies:** Parquet write likely needs `pyarrow` (no Accepted ADR on `main`). | Operator accepts ADR for research ingestion deps. |
