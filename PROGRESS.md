@@ -6,8 +6,8 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-29T15:00:00+0530 by cursor
 - Active ticket: T-0007
 - Branch: feat/T-0007-profiles-promotion
-- Last green commit: (pending) — `T-0007: profiles, validator, promotion verifier, paper trader`
-- Working tree: pending commit
+- Last green commit: 98f83bb — `T-0007: profiles, validator, promotion verifier, paper trader`
+- Working tree: clean
 - Tests passing at last commit: **Darwin arm64** — `just check` (CTest **14/14** incl. `profile_tests`, `trader_version`); `just test-tsan` (**14/14**)
 - Next step (exact): Operator Class A review of T-0007; confirm **ADR-0014** / **Q-13** (vcpkg deps + `engine/CMakeLists.txt` scope). Do not start T-0008 until Done.
 - Files touched this ticket: core headers/sources/tests/bench; `engine/CMakeLists.txt`, `engine/tests/unit/core/CMakeLists.txt`, `justfile` (operator scope amendment 2026-10-29).
