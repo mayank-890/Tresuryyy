@@ -3,13 +3,13 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-29T14:30:00+0530 by cursor
-- Active ticket: T-0006
-- Branch: feat/T-0006-db-migrations
-- Last green commit: 773ba95 — `T-0006: resolve Q-12, deterministic event_time`
-- Working tree: clean
-- Tests passing at last commit: **Darwin arm64** — `just check` (CTest 13/13); `just db-migrate-cycle`; `just test-db` (partitions, ON CONFLICT, privilege deny, drop guard)
-- Next step (exact): Operator Class A review of T-0006 (Q-12 resolved, ADR-0013); do not start T-0007 until Done.
+- Updated: 2026-10-29T16:45:00+0530 by cursor
+- Active ticket: T-0008
+- Branch: feat/T-0008-journal-inspector
+- Last green commit: (pending) — `T-0008: handoff In review`
+- Working tree: clean (after commit)
+- Tests passing at last commit: **Darwin arm64** — `just check` (CTest 13/13); `bash tools/journal_inspect/run_tests.sh` (6/6)
+- Next step (exact): Operator review T-0008; merge to `main`. Do not start T-0009 until T-0008 is Done on `main`. Note: T-0007 remains In review on branch `feat/T-0007-profiles-promotion` (not on `main`).
 - Files touched this ticket: core headers/sources/tests/bench; `engine/CMakeLists.txt`, `engine/tests/unit/core/CMakeLists.txt`, `justfile` (operator scope amendment 2026-10-29).
 - Decisions made this session (not yet in ADR): Renamed `pinThread` / `pinThreadWarningCount` (TI §4.1 camelCase). macOS `pinThread` returns `Unsupported`; **Linux CI is authority for affinity success path**.
 - Open questions: Q-11; Q-1 through Q-9 unchanged. Q-10 resolved.
@@ -194,16 +194,20 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: TC-CF-01 to TC-CF-09 as applicable at Phase 0
 
 ### T-0008: Journal inspector
-- Status: Backlog
+- Status: In review
 - Phase: 0 · Risk class: C · Depends on: T-0004, T-0005
 - Requirements: FR-JR-02, TC-JR-02, TC-JR-10
 - Goal: Read-only tool that validates journal segments, reports torn tails, and pretty-prints records.
 - Acceptance criteria:
-  - [ ] Reads v1 segments; validates CRC and sequence continuity
-  - [ ] Detects a torn tail and reports it without modifying the file (`--repair` is NOT implemented in this ticket)
-  - [ ] Mid-file CRC failure reported as fatal with byte offset
-  - [ ] Filtering by record type and sequence range
-  - [ ] Fixture set in `tests/fixtures/compat/v1/` (small, synthetic) covering normal, torn-tail, and CRC-corrupt cases
+  - [x] Reads v1 segments; validates CRC and sequence continuity
+  - [x] Detects a torn tail and reports it without modifying the file (`--repair` is NOT implemented in this ticket)
+  - [x] Mid-file CRC failure reported as fatal with byte offset
+  - [x] Filtering by record type and sequence range
+  - [x] Fixture set in `tests/fixtures/compat/v1/` (small, synthetic) covering normal, torn-tail, and CRC-corrupt cases
+- Evidence (2026-10-29, **Darwin arm64**):
+  - CLI: `python3 tools/journal_inspect/__main__.py tests/fixtures/compat/v1/normal.segment`
+  - Tests: `bash tools/journal_inspect/run_tests.sh` — 6 unittest cases (normal, torn AL-14, CRC fatal offset, filters, SHA-256 unchanged)
+  - `just check`: CTest 13/13, journal schema tests, watchdog link check
 - Files allowed: `tools/journal_inspect/`, `tests/fixtures/compat/v1/`
 - Out of scope: writer; repair; any change to the journal format
 - Tests required: fixture tests for each case; read-only check (file hash unchanged after run)
@@ -292,6 +296,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-10-29 | cursor | T-0008 | (see branch) | In review | Journal inspector CLI, CRC/sequence scan, torn-tail AL-14, compat v1 fixtures, read-only tests. |
 | 2026-10-29 | cursor | T-0005 | `e0f2d4d`, `3d11e6c` | In review | Core Clock, SpscRing, ObjectPool, LogQueue, pin_thread, allocation hook; 10M SPSC stress; TSan clean. |
 | 2026-10-29 | cursor | T-0004 | `890a6c5`, `574d14c` | In review | Journal v1 schema, codegen drift check, C++/Python round-trip tests; branch includes T-0003 build. |
 | 2026-10-29 | cursor | T-0003 | `4e544e6`, PROGRESS commit | In review | CMake superbuild, six presets, vcpkg gtest, empty engine targets, watchdog link check. |
