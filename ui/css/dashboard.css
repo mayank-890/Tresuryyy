@@ -1,0 +1,65 @@
+:root {
+    color-scheme: light dark;
+    --panel-gap: 1rem;
+    --border: 1px solid color-mix(in srgb, CanvasText 20%, transparent);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family:
+        system-ui,
+        -apple-system,
+        Segoe UI,
+        Roboto,
+        sans-serif;
+    line-height: 1.5;
+    background: Canvas;
+    color: CanvasText;
+}
+
+.page-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: var(--border);
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: 1.35rem;
+}
+
+.page-subtitle {
+    margin: 0.35rem 0 0;
+    opacity: 0.75;
+    font-size: 0.95rem;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+    gap: var(--panel-gap);
+    padding: 1.5rem;
+}
+
+.dashboard-panel {
+    border: var(--border);
+    border-radius: 0.5rem;
+    padding: 1rem 1.1rem;
+    min-height: 6rem;
+}
+
+.dashboard-panel h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.05rem;
+}
+
+.panel-placeholder {
+    margin: 0;
+    font-size: 0.95rem;
+    opacity: 0.85;
+}
