@@ -3,13 +3,13 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-29T13:10:00+0530 by cursor
-- Active ticket: T-0005
-- Branch: feat/T-0005-core-primitives
-- Last green commit: 42bbf60 — `T-0005: rename to camelCase, wire core tests into CTest and test-tsan`
-- Working tree: clean after PROGRESS commit
-- Tests passing at last commit: `just check` on **Darwin arm64** (debug-asan): CTest **13/13** including `core_tests`; `just test-tsan` on **Darwin arm64**: CTest **13/13** including `core_tests` (~8.3s under TSan).
-- Next step (exact): Operator Class A review of T-0005. Do not start T-0006 until T-0005 is Done.
+- Updated: 2026-10-29T14:00:00+0530 by cursor
+- Active ticket: T-0006
+- Branch: feat/T-0006-db-migrations
+- Last green commit: (pending) — T-0006 work in progress
+- Working tree: clean at branch start from `main` @ ffaece3
+- Tests passing at last commit: (pending T-0006)
+- Next step (exact): Implement db migrations, partition scripts, just db recipes, CI migrations job; run `just check` and migration cycle on **Darwin arm64**.
 - Files touched this ticket: core headers/sources/tests/bench; `engine/CMakeLists.txt`, `engine/tests/unit/core/CMakeLists.txt`, `justfile` (operator scope amendment 2026-10-29).
 - Decisions made this session (not yet in ADR): Renamed `pinThread` / `pinThreadWarningCount` (TI §4.1 camelCase). macOS `pinThread` returns `Unsupported`; **Linux CI is authority for affinity success path**.
 - Open questions: Q-11; Q-1 through Q-9 unchanged. Q-10 resolved.
@@ -124,7 +124,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: round-trip per record type; header size and offset tests; codegen drift test
 
 ### T-0005: Core primitives
-- Status: In review
+- Status: Done (merged `main` @ ffaece3, 2026-10-29)
 - Phase: 0 · Risk class: A · Depends on: T-0004
 - Requirements: NFR-PERF-02, TI §4.1, DESIGN §4
 - Goal: Clock, SPSC ring, object pool, lock-free log queue, thread-pinning helper. Tested under TSan and ASan.
@@ -150,7 +150,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: unit; TSan stress; ASan; benchmark baseline recorded
 
 ### T-0006: PostgreSQL migrations and partition scripts
-- Status: Backlog
+- Status: In progress
 - Phase: 0 · Risk class: A · Depends on: T-0002
 - Requirements: FR-JR-03, DESIGN §11, TI §11
 - Goal: Initial schema, roles, indexes, partition management; applied and rolled back in CI.
@@ -262,7 +262,8 @@ Tickets for Phase 1 are written at the Phase 0 exit review. Do not begin them in
 | Q-7 | Confirm `.gitignore` should anchor `/data/` and `/secrets/` at the repository root. Unanchored `data/` would ignore `research/src/tradelab/data/`. Unanchored `secrets/` would ignore `deploy/secrets/` (layout documentation, no values). T-0001 used the anchored form so those skeleton paths stay tracked. | none for T-0001 review | Open |
 | Q-8 | Add `.vcpkg/` to `.gitignore` (local vcpkg clone from `just setup-vcpkg`). | none | Done — merged to `main` at `e5c43aa` (2026-10-29) |
 | Q-9 | T-0004 branch stacks `feat/T-0003-cmake-superbuild` until T-0003 is on `main`. Confirm PR base and merge order with operator. | T-0004 review | Open |
-| Q-10 | Wire `core_tests` into CTest and add `just test-tsan`. | T-0005 CI | Resolved on `feat/T-0005-core-primitives` (2026-10-29); pending merge |
+| Q-10 | Wire `core_tests` into CTest and add `just test-tsan`. | T-0005 CI | Done — merged in `ffaece3` |
+| Q-12 | Partitioned tables: PostgreSQL requires unique constraints to include the partition key (`event_time`). TI §11.1 asks for `(source_segment, source_sequence)` only. Options: (A) extend unique to `(source_segment, source_sequence, event_time)` — replay idempotency unchanged if `event_time` is fixed per journal record; (B) drop parent-level unique and enforce per-partition indexes only; (C) stop partitioning projected append tables until ADR; (D) partition by a key that includes `source_segment`. | T-0006 acceptance; projector ON CONFLICT target | Open — agent implements (A) pending operator confirmation |
 | Q-11 | Add Google Benchmark to `vcpkg.json` (ADR) for nightly SPSC regression vs `engine/bench/core/baseline.txt`. T-0005 used std::chrono bench only. | Phase 3 perf gates | Open |
 
 ## Decisions Log
