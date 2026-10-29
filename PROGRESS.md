@@ -6,7 +6,7 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-29T18:30:00+0530 by cursor
 - Active ticket: T-0009
 - Branch: feat/T-0009-research-skeleton
-- Last green commit: fa27656 — `T-0009: wire research lint and pytest into just check`
+- Last green commit: 91f5695 — `T-0009: handoff In review`
 - Working tree: clean
 - Tests passing at last commit: **Darwin arm64** — `just check` (CTest **14/14**, `just research-lint`, `just research-test` **1/1** pytest)
 - Next step (exact): Operator review T-0009; merge `feat/T-0009-research-skeleton` to `main`. Do not start T-0010 until T-0009 is Done on `main`.
