@@ -6,8 +6,8 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-29T18:00:00+0530 by cursor
 - Active ticket: T-0007
 - Branch: feat/T-0007-profiles-promotion
-- Last green commit: 15aa4d6 — `T-0007: update handoff commit SHA` (implementation @ `98f83bb`)
-- Working tree: clean (after PROGRESS commit)
+- Last green commit: e7c052f — `T-0007: mark T-0003/T-0004 Done; refresh handoff and evidence`
+- Working tree: clean
 - Tests passing at last commit: **Darwin arm64** — `just check` (CTest **14/14**); `just test-tsan` (**14/14**); re-verified 2026-10-29 session
 - Next step (exact): Operator Class A review of T-0007; accept **ADR-0014** / resolve **Q-13**; merge `feat/T-0007-profiles-promotion` to `main`. Do not start T-0008 until T-0007 is Done on `main`.
 - Files touched this ticket: `config/`, `engine/src/apps/trader/`, `engine/src/calendar/stub.cpp`, `engine/tests/unit/profile/`, `engine/CMakeLists.txt`, `vcpkg.json`, `docs/adr/ADR-0014.md`, `justfile`, `tools/` (test keys/fixtures only)
@@ -297,7 +297,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-10-29 | cursor | T-0007 | (pending) | In review | Re-ran `just check` + `test-tsan` 14/14; marked T-0003/T-0004 Done on `main`; handoff refreshed. |
+| 2026-10-29 | cursor | T-0007 | `e7c052f` | In review | Re-ran `just check` + `test-tsan` 14/14; marked T-0003/T-0004 Done on `main`; handoff refreshed. |
 | 2026-10-29 | cursor | T-0005 | `e0f2d4d`, `3d11e6c` | In review | Core Clock, SpscRing, ObjectPool, LogQueue, pin_thread, allocation hook; 10M SPSC stress; TSan clean. |
 | 2026-10-29 | cursor | T-0004 | `890a6c5`, `574d14c` | In review | Journal v1 schema, codegen drift check, C++/Python round-trip tests; branch includes T-0003 build. |
 | 2026-10-29 | cursor | T-0003 | `4e544e6`, PROGRESS commit | In review | CMake superbuild, six presets, vcpkg gtest, empty engine targets, watchdog link check. |
