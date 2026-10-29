@@ -6,14 +6,14 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-29T16:45:00+0530 by cursor
 - Active ticket: T-0008
 - Branch: feat/T-0008-journal-inspector
-- Last green commit: b554f34 — `T-0008: fix handoff commit SHA in PROGRESS`
-- Working tree: clean (after commit)
+- Last green commit: a22a49f — `T-0008: handoff last green SHA b554f34`
+- Working tree: clean
 - Tests passing at last commit: **Darwin arm64** — `just check` (CTest 13/13); `bash tools/journal_inspect/run_tests.sh` (6/6)
 - Next step (exact): Operator review T-0008; merge to `main`. Do not start T-0009 until T-0008 is Done on `main`. Note: T-0007 remains In review on branch `feat/T-0007-profiles-promotion` (not on `main`).
-- Files touched this ticket: core headers/sources/tests/bench; `engine/CMakeLists.txt`, `engine/tests/unit/core/CMakeLists.txt`, `justfile` (operator scope amendment 2026-10-29).
-- Decisions made this session (not yet in ADR): Renamed `pinThread` / `pinThreadWarningCount` (TI §4.1 camelCase). macOS `pinThread` returns `Unsupported`; **Linux CI is authority for affinity success path**.
-- Open questions: Q-11; Q-1 through Q-9 unchanged. Q-10 resolved.
-- Notes for the next tool: `run_core_tests.sh` retained as auxiliary; primary path is CTest `core_tests`.
+- Files touched this ticket: `tools/journal_inspect/*`, `tests/fixtures/compat/v1/*`
+- Decisions made this session (not yet in ADR): Inspector is Python (stdlib + committed journal codegen); no segment footer parsing until format is specified beyond DESIGN §10.2.
+- Open questions: Q-11; Q-1 through Q-9, Q-13 unchanged.
+- Notes for the next tool: Run inspector via `python3 tools/journal_inspect/__main__.py <segment>`; CI wiring for `run_tests.sh` is out of scope for T-0008 allowed files.
 
 ## Current Phase
 
