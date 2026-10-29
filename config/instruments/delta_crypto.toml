@@ -1,0 +1,15 @@
+# SAMPLE — NOT FOR TRADING
+
+[[instrument]]
+symbol = "SAMPLE-BTC-PERP"
+venue = "delta_testnet"
+lot_size = 1
+tick_size = 100
+underlying = "SAMPLE-BTC"
+
+[[instrument]]
+symbol = "SAMPLE-ETH-PERP"
+venue = "delta_testnet"
+lot_size = 1
+tick_size = 10
+underlying = "SAMPLE-ETH"

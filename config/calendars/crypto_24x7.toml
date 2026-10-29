@@ -1,0 +1,12 @@
+# SAMPLE — NOT FOR TRADING
+
+[calendar]
+name = "crypto_24x7"
+timezone = "UTC"
+
+[[product]]
+id = "SAMPLE_CRYPTO"
+
+[[product.session]]
+open = "00:00:00"
+close = "23:59:59"

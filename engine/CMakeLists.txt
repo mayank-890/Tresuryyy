@@ -64,10 +64,14 @@ add_library(trading_profile STATIC
             src/apps/trader/promotion_verifier.cpp
             src/apps/trader/profile_startup.cpp
             src/calendar/stub.cpp)
-target_include_directories(trading_profile PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/apps/trader")
+target_include_directories(
+  trading_profile
+  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/apps/trader"
+         "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(
   trading_profile
-  PUBLIC tomlplusplus::tomlplusplus nlohmann_json::nlohmann_json OpenSSL::Crypto)
+  PUBLIC trading_core tomlplusplus::tomlplusplus nlohmann_json::nlohmann_json
+         OpenSSL::Crypto)
 target_compile_features(trading_profile PUBLIC cxx_std_20)
 
 add_executable(trader src/apps/trader/main.cpp)
