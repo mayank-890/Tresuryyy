@@ -39,14 +39,30 @@ test-journal-schema:
     ./build/journal_round_trip_test
     python3 schemas/tests/test_journal_round_trip.py
 
+research-dir := justfile_directory() / "research"
+
+research-sync:
+    cd "{{research-dir}}" && uv sync --dev --frozen
+
+research-lint: research-sync
+    cd "{{research-dir}}" && uv run ruff check src tests
+    cd "{{research-dir}}" && uv run ruff format --check src tests
+    cd "{{research-dir}}" && uv run mypy
+
+research-test: research-sync
+    cd "{{research-dir}}" && uv run pytest -q
+
 check preset=default_preset:
     just codegen-check
     just test-journal-schema
+    just research-lint
+    just research-test
     just test "{{preset}}"
     just check-watchdog "{{preset}}"
 
 lint:
-    @echo "TODO(T-0002+): wire clang-format, clang-tidy, ruff (not required for T-0003)"
+    just research-lint
+    @echo "TODO(T-0002+): wire clang-format and clang-tidy"
 
 check-all-presets:
     just check debug-asan
