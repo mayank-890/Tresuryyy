@@ -3,20 +3,21 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-29T23:50:00+0530 by cursor
-- Active ticket: T-0101 (**Blocked** — preconditions not met)
-- Branch: `main`
-- Last green commit: `88eb50f` — `docs: Phase 0 exit record and pyarrow ADR (Proposed)`
-- Working tree: clean (PROGRESS-only update pending commit)
-- Tests passing at last commit: not re-run this session (no code changes attempted)
-- Next step (exact): Operator set **ADR-0015** status to **Accepted** in `docs/adr/ADR-0015.md` and commit (or merge) on `main`; confirm Phase 0 sign-off in `docs/reviews/phase-0.md`. Then re-run T-0101 agent on `feat/T-0101-delta-ohlcv-ingestion`.
-- Blocker: **ADR-0015 is still Proposed** on `main` @ `88eb50f` — hard stop per T-0101 session rules; pyarrow must not be added until Accepted.
-- Open questions: Q-15 (ADR-0015 Accept); Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1 (Phase 0 operator sign-off).
-- Notes for the next tool: Do not start ingestion code until ADR-0015 Accepted is on `main`.
+- Updated: 2026-10-30T00:15:00+0530 by cursor
+- Active ticket: T-0101 (**In review**)
+- Branch: `feat/T-0101-delta-ohlcv-ingestion`
+- Last green commit: (pending) — `T-0101: Delta OHLCV ingest, Parquet store, DQ checks, CLI`
+- Working tree: clean after commit
+- Tests passing at last commit: `just check` on **Darwin arm64**, 2026-10-30 (research pytest **11/11**, CTest **14/14**)
+- Next step (exact): Operator open PR from `feat/T-0101-delta-ohlcv-ingestion` → `main`; confirm Delta data licensing (TODO(operator)) before merge; human review (Class B).
+- Files touched this ticket: `research/` (pyarrow, ingest/store/quality/adjust/cli), `tests/fixtures/delta/`, `services/.../ingestion/README.md`, `PROGRESS.md`
+- Decisions made this session (not yet in ADR): none
+- Open questions: Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1 (Phase 0 sign-off); Delta storage/redistribution rights **TODO(operator)** (licensing note in T-0101)
+- Notes for the next tool: Historical backfill CLI is `uv run tradelab-ohlcv-backfill` from `research/` with `TRADELAB_DATA_ROOT` set. Unit tests use `tests/fixtures/delta/` only (no network).
 
 ## Current Phase
 
-**Phase 0: Foundation — exit recorded 2026-10-29** (`docs/reviews/phase-0.md`; operator sign-off pending). Phase 1 blocked on **B-0101-3** until ADR-0015 is **Accepted**.
+**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** in review on `feat/T-0101-delta-ohlcv-ingestion`.
 
 ## Phase 0 Backlog
 
@@ -281,11 +282,23 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 ## Phase 1 Backlog
 
 ### T-0101: Delta historical OHLCV ingestion + data quality
-- Status: Blocked
+- Status: In review
 - Phase: 1 · Risk class: B · Depends on: Phase 0 exit; T-0009 (research package)
 - Goal: Historical OHLCV loader (Delta public REST), Parquet under external data root, gap/outlier checks, roll-adjust stub, CLI backfill, fixture tests (no network in unit tests).
-- Blocker: **B-0101-3** (ADR-0015 Accept) and operator Phase 0 sign-off. See **Blockers** § below.
-- Data licensing (record before merge): Delta Exchange API/historical data use is subject to [Delta Exchange terms](https://www.delta.exchange/legal/terms-of-use) and API documentation; operator must confirm redistribution/storage rights for downloaded candles.
+- Acceptance criteria:
+  - [x] ADR-0015 Accepted; `pyarrow` in `research/pyproject.toml` + `uv.lock` only
+  - [x] Delta public REST candle loader with paging (`tradelab.data.ingest.delta_rest`)
+  - [x] Normalized OHLCV Parquet under `TRADELAB_DATA_ROOT` hive layout (`tradelab.data.store`)
+  - [x] Gap detection and basic outlier flags (`tradelab.data.quality.checks`)
+  - [x] Documented futures roll-adjustment stub (`tradelab.data.adjust.futures_roll`)
+  - [x] CLI backfill date range (`tradelab-ohlcv-backfill`)
+  - [x] Unit tests against `tests/fixtures/delta/` only (no live network)
+- Evidence (2026-10-30, **Darwin arm64**):
+  - `just check`: codegen, journal **22/22**, research ruff/mypy/pytest **11/11**, UI **4/4**, CTest **14/14**, watchdog link check pass.
+  - Fixture: `tests/fixtures/delta/candles_btcusd_1m.json`; gap at missing 1m bar exercised in `research/tests/unit/test_delta_ohlcv.py`.
+  - Parquet path: `{TRADELAB_DATA_ROOT}/ohlcv/delta/symbol={SYMBOL}/resolution={RES}/bars.parquet`.
+- Data licensing (record before merge): Delta Exchange API/historical data use is subject to [Delta Exchange terms](https://www.delta.exchange/legal/terms-of-use) and API documentation; **TODO(operator):** confirm redistribution/storage rights for downloaded candles before production backfills.
+- Files allowed: `research/`, `services/ingestion/`, `tests/`, `tools/`, `PROGRESS.md`, `docs/` (licensing note only)
 
 ## Phase 1 Backlog (legacy note)
 
@@ -309,12 +322,13 @@ Tickets above supersede “Not Yet Ready” once Phase 0 exit is recorded in `do
 | Q-13 | Accept ADR-0014 (`tomlplusplus`, `nlohmann-json`, `openssl` in `vcpkg.json`) and `engine/CMakeLists.txt` / `vcpkg.json` edits for T-0007. | T-0007 merge | Open — implemented pending operator sign-off |
 | Q-11 | Add Google Benchmark to `vcpkg.json` (ADR) for nightly SPSC regression vs `engine/bench/core/baseline.txt`. T-0005 used std::chrono bench only. | Phase 3 perf gates | Open |
 | Q-14 | Accept `engine/CMakeLists.txt` amendment for T-0011 (`trading_profile` links `trading_core`, exposes `engine/include`). | T-0011 merge | Open — required for loaders |
-| Q-15 | Accept **ADR-0015** (pyarrow, research Parquet only) to clear B-0101-3. | T-0101 | Open — ADR Proposed 2026-10-29 |
+| Q-15 | Accept **ADR-0015** (pyarrow, research Parquet only) to clear B-0101-3. | T-0101 | Done — Accepted on `main` @ `ac6c987` (2026-10-30) |
 
 ## Decisions Log
 
 | Date | Decision | Reference |
 |---|---|---|
+| 2026-10-30 | pyarrow for research-side Parquet I/O only (T-0101) | ADR-0015 |
 | 2026-10-29 | Partitioned projection unique keys include `event_time` from journal `wall_ns` | ADR-0013 |
 | 2026-10-25 | Codex is primary; Cursor is fallback; both read AGENTS.md | PROCESS §1.1, §7.6 |
 | 2026-10-25 | Phase 0 scope is limited to tickets T-0001 to T-0011 | PROCESS §6.2 |
@@ -330,6 +344,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-10-30 | cursor | T-0101 | (feature commits) | In review | Delta OHLCV ingest + Parquet + DQ + CLI; ADR-0015 Accepted on main. |
 | 2026-10-29 | cursor | Phase 0 exit | (docs commit) | Pending operator | `docs/reviews/phase-0.md`, ADR-0015 Proposed; T-0101 not started. |
 | 2026-10-29 | cursor | T-0011 | `8726a22` (merge) | Done | Calendar/instrument loaders on `main`. |
 | 2026-10-29 | cursor | T-0011 | `d0a2697` | In review | Calendar/instrument TOML loaders, sample configs, profile_tests coverage. |
@@ -356,4 +371,4 @@ Append one entry per session. Newest first.
 |---|---|---|---|
 | B-0101-1 | T-0101 | **Process gate:** Phase 0 exit note needs operator sign-off. | Operator confirms `docs/reviews/phase-0.md`. |
 | B-0101-2 | T-0101 | **Scaffold:** Research uv/pytest skeleton (T-0009). | Done — T-0009 on `main` @ f6bbe81. |
-| B-0101-3 | T-0101 | **Dependencies:** pyarrow for research Parquet I/O. | **ADR-0015 Proposed** — operator **Accept**; then T-0101 may add `pyarrow` to `research/`. |
+| B-0101-3 | T-0101 | **Dependencies:** pyarrow for research Parquet I/O. | Done — ADR-0015 Accepted `ac6c987`; pyarrow on feature branch. |

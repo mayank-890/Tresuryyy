@@ -4,7 +4,12 @@ version = "0.1.0"
 description = "Offline research, backtesting, and analytics"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
-dependencies = []
+dependencies = [
+    "pyarrow>=26.0.0",
+]
+
+[project.scripts]
+tradelab-ohlcv-backfill = "tradelab.cli.ohlcv_backfill:main"
 
 [dependency-groups]
 dev = [
@@ -39,9 +44,13 @@ select = ["E", "F", "I", "UP", "B"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["src/tradelab/engine"]
+files = ["src/tradelab/engine", "src/tradelab/data", "src/tradelab/cli"]
 mypy_path = ["src"]
 
 [[tool.mypy.overrides]]
 module = "tradelab.journal.generated"
 ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = ["pyarrow", "pyarrow.*"]
+ignore_missing_imports = true
