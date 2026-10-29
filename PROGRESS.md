@@ -3,15 +3,16 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-29T17:40:00+0530 by cursor
-- Active ticket: T-0101 (blocked)
-- Branch: `main` (no `feat/T-0101-delta-ohlcv-ingestion` opened)
-- Last green commit: a6ef32e — `docs: block T-0101 until Phase 0 exit on main`
+- Updated: 2026-10-29T18:05:00+0530 by cursor
+- Active ticket: T-0008
+- Branch: `main`
+- Last green commit: (set after merge commit — `just check` post-merge)
 - Working tree: clean
-- Tests passing at last commit: not re-run (session stopped at process gate)
-- Next step (exact): Merge Phase 0 through **T-0011 Done** on `main` (start with `feat/T-0007-profiles-promotion`, `feat/T-0008-journal-inspector`, then T-0009 → T-0010 → T-0011). Then re-assign T-0101 and create `feat/T-0101-delta-ohlcv-ingestion`.
-- Open questions: Q-13; Q-3 (Indian historical — out of scope for T-0101 Delta candles).
-- Notes for the next tool: T-0101 licensing note drafted under Phase 1 **T-0101** in this file; confirm Delta terms before production backfill.
+- Tests passing at last commit: **Darwin arm64** — `just check` (CTest **14/14**); `just test-tsan` (**14/14**) on feature branch before merge
+- Next step (exact): **T-0007 merged; next is T-0008.** Continue on `feat/T-0008-journal-inspector`, complete acceptance criteria, set In review. Do not start T-0009 until T-0008 is Done on `main`.
+- Files touched T-0007: `config/`, `engine/src/apps/trader/`, `engine/src/calendar/stub.cpp`, `engine/tests/unit/profile/`, `engine/CMakeLists.txt`, `vcpkg.json`, `docs/adr/ADR-0014.md`
+- Open questions: **Q-13** (ADR-0014 landed with T-0007 — operator formal Accept recommended); Q-11; Q-1–Q-7; Q-3 (T-0101 Delta licensing in Phase 1 backlog).
+- Notes for the next tool: `profile_tests` covers TC-CF-01–09; T-0101 still blocked until Phase 0 exit (T-0008–T-0011).
 
 ## Current Phase
 
@@ -72,7 +73,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: pre-commit dry-run on a fixture secret; CI workflow linted (`actionlint` if available)
 
 ### T-0003: CMake superbuild, presets, vcpkg manifest, CTest
-- Status: In review
+- Status: Done (on `main`; build verified via downstream merges through `b98a565`, 2026-10-29)
 - Phase: 0 · Risk class: B · Depends on: T-0002
 - Requirements: TI §3.1–§3.4
 - Goal: Engine builds with each preset; empty targets exist; CTest runs; the watchdog link-restriction check exists (currently passes trivially).
@@ -97,7 +98,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: CTest smoke tests per library; the watchdog link check runs in CI
 
 ### T-0004: Journal schema v1 and codegen
-- Status: In review
+- Status: Done (merged `main` @ b98a565, 2026-10-29)
 - Phase: 0 · Risk class: A · Depends on: T-0003
 - Requirements: FR-JR-01, DESIGN §10, TI §5
 - Goal: `schemas/journal/v1/records.yaml` defines the header and the record types in TI §5.2; a generator produces C++ and Python bindings; drift check in CI.
@@ -116,7 +117,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
   - `just codegen` / `just codegen-check` (drift exits non-zero on mismatch).
   - `schemas/tests/test_journal_round_trip.py` (22 unittest cases); `schemas/tests/journal_round_trip_test.cpp` (all payloads + header); C++/Python byte match on `SessionStart` sample.
   - `just check` passed on `debug-asan` (2026-10-29 session).
-  - Branch stacks T-0003 build (`feat/T-0003-cmake-superbuild` fast-forward) until T-0003 is on `main`.
+  - Merged to `main`: `b98a565` (`Merge T-0004: journal schema v1 and codegen`, 2026-10-29).
 - Files allowed: `schemas/`, `engine/include/trading/journal/`, `services/` (generated only), `research/` (generated only), `justfile`
 - Out of scope: writer or reader logic (T-0008 and Phase 3)
 - Tests required: round-trip per record type; header size and offset tests; codegen drift test
@@ -173,20 +174,26 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Tests required: migration apply, down, re-apply; partition creation test; constraint tests (duplicate insert ignored by ON CONFLICT pattern)
 
 ### T-0007: Profiles, validator, promotion verifier, paper start
-- Status: Backlog
+- Status: Done (merged `main`; feature commits `98f83bb`, `e7c052f`, `1f480e7`)
 - Phase: 0 · Risk class: A · Depends on: T-0003
 - Requirements: FR-OP-01, FR-OP-02 (scaffold only), TI §8, DESIGN §13
 - Goal: Profiles are validated strictly; the engine starts in paper mode with no trading; live refuses without a valid promotion file.
 - Acceptance criteria:
-  - [ ] `config/schema/profile.schema.json` and `config/profiles/paper.toml`, `testnet.toml`, `live.toml` (live has no active values; placeholders marked `TODO(operator)`)
-  - [ ] Validator rejects unknown keys and missing name (TC-CF-01, TC-CF-02)
-  - [ ] Profile content hash computed and printed at start
-  - [ ] Promotion verifier implemented against a documented format; tests use test keys only, never real keys (TC-CF-03 to TC-CF-06)
-  - [ ] Live profile refuses to start without a valid promotion file (TC-CF-03)
-  - [ ] Groww adapter referenced while flag OFF fails startup (TC-CF-08)
-  - [ ] Secret references resolved by name; a missing secret fails startup without printing values (TC-CF-09)
-  - [ ] `trader --profile paper` starts, logs `RUNNING (no trading logic)`, and exits cleanly on SIGTERM
+  - [x] `config/schema/profile.schema.json`, `promotion.schema.json`; `config/profiles/paper.toml`, `testnet.toml`, `live.toml` (live placeholders `TODO(operator)`)
+  - [x] Validator rejects unknown keys and missing name (TC-CF-01, TC-CF-02) — `profile_tests`
+  - [x] Profile content hash computed and printed at start (`config_hash=`, `journal_config_hash_recorded=`)
+  - [x] Promotion verifier (JSON + Ed25519 via OpenSSL); runtime test keys only (TC-CF-03–TC-CF-06, valid signed promotion pass)
+  - [x] Live without promotion file fails (TC-CF-03); logs `event=AL-13-equiv`
+  - [x] Groww adapter with `TRADING_ENABLE_GROWW=OFF` fails (TC-CF-08)
+  - [x] Missing secret fails without printing value (TC-CF-09)
+  - [x] `trader --profile paper --config-root config --smoke` → `RUNNING (no trading logic)`; SIGTERM path in `main` (manual / future UI test)
   - [ ] Human review required (Class A)
+- Evidence (2026-10-29, **Darwin arm64**):
+  - `just check`: CTest **14/14** (`profile_tests`, `trader_version` with secret env)
+  - `just test-tsan`: CTest **14/14**
+  - ADR-0014 Proposed (`tomlplusplus`, `nlohmann-json`, `openssl` in `vcpkg.json`); **Q-13** open for operator acceptance + CMake scope
+  - Re-verified on branch tip `15aa4d6` / `e7c052f` (same green results, 2026-10-29 evening session)
+  - Merged to `main`: `Merge T-0007: profiles, validator, promotion verifier, paper trader` (2026-10-29)
 - Files allowed: `config/`, `engine/src/apps/trader/`, `engine/src/calendar/` (stub only), `engine/tests/`, `tools/`
 - Out of scope: strategies, orders, broker adapters
 - Tests required: TC-CF-01 to TC-CF-09 as applicable at Phase 0
@@ -256,7 +263,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Status: Blocked
 - Phase: 1 · Risk class: B · Depends on: Phase 0 exit; T-0009 (research package)
 - Goal: Historical OHLCV loader (Delta public REST), Parquet under external data root, gap/outlier checks, roll-adjust stub, CLI backfill, fixture tests (no network in unit tests).
-- Blocker: Phase 0 tickets **T-0007–T-0011** not Done on `main` (2026-10-29 session gate). See **Blockers** § below.
+- Blocker: Phase 0 **T-0008–T-0011** not Done on `main` (T-0007 merged 2026-10-29). See **Blockers** § below.
 - Data licensing (record before merge): Delta Exchange API/historical data use is subject to [Delta Exchange terms](https://www.delta.exchange/legal/terms-of-use) and API documentation; operator must confirm redistribution/storage rights for downloaded candles.
 
 ## Phase 1 Backlog (legacy note)
@@ -275,9 +282,10 @@ Tickets above supersede “Not Yet Ready” once Phase 0 exit is recorded in `do
 | Q-6 | Tool-switch notification: how the operator signals Codex limit reached | Process only | Open (operator preference) |
 | Q-7 | Confirm `.gitignore` should anchor `/data/` and `/secrets/` at the repository root. Unanchored `data/` would ignore `research/src/tradelab/data/`. Unanchored `secrets/` would ignore `deploy/secrets/` (layout documentation, no values). T-0001 used the anchored form so those skeleton paths stay tracked. | none for T-0001 review | Open |
 | Q-8 | Add `.vcpkg/` to `.gitignore` (local vcpkg clone from `just setup-vcpkg`). | none | Done — merged to `main` at `e5c43aa` (2026-10-29) |
-| Q-9 | T-0004 branch stacks `feat/T-0003-cmake-superbuild` until T-0003 is on `main`. Confirm PR base and merge order with operator. | T-0004 review | Open |
+| Q-9 | T-0004 branch stacks `feat/T-0003-cmake-superbuild` until T-0003 is on `main`. Confirm PR base and merge order with operator. | T-0004 review | Done — T-0003/T-0004 on `main` (`b98a565`); PROGRESS updated 2026-10-29 |
 | Q-10 | Wire `core_tests` into CTest and add `just test-tsan`. | T-0005 CI | Done — merged in `ffaece3` |
 | Q-12 | Partitioned-table unique keys include `event_time` (option A). | T-0006 | Done — operator approved 2026-10-29; ADR-0013 Accepted |
+| Q-13 | Accept ADR-0014 (`tomlplusplus`, `nlohmann-json`, `openssl` in `vcpkg.json`) and `engine/CMakeLists.txt` / `vcpkg.json` edits for T-0007. | T-0007 merge | Open — implemented pending operator sign-off |
 | Q-11 | Add Google Benchmark to `vcpkg.json` (ADR) for nightly SPSC regression vs `engine/bench/core/baseline.txt`. T-0005 used std::chrono bench only. | Phase 3 perf gates | Open |
 
 ## Decisions Log
@@ -299,7 +307,9 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-10-29 | cursor | T-0101 | (pending) | Blocked | Process gate: Phase 0 T-0007–T-0011 not Done on `main`. Blockers B-0101-1..3 recorded. |
+| 2026-10-29 | cursor | T-0007 | merge to `main` | Done | Resolved PROGRESS merge conflict; `just check` post-merge. |
+| 2026-10-29 | cursor | T-0101 | — | Blocked | Phase 0 gate; Blockers B-0101-1..3 (T-0007 now unblocks B-0101-1 partially). |
+| 2026-10-29 | cursor | T-0007 | `e7c052f`, `98f83bb` | In review → Done | Re-ran `just check` + `test-tsan` 14/14; marked T-0003/T-0004 Done on `main`. |
 | 2026-10-29 | cursor | T-0005 | `e0f2d4d`, `3d11e6c` | In review | Core Clock, SpscRing, ObjectPool, LogQueue, pin_thread, allocation hook; 10M SPSC stress; TSan clean. |
 | 2026-10-29 | cursor | T-0004 | `890a6c5`, `574d14c` | In review | Journal v1 schema, codegen drift check, C++/Python round-trip tests; branch includes T-0003 build. |
 | 2026-10-29 | cursor | T-0003 | `4e544e6`, PROGRESS commit | In review | CMake superbuild, six presets, vcpkg gtest, empty engine targets, watchdog link check. |
@@ -312,6 +322,6 @@ Append one entry per session. Newest first.
 
 | ID | Ticket | Reason | Unblock |
 |---|---|---|---|
-| B-0101-1 | T-0101 | **Process gate:** `main` @ `9a28b43` does not have Phase 0 **T-0007–T-0011** Done. Merged through T-0006 only; T-0004/T-0005 merged earlier; PROGRESS still lists T-0003/T-0004 In review. Local branches: `feat/T-0007-profiles-promotion`, `feat/T-0008-journal-inspector`. | Merge Phase 0 backlog through T-0011; update PROGRESS statuses; phase-0 review note. |
+| B-0101-1 | T-0101 | **Process gate:** Phase 0 **T-0008–T-0011** not Done on `main` (T-0007 merged 2026-10-29). Local branch: `feat/T-0008-journal-inspector`. | Complete T-0008–T-0011 on `main`; phase-0 review note. |
 | B-0101-2 | T-0101 | **Scaffold:** No `research/pyproject.toml` / pytest (T-0009) on `main`. | Complete T-0009 on `main`. |
 | B-0101-3 | T-0101 | **Dependencies:** Parquet write likely needs `pyarrow` (no Accepted ADR on `main`). | Operator accepts ADR for research ingestion deps. |

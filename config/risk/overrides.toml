@@ -1,0 +1,4 @@
+# SAMPLE — tighten-only runtime overrides (empty in Phase 0).
+
+[tighten]
+# TODO(operator): optional limit overrides; runtime may only tighten.
