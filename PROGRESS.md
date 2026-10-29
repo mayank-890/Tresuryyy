@@ -6,7 +6,7 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-29T14:30:00+0530 by cursor
 - Active ticket: T-0006
 - Branch: feat/T-0006-db-migrations
-- Last green commit: (pending) — `T-0006: resolve Q-12, deterministic event_time`
+- Last green commit: 773ba95 — `T-0006: resolve Q-12, deterministic event_time`
 - Working tree: clean
 - Tests passing at last commit: **Darwin arm64** — `just check` (CTest 13/13); `just db-migrate-cycle`; `just test-db` (partitions, ON CONFLICT, privilege deny, drop guard)
 - Next step (exact): Operator Class A review of T-0006 (Q-12 resolved, ADR-0013); do not start T-0007 until Done.
