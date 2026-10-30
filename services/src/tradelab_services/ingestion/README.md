@@ -12,7 +12,9 @@ PYTHONPATH=services/src python3 -m tradelab_services.ingestion \
   --mock-feed tests/fixtures/delta/public_feed.ndjson
 ```
 
-Live Delta public WebSocket or REST polling is not enabled in CI; use mock fixtures.
+Modes: `mock` (NDJSON), `mock-ws` (scripted WS frames, CI-safe), `live` (Delta public WS — requires non-empty instrument list and operator Q-18).
+
+Journal output uses **rotating segments** under `--journal-root` with TJNF footers (T-0105).
 TODO(operator): confirm instrument list, retention, and Delta licensing for live capture.
 
 Historical OHLCV backfill remains in the research package (`tradelab-ohlcv-backfill`).
