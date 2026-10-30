@@ -92,12 +92,109 @@ def build_crc_corrupt(normal: bytes) -> bytes:
     return bytes(data)
 
 
+def build_sequence_gap() -> bytes:
+    p0 = _session_start_payload()
+    p1 = _session_end_payload()
+    return b"".join(
+        [
+            _record(
+                sequence=1,
+                record_type=int(g.RecordType.SessionStart),
+                payload=p0,
+                wall_ns=1_705_326_896_789_000_000,
+                monotonic_ns=100,
+            ),
+            _record(
+                sequence=3,
+                record_type=int(g.RecordType.SessionEnd),
+                payload=p1,
+                wall_ns=1_705_326_900_000_000_000,
+                monotonic_ns=200,
+            ),
+        ]
+    )
+
+
+def build_market_sample() -> bytes:
+    quote_a = g.encode_market_quote(
+        g.MarketQuotePayload(
+            instrument_id=1,
+            bid_ticks=100,
+            ask_ticks=101,
+            bid_size_lots=1,
+            ask_size_lots=1,
+            exchange_time_ns=1_000,
+        )
+    )
+    quote_b = g.encode_market_quote(
+        g.MarketQuotePayload(
+            instrument_id=1,
+            bid_ticks=102,
+            ask_ticks=103,
+            bid_size_lots=1,
+            ask_size_lots=1,
+            exchange_time_ns=2_000,
+        )
+    )
+    quote_c = g.encode_market_quote(
+        g.MarketQuotePayload(
+            instrument_id=1,
+            bid_ticks=104,
+            ask_ticks=105,
+            bid_size_lots=1,
+            ask_size_lots=1,
+            exchange_time_ns=8_000_000_000,
+        )
+    )
+    return b"".join(
+        [
+            _record(
+                sequence=1,
+                record_type=int(g.RecordType.SessionStart),
+                payload=_session_start_payload(),
+                wall_ns=0,
+                monotonic_ns=0,
+            ),
+            _record(
+                sequence=2,
+                record_type=int(g.RecordType.MarketQuote),
+                payload=quote_a,
+                wall_ns=1_000_000_000,
+                monotonic_ns=1_000_000_000,
+            ),
+            _record(
+                sequence=3,
+                record_type=int(g.RecordType.MarketQuote),
+                payload=quote_b,
+                wall_ns=2_000_000_000,
+                monotonic_ns=2_000_000_000,
+            ),
+            _record(
+                sequence=4,
+                record_type=int(g.RecordType.MarketQuote),
+                payload=quote_c,
+                wall_ns=8_000_000_000,
+                monotonic_ns=8_000_000_000,
+            ),
+            _record(
+                sequence=5,
+                record_type=int(g.RecordType.SessionEnd),
+                payload=_session_end_payload(),
+                wall_ns=8_000_000_001,
+                monotonic_ns=8_000_000_001,
+            ),
+        ]
+    )
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     normal = build_normal()
     (OUT / "normal.segment").write_bytes(normal)
     (OUT / "torn_tail.segment").write_bytes(build_torn_tail(normal))
     (OUT / "crc_corrupt.segment").write_bytes(build_crc_corrupt(normal))
+    (OUT / "sequence_gap.segment").write_bytes(build_sequence_gap())
+    (OUT / "market_sample.segment").write_bytes(build_market_sample())
     print(f"wrote fixtures under {OUT}")
 
 
