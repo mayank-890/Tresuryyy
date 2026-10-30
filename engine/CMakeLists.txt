@@ -3,8 +3,8 @@ find_package(tomlplusplus CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 
-function(trading_add_module target source)
-  add_library(${target} STATIC ${source})
+function(trading_add_module target)
+  add_library(${target} STATIC ${ARGN})
   target_include_directories(${target} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
   target_compile_features(${target} PUBLIC cxx_std_20)
 endfunction()
@@ -20,9 +20,17 @@ trading_add_module(trading_core src/core/module.cpp)
 trading_add_smoke_test(trading_core)
 add_subdirectory(tests/unit/core)
 
-trading_add_module(trading_marketdata src/marketdata/module.cpp)
-target_link_libraries(trading_marketdata PUBLIC trading_core)
+trading_add_module(trading_marketdata src/marketdata/module.cpp
+                   src/marketdata/delta_normalize.cpp)
+target_link_libraries(trading_marketdata PUBLIC trading_core
+                                                nlohmann_json::nlohmann_json)
 trading_add_smoke_test(trading_marketdata)
+add_executable(trading_marketdata_delta_tests
+               tests/unit/trading_marketdata/delta_normalize_tests.cpp)
+target_link_libraries(trading_marketdata_delta_tests PRIVATE trading_marketdata
+                                                             GTest::gtest_main)
+add_test(NAME trading_marketdata_delta_tests
+         COMMAND trading_marketdata_delta_tests)
 
 trading_add_module(trading_strategy src/strategy/module.cpp)
 target_link_libraries(trading_strategy PUBLIC trading_core trading_marketdata)
@@ -36,9 +44,14 @@ trading_add_module(trading_orders src/orders/module.cpp)
 target_link_libraries(trading_orders PUBLIC trading_core)
 trading_add_smoke_test(trading_orders)
 
-trading_add_module(trading_journal src/journal/module.cpp)
+trading_add_module(trading_journal src/journal/module.cpp src/journal/writer.cpp)
 target_link_libraries(trading_journal PUBLIC trading_core)
 trading_add_smoke_test(trading_journal)
+add_executable(trading_journal_writer_tests
+               tests/unit/trading_journal/writer_tests.cpp)
+target_link_libraries(trading_journal_writer_tests PRIVATE trading_journal
+                                                           GTest::gtest_main)
+add_test(NAME trading_journal_writer_tests COMMAND trading_journal_writer_tests)
 
 trading_add_module(trading_broker_common src/broker/common/module.cpp)
 target_link_libraries(trading_broker_common PUBLIC trading_core)

@@ -1,0 +1,13 @@
+# SAMPLE — recording instrument map (NOT FOR TRADING)
+
+[[instrument]]
+instrument_id = 1
+symbol = "SAMPLE-BTC-PERP"
+tick_size = 100
+lot_size = 1
+
+[[instrument]]
+instrument_id = 2
+symbol = "SAMPLE-ETH-PERP"
+tick_size = 10
+lot_size = 1
