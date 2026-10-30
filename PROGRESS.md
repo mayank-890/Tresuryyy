@@ -6,9 +6,9 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-30T11:00:00+0530 by cursor
 - Active ticket: T-0104 (**In review**)
 - Branch: `feat/T-0104-instrument-enrichment`
-- Last green commit: (pending) — `T-0104: instrument master enrichment and instrument_enrich CLI`
+- Last green commit: `42b00e1` — `T-0104: instrument master enrichment and instrument_enrich CLI` (+ handoff follow-up on branch tip)
 - Working tree: clean after commit
-- Tests passing at last commit: `just check` on **Darwin arm64**, 2026-10-30 (journal-dq **6/6**, services **2/2**, research **11/11**, CTest **16/16**)
+- Tests passing at last commit: `just check` on **Darwin arm64**, 2026-10-30 (journal-dq **6/6**, services **2/2**, research **11/11**, CTest **17/17**)
 - Next step (exact): Operator open PR `feat/T-0104-instrument-enrichment` → `main`; supply live Delta symbol list and authoritative lot/tick sizes (Q-16); wire `delta_recording_ids.toml` for production.
 - Files touched this ticket: `config/instruments/delta_recording_ids.toml`, `engine/src/instruments/`, `tools/instrument_enrich/`, `tests/fixtures/instruments/`, `engine/tests/unit/profile/`, `PROGRESS.md`
 - Decisions made this session (not yet in ADR): `instrument_id` optional in master TOML; enrichment via **seed + patch merge** (no invented live symbols).
@@ -407,7 +407,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-10-30 | cursor | T-0104 | (feature commit) | In review | Instrument enrichment + instrument_enrich CLI. |
+| 2026-10-30 | cursor | T-0104 | `42b00e1` | In review | Instrument enrichment + instrument_enrich CLI. |
 | 2026-10-30 | cursor | T-0103 | `049ff86` merge | Done | Journal DQ on `main`. |
 | 2026-10-30 | cursor | T-0103 | (feature commit) | In review | Journal DQ report CLI + fixtures. |
 | 2026-10-30 | cursor | T-0102 | `72e7380` merge | Done | Tick capture on `main`. |
