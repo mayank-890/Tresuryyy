@@ -6,7 +6,7 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-30T18:15:00+0530 by cursor
 - Active ticket: T-0105 (**In review**)
 - Branch: `feat/T-0105-journal-retention`
-- Last green commit: (pending) — `T-0105: journal segment rotation, retention guard, and journal_retention CLI`
+- Last green commit: `6da738c` — `T-0105: journal segment rotation, retention guard, and journal_retention CLI`
 - Working tree: clean after commit
 - Tests passing at last commit: `just check` on **Darwin arm64**, 2026-10-30 (journal-retention **2/2**, journal-dq **6/6**, CTest **19/19** incl. `trading_journal_rotation_tests`, `journal_retention_cli`)
 - Next step (exact): Operator open PR `feat/T-0105-journal-retention` → `main`; set production rotation limits and archive path (Q-17); wire `RotatingJournalWriter` into live capture when ready.
@@ -423,7 +423,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-10-30 | cursor | T-0105 | (feature commit) | In review | Journal rotation/retention + journal_retention CLI. |
+| 2026-10-30 | cursor | T-0105 | `6da738c` | In review | Journal rotation/retention + journal_retention CLI. |
 | 2026-10-30 | cursor | T-0104 | `dbeacdb` merge | Done | Instrument enrichment on `main`. |
 | 2026-10-30 | cursor | T-0104 | `42b00e1` | In review | Instrument enrichment + instrument_enrich CLI. |
 | 2026-10-30 | cursor | T-0103 | `049ff86` merge | Done | Journal DQ on `main`. |
