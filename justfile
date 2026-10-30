@@ -57,6 +57,11 @@ services-test: research-sync
         PYTHONPATH="{{justfile_directory()}}/services/src:{{justfile_directory()}}/tools/journal_inspect" \
         uv run pytest -q "{{justfile_directory()}}/tests/unit/ingestion"
 
+journal-dq-test: research-sync
+    cd "{{research-dir}}" && \
+        PYTHONPATH="{{justfile_directory()}}/tools:{{justfile_directory()}}/tools/journal_inspect" \
+        uv run pytest -q "{{justfile_directory()}}/tests/unit/journal_dq"
+
 ui-dir := justfile_directory() / "ui"
 
 ui-install:
@@ -77,6 +82,7 @@ check preset=default_preset:
     just research-lint
     just research-test
     just services-test
+    just journal-dq-test
     just ui-unit-test
     just test "{{preset}}"
     just check-watchdog "{{preset}}"

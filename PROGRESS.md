@@ -3,21 +3,21 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-30T00:35:00+0530 by cursor
-- Active ticket: T-0102 (**In review**)
-- Branch: `feat/T-0102-live-tick-capture`
-- Last green commit: (pending) — `T-0102: live tick capture to journal (mock feed, recording only)`
+- Updated: 2026-10-30T10:45:00+0530 by cursor
+- Active ticket: T-0103 (**In review**)
+- Branch: `feat/T-0103-journal-dq-report`
+- Last green commit: (pending) — `T-0103: journal data-quality report CLI and tests`
 - Working tree: clean after commit
-- Tests passing at last commit: `just check` on **Darwin arm64**, 2026-10-30 (services ingestion **2/2**, research **11/11**, CTest **16/16**)
-- Next step (exact): Operator open PR `feat/T-0102-live-tick-capture` → `main`; decide Q-16–Q-18 (live instrument list, journal retention, Delta live capture licensing); wire Delta public WS/REST when approved (no new deps without ADR).
-- Files touched this ticket: `services/.../ingestion/`, `services/.../journal/writer.py`, `engine/src/journal/writer.cpp`, `engine/src/marketdata/delta_normalize.cpp`, `engine/tests/`, `tests/fixtures/`, `tests/unit/ingestion/`, `justfile`, `engine/CMakeLists.txt` (multi-source `trading_add_module`), `PROGRESS.md`
-- Decisions made this session (not yet in ADR): CI uses **mock NDJSON feed only**; live Delta network deferred pending operator instrument list and optional WS dependency ADR.
-- Open questions: Q-16–Q-18 (T-0102); Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1; Delta licensing (T-0101/T-0102)
-- Notes for the next tool: Run recorder via `PYTHONPATH=services/src python3 -m tradelab_services.ingestion --mode mock --instruments … --mock-feed …`. Journal root: `TRADELAB_JOURNAL_ROOT`. No order/broker code paths in ingestion package.
+- Tests passing at last commit: `just check` on **Darwin arm64**, 2026-10-30 (journal-dq **6/6**, services **2/2**, research **11/11**, CTest **16/16**)
+- Next step (exact): Operator open PR `feat/T-0103-journal-dq-report` → `main`; confirm Q-19–Q-20 (default stale threshold, retention/reporting policy).
+- Files touched this ticket: `tools/journal_dq_report/`, `tools/journal_inspect/build_fixtures.py`, `tests/fixtures/compat/v1/`, `tests/unit/journal_dq/`, `justfile`, `PROGRESS.md`
+- Decisions made this session (not yet in ADR): Sequence gaps reported via **lenient scan** (inspector remains strict); default stale gap threshold **5000 ms** CLI flag.
+- Open questions: Q-19–Q-20 (T-0103); Q-16–Q-18; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
+- Notes for the next tool: `PYTHONPATH=tools:tools/journal_inspect python3 -m journal_dq_report segment --format json`. Fixtures: `sequence_gap.segment`, `market_sample.segment`.
 
 ## Current Phase
 
-**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done on `main` @ `de58b1c`. **T-0102** in review on `feat/T-0102-live-tick-capture`.
+**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** in review on `feat/T-0103-journal-dq-report`.
 
 ## Phase 0 Backlog
 
@@ -302,7 +302,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Merged to `main`: `de58b1c` (2026-10-30)
 
 ### T-0102: Live tick capture to journal (recording only)
-- Status: In review
+- Status: Done
 - Phase: 1 · Risk class: B · Depends on: T-0101; journal v1 schema (T-0004)
 - Goal: Delta public market-data recorder → normalized `MarketQuote` / `MarketTrade` / `FeedState` in v1 journal; gap/stale health; clean shutdown with fsync; mock-feed tests (no CI network).
 - Acceptance criteria:
@@ -321,6 +321,25 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
   - **Q-18:** Delta live public feed licensing / terms for continuous capture — **TODO(operator)** ([terms](https://www.delta.exchange/legal/terms-of-use))
 - Live network: mock feed only in CI; Delta public WS/REST wiring deferred until Q-16–Q-18 and any WS client ADR.
 - Files allowed: `services/ingestion/`, `engine/src/journal/`, `engine/src/marketdata/`, `tests/`, `tools/`, `PROGRESS.md`, `docs/` (notes only). **Amendment:** `engine/CMakeLists.txt` (`trading_add_module` multi-source + test targets), `justfile` (`services-test`).
+- Merged to `main`: `72e7380` (2026-10-30)
+
+### T-0103: Journal data-quality report
+- Status: In review
+- Phase: 1 · Risk class: C · Depends on: T-0008 (inspector); T-0102 (capture fixtures)
+- Goal: Read-only DQ report on v1 journal segments: sequence gaps, stale periods, CRC/torn-tail (via inspector), per-instrument tick stats.
+- Acceptance criteria:
+  - [x] CLI `python -m journal_dq_report` with text and JSON output
+  - [x] Reuses T-0008 inspector for strict CRC/torn-tail; lenient scan for gap statistics
+  - [x] Configurable stale threshold (`--stale-threshold-ms`)
+  - [x] Per-instrument quote/trade counts and max inter-event gap
+  - [x] Tests on normal, torn_tail, crc_corrupt, sequence_gap, market_sample fixtures
+- Evidence (2026-10-30, **Darwin arm64**):
+  - `just journal-dq-test`: **6/6**; wired in `just check`.
+  - Fixtures: `tests/fixtures/compat/v1/sequence_gap.segment`, `market_sample.segment` (via `build_fixtures.py`).
+- Open questions (T-0103):
+  - **Q-19:** Default stale threshold for production DQ reports (CLI default 5000 ms) — **TODO(operator)**
+  - **Q-20:** How DQ reports interact with journal retention (Q-17) and Phase 1 exit criteria — **TODO(operator)**
+- Files allowed: `tools/`, `services/` (read-only analysis), `tests/`, `PROGRESS.md`, `docs/` (notes only). **Amendment:** `tools/journal_inspect/build_fixtures.py` (new fixtures).
 
 ## Phase 1 Backlog (legacy note)
 
@@ -348,6 +367,8 @@ Tickets above supersede “Not Yet Ready” once Phase 0 exit is recorded in `do
 | Q-16 | Live Delta recording instrument list and `instrument_id` mapping | T-0102 live | Open — fixture map only in repo |
 | Q-17 | Journal segment retention / rotation under `TRADELAB_JOURNAL_ROOT` | T-0102 ops | Open |
 | Q-18 | Delta live public feed capture licensing | T-0102 live | Open — operator confirm terms |
+| Q-19 | Default stale threshold for journal DQ reports | T-0103 ops | Open — CLI default 5000 ms |
+| Q-20 | DQ reporting vs journal retention (Q-17) / Phase 1 exit | T-0103 | Open |
 
 ## Decisions Log
 
@@ -369,6 +390,8 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-10-30 | cursor | T-0103 | (feature commit) | In review | Journal DQ report CLI + fixtures. |
+| 2026-10-30 | cursor | T-0102 | `72e7380` merge | Done | Tick capture on `main`. |
 | 2026-10-30 | cursor | T-0102 | (feature commit) | In review | Tick recorder → journal; mock feed tests; no trading. |
 | 2026-10-30 | cursor | T-0101 | `de58b1c` merge | Done | Delta OHLCV on `main`. |
 | 2026-10-30 | cursor | T-0101 | (feature commits) | In review | Delta OHLCV ingest + Parquet + DQ + CLI; ADR-0015 Accepted on main. |
