@@ -27,13 +27,20 @@ public:
   [[nodiscard]] core::Result<void, WriterError> flush();
   void close();
 
+  /// Writes segment footer and closes the fd; segment must not be appended again.
+  [[nodiscard]] core::Result<void, WriterError> finalize_segment(std::uint64_t first_sequence,
+                                                                 std::uint64_t record_count);
+
   [[nodiscard]] std::uint64_t next_sequence() const { return next_sequence_; }
+  [[nodiscard]] std::uint64_t bytes_appended() const { return bytes_appended_; }
   [[nodiscard]] const std::filesystem::path& path() const { return path_; }
 
 private:
   std::filesystem::path path_;
   int fd_{-1};
   std::uint64_t next_sequence_{1};
+  std::uint64_t bytes_appended_{0};
+  bool finalized_{false};
 };
 
 [[nodiscard]] std::vector<std::byte> encode_record(

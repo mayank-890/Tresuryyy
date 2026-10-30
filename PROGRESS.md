@@ -3,21 +3,21 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-30T11:00:00+0530 by cursor
-- Active ticket: T-0104 (**In review**)
-- Branch: `feat/T-0104-instrument-enrichment`
-- Last green commit: `42b00e1` — `T-0104: instrument master enrichment and instrument_enrich CLI` (+ handoff follow-up on branch tip)
+- Updated: 2026-10-30T18:15:00+0530 by cursor
+- Active ticket: T-0105 (**In review**)
+- Branch: `feat/T-0105-journal-retention`
+- Last green commit: (pending) — `T-0105: journal segment rotation, retention guard, and journal_retention CLI`
 - Working tree: clean after commit
-- Tests passing at last commit: `just check` on **Darwin arm64**, 2026-10-30 (journal-dq **6/6**, services **2/2**, research **11/11**, CTest **17/17**)
-- Next step (exact): Operator open PR `feat/T-0104-instrument-enrichment` → `main`; supply live Delta symbol list and authoritative lot/tick sizes (Q-16); wire `delta_recording_ids.toml` for production.
-- Files touched this ticket: `config/instruments/delta_recording_ids.toml`, `engine/src/instruments/`, `tools/instrument_enrich/`, `tests/fixtures/instruments/`, `engine/tests/unit/profile/`, `PROGRESS.md`
-- Decisions made this session (not yet in ADR): `instrument_id` optional in master TOML; enrichment via **seed + patch merge** (no invented live symbols).
-- Open questions: Q-16 (live symbols/sizes — partial tooling done); Q-17–Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
-- Notes for the next tool: `./build/debug-asan/engine/instrument_enrich --seed config/instruments/delta_crypto.toml --patch config/instruments/delta_recording_ids.toml --symbols tests/fixtures/instruments/journal_symbols.txt`
+- Tests passing at last commit: `just check` on **Darwin arm64**, 2026-10-30 (journal-retention **2/2**, journal-dq **6/6**, CTest **19/19** incl. `trading_journal_rotation_tests`, `journal_retention_cli`)
+- Next step (exact): Operator open PR `feat/T-0105-journal-retention` → `main`; set production rotation limits and archive path (Q-17); wire `RotatingJournalWriter` into live capture when ready.
+- Files touched this ticket: `engine/src/journal/`, `engine/include/trading/journal/`, `tools/journal_retention/`, `tests/unit/journal_retention/`, `engine/CMakeLists.txt`, `justfile`, `PROGRESS.md`
+- Decisions made this session (not yet in ADR): Segment footer magic `TJNF`; retention prune requires `ARCHIVE_VERIFIED=1` (same spirit as T-0006); default max segment size **256 MiB** (DESIGN §10.2).
+- Open questions: Q-17 (operator limits/archive location — tooling partial); Q-16, Q-18–Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
+- Notes for the next tool: `./build/debug-asan/engine/journal_retention status --root .handoff/journals`; `ARCHIVE_VERIFIED=1 ./build/debug-asan/engine/journal_retention apply --root PATH --max-closed-segments N`
 
 ## Current Phase
 
-**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** in review on `feat/T-0104-instrument-enrichment`.
+**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** in review on `feat/T-0105-journal-retention`.
 
 ## Phase 0 Backlog
 
@@ -343,7 +343,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Merged to `main`: `049ff86` (2026-10-30)
 
 ### T-0104: Instrument master enrichment (Q-16)
-- Status: In review
+- Status: Done
 - Phase: 1 · Risk class: B · Depends on: T-0011; T-0102 (recording symbols)
 - Goal: Map Delta/journal symbols to `instrument_id`, lot/tick sizes; enrichment CLI; validation reused from T-0011.
 - Acceptance criteria:
@@ -357,6 +357,22 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
   - Fixture symbols: `tests/fixtures/instruments/journal_symbols.txt`.
 - Operator TODO (Q-16): **Live Delta symbol list** and authoritative **lot_size / tick_size** sources — repo uses SAMPLE values only.
 - Files allowed: `config/instruments/`, `engine/src/instruments/`, `tools/`, `tests/`, `PROGRESS.md`, `docs/` (notes only). **Amendment:** `engine/tests/unit/profile/CMakeLists.txt` (CLI test target).
+- Merged to `main`: `dbeacdb` (2026-10-30)
+
+### T-0105: Journal retention / rotation (Q-17)
+- Status: In review
+- Phase: 1 · Risk class: B · Depends on: T-0102 (journal writer)
+- Goal: Rotate journal segments on size/time; immutable closed segments with footer; retention with archive guard; ops CLI.
+- Acceptance criteria:
+  - [x] `RotatingJournalWriter` — size/time rotation, sequence continuity, shutdown footer flush
+  - [x] `TJNF` segment footer (record count, last sequence, body CRC)
+  - [x] Retention by closed-segment count and/or age; refuse without `ARCHIVE_VERIFIED=1`
+  - [x] `journal_retention` CLI (`status`, `apply`) + Python status mirror (`python -m journal_retention`)
+  - [x] Tests: `trading_journal_rotation_tests`, `journal_retention_cli`, `just journal-retention-test`
+- Evidence (2026-10-30, **Darwin arm64**):
+  - `just check`: CTest **19/19**; journal-retention pytest **2/2**.
+- Operator TODO (Q-17): **Production rotation thresholds**, **archive destination**, and wiring capture to `RotatingJournalWriter` — defaults only in code.
+- Files allowed: `engine/src/journal/`, `tools/`, `services/ingestion/` (optional), `tests/`, `PROGRESS.md`, `docs/` (notes). **Amendment:** `engine/CMakeLists.txt`, `justfile`.
 
 ## Phase 1 Backlog (legacy note)
 
@@ -381,8 +397,8 @@ Tickets above supersede “Not Yet Ready” once Phase 0 exit is recorded in `do
 | Q-11 | Add Google Benchmark to `vcpkg.json` (ADR) for nightly SPSC regression vs `engine/bench/core/baseline.txt`. T-0005 used std::chrono bench only. | Phase 3 perf gates | Open |
 | Q-14 | Accept `engine/CMakeLists.txt` amendment for T-0011 (`trading_profile` links `trading_core`, exposes `engine/include`). | T-0011 merge | Open — required for loaders |
 | Q-15 | Accept **ADR-0015** (pyarrow, research Parquet only) to clear B-0101-3. | T-0101 | Done — Accepted on `main` @ `ac6c987` (2026-10-30) |
-| Q-16 | Live Delta recording instrument list and `instrument_id` mapping | T-0102 live | Open — **T-0104 tooling on `main` pending merge**; operator must supply live symbols and lot/tick sources |
-| Q-17 | Journal segment retention / rotation under `TRADELAB_JOURNAL_ROOT` | T-0102 ops | Open |
+| Q-16 | Live Delta recording instrument list and `instrument_id` mapping | T-0102 live | Open — operator must supply live symbols and lot/tick sources (`instrument_enrich` on `main`) |
+| Q-17 | Journal segment retention / rotation under `TRADELAB_JOURNAL_ROOT` | T-0102 ops | Open — **T-0105 tooling in review**; operator sets limits and archive path |
 | Q-18 | Delta live public feed capture licensing | T-0102 live | Open — operator confirm terms |
 | Q-19 | Default stale threshold for journal DQ reports | T-0103 ops | Open — CLI default 5000 ms |
 | Q-20 | DQ reporting vs journal retention (Q-17) / Phase 1 exit | T-0103 | Open |
@@ -407,6 +423,8 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-10-30 | cursor | T-0105 | (feature commit) | In review | Journal rotation/retention + journal_retention CLI. |
+| 2026-10-30 | cursor | T-0104 | `dbeacdb` merge | Done | Instrument enrichment on `main`. |
 | 2026-10-30 | cursor | T-0104 | `42b00e1` | In review | Instrument enrichment + instrument_enrich CLI. |
 | 2026-10-30 | cursor | T-0103 | `049ff86` merge | Done | Journal DQ on `main`. |
 | 2026-10-30 | cursor | T-0103 | (feature commit) | In review | Journal DQ report CLI + fixtures. |

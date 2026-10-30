@@ -62,6 +62,11 @@ journal-dq-test: research-sync
         PYTHONPATH="{{justfile_directory()}}/tools:{{justfile_directory()}}/tools/journal_inspect" \
         uv run pytest -q "{{justfile_directory()}}/tests/unit/journal_dq"
 
+journal-retention-test: research-sync
+    cd "{{research-dir}}" && \
+        PYTHONPATH="{{justfile_directory()}}/tools" \
+        uv run pytest -q "{{justfile_directory()}}/tests/unit/journal_retention"
+
 ui-dir := justfile_directory() / "ui"
 
 ui-install:
@@ -83,6 +88,7 @@ check preset=default_preset:
     just research-test
     just services-test
     just journal-dq-test
+    just journal-retention-test
     just ui-unit-test
     just test "{{preset}}"
     just check-watchdog "{{preset}}"

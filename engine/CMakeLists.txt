@@ -44,7 +44,8 @@ trading_add_module(trading_orders src/orders/module.cpp)
 target_link_libraries(trading_orders PUBLIC trading_core)
 trading_add_smoke_test(trading_orders)
 
-trading_add_module(trading_journal src/journal/module.cpp src/journal/writer.cpp)
+trading_add_module(trading_journal src/journal/module.cpp src/journal/writer.cpp
+                   src/journal/segment_footer.cpp src/journal/rotation.cpp)
 target_link_libraries(trading_journal PUBLIC trading_core)
 trading_add_smoke_test(trading_journal)
 add_executable(trading_journal_writer_tests
@@ -52,6 +53,17 @@ add_executable(trading_journal_writer_tests
 target_link_libraries(trading_journal_writer_tests PRIVATE trading_journal
                                                            GTest::gtest_main)
 add_test(NAME trading_journal_writer_tests COMMAND trading_journal_writer_tests)
+add_executable(trading_journal_rotation_tests
+               tests/unit/trading_journal/rotation_tests.cpp)
+target_link_libraries(trading_journal_rotation_tests PRIVATE trading_journal
+                                                             GTest::gtest_main)
+add_test(NAME trading_journal_rotation_tests COMMAND trading_journal_rotation_tests)
+add_executable(journal_retention "${CMAKE_SOURCE_DIR}/tools/journal_retention/main.cpp")
+target_link_libraries(journal_retention PRIVATE trading_journal)
+add_test(
+  NAME journal_retention_cli
+  COMMAND journal_retention status --root "${CMAKE_SOURCE_DIR}/tests/fixtures/compat/v1")
+set_tests_properties(journal_retention_cli PROPERTIES PASS_REGULAR_EXPRESSION "segments=")
 
 trading_add_module(trading_broker_common src/broker/common/module.cpp)
 target_link_libraries(trading_broker_common PUBLIC trading_core)
