@@ -11,6 +11,7 @@ namespace trading::instruments {
 enum class OptionType : std::uint8_t { None, Call, Put };
 
 struct Instrument {
+  std::optional<std::uint32_t> instrument_id;
   std::string symbol;
   std::string venue;
   std::int64_t lot_size{};
@@ -24,6 +25,7 @@ struct Instrument {
 struct InstrumentMaster {
   std::vector<Instrument> instruments;
   std::unordered_map<std::string, std::size_t> index_by_symbol;
+  std::unordered_map<std::uint32_t, std::size_t> index_by_instrument_id;
 };
 
 } // namespace trading::instruments

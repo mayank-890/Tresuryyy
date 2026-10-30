@@ -19,4 +19,7 @@ load_instrument_master_file(const std::filesystem::path& path, LoadOptions optio
 [[nodiscard]] const Instrument* find_by_symbol(const InstrumentMaster& master,
                                                std::string_view symbol);
 
+[[nodiscard]] const Instrument* find_by_instrument_id(const InstrumentMaster& master,
+                                                      std::uint32_t instrument_id);
+
 } // namespace trading::instruments

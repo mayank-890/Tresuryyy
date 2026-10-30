@@ -3,21 +3,21 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-30T10:45:00+0530 by cursor
-- Active ticket: T-0103 (**In review**)
-- Branch: `feat/T-0103-journal-dq-report`
-- Last green commit: (pending) — `T-0103: journal data-quality report CLI and tests`
+- Updated: 2026-10-30T11:00:00+0530 by cursor
+- Active ticket: T-0104 (**In review**)
+- Branch: `feat/T-0104-instrument-enrichment`
+- Last green commit: `42b00e1` — `T-0104: instrument master enrichment and instrument_enrich CLI` (+ handoff follow-up on branch tip)
 - Working tree: clean after commit
-- Tests passing at last commit: `just check` on **Darwin arm64**, 2026-10-30 (journal-dq **6/6**, services **2/2**, research **11/11**, CTest **16/16**)
-- Next step (exact): Operator open PR `feat/T-0103-journal-dq-report` → `main`; confirm Q-19–Q-20 (default stale threshold, retention/reporting policy).
-- Files touched this ticket: `tools/journal_dq_report/`, `tools/journal_inspect/build_fixtures.py`, `tests/fixtures/compat/v1/`, `tests/unit/journal_dq/`, `justfile`, `PROGRESS.md`
-- Decisions made this session (not yet in ADR): Sequence gaps reported via **lenient scan** (inspector remains strict); default stale gap threshold **5000 ms** CLI flag.
-- Open questions: Q-19–Q-20 (T-0103); Q-16–Q-18; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
-- Notes for the next tool: `PYTHONPATH=tools:tools/journal_inspect python3 -m journal_dq_report segment --format json`. Fixtures: `sequence_gap.segment`, `market_sample.segment`.
+- Tests passing at last commit: `just check` on **Darwin arm64**, 2026-10-30 (journal-dq **6/6**, services **2/2**, research **11/11**, CTest **17/17**)
+- Next step (exact): Operator open PR `feat/T-0104-instrument-enrichment` → `main`; supply live Delta symbol list and authoritative lot/tick sizes (Q-16); wire `delta_recording_ids.toml` for production.
+- Files touched this ticket: `config/instruments/delta_recording_ids.toml`, `engine/src/instruments/`, `tools/instrument_enrich/`, `tests/fixtures/instruments/`, `engine/tests/unit/profile/`, `PROGRESS.md`
+- Decisions made this session (not yet in ADR): `instrument_id` optional in master TOML; enrichment via **seed + patch merge** (no invented live symbols).
+- Open questions: Q-16 (live symbols/sizes — partial tooling done); Q-17–Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
+- Notes for the next tool: `./build/debug-asan/engine/instrument_enrich --seed config/instruments/delta_crypto.toml --patch config/instruments/delta_recording_ids.toml --symbols tests/fixtures/instruments/journal_symbols.txt`
 
 ## Current Phase
 
-**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** in review on `feat/T-0103-journal-dq-report`.
+**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** in review on `feat/T-0104-instrument-enrichment`.
 
 ## Phase 0 Backlog
 
@@ -324,7 +324,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Merged to `main`: `72e7380` (2026-10-30)
 
 ### T-0103: Journal data-quality report
-- Status: In review
+- Status: Done
 - Phase: 1 · Risk class: C · Depends on: T-0008 (inspector); T-0102 (capture fixtures)
 - Goal: Read-only DQ report on v1 journal segments: sequence gaps, stale periods, CRC/torn-tail (via inspector), per-instrument tick stats.
 - Acceptance criteria:
@@ -340,6 +340,23 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
   - **Q-19:** Default stale threshold for production DQ reports (CLI default 5000 ms) — **TODO(operator)**
   - **Q-20:** How DQ reports interact with journal retention (Q-17) and Phase 1 exit criteria — **TODO(operator)**
 - Files allowed: `tools/`, `services/` (read-only analysis), `tests/`, `PROGRESS.md`, `docs/` (notes only). **Amendment:** `tools/journal_inspect/build_fixtures.py` (new fixtures).
+- Merged to `main`: `049ff86` (2026-10-30)
+
+### T-0104: Instrument master enrichment (Q-16)
+- Status: In review
+- Phase: 1 · Risk class: B · Depends on: T-0011; T-0102 (recording symbols)
+- Goal: Map Delta/journal symbols to `instrument_id`, lot/tick sizes; enrichment CLI; validation reused from T-0011.
+- Acceptance criteria:
+  - [x] Optional `instrument_id` in instrument master TOML + duplicate/positive validation
+  - [x] Merge seed + patch masters; symbol list enrichment report (missing symbol / missing id)
+  - [x] `instrument_enrich` CLI (`--seed`, `--patch`, `--symbols`, `--output`)
+  - [x] Sample recording map `config/instruments/delta_recording_ids.toml`
+  - [x] Tests in `instrument_enrich_tests` + CTest `instrument_enrich_cli`
+- Evidence (2026-10-30, **Darwin arm64**):
+  - `just check`: CTest **17/17** (includes `profile_tests` +4 enrich cases, `instrument_enrich_cli`).
+  - Fixture symbols: `tests/fixtures/instruments/journal_symbols.txt`.
+- Operator TODO (Q-16): **Live Delta symbol list** and authoritative **lot_size / tick_size** sources — repo uses SAMPLE values only.
+- Files allowed: `config/instruments/`, `engine/src/instruments/`, `tools/`, `tests/`, `PROGRESS.md`, `docs/` (notes only). **Amendment:** `engine/tests/unit/profile/CMakeLists.txt` (CLI test target).
 
 ## Phase 1 Backlog (legacy note)
 
@@ -364,7 +381,7 @@ Tickets above supersede “Not Yet Ready” once Phase 0 exit is recorded in `do
 | Q-11 | Add Google Benchmark to `vcpkg.json` (ADR) for nightly SPSC regression vs `engine/bench/core/baseline.txt`. T-0005 used std::chrono bench only. | Phase 3 perf gates | Open |
 | Q-14 | Accept `engine/CMakeLists.txt` amendment for T-0011 (`trading_profile` links `trading_core`, exposes `engine/include`). | T-0011 merge | Open — required for loaders |
 | Q-15 | Accept **ADR-0015** (pyarrow, research Parquet only) to clear B-0101-3. | T-0101 | Done — Accepted on `main` @ `ac6c987` (2026-10-30) |
-| Q-16 | Live Delta recording instrument list and `instrument_id` mapping | T-0102 live | Open — fixture map only in repo |
+| Q-16 | Live Delta recording instrument list and `instrument_id` mapping | T-0102 live | Open — **T-0104 tooling on `main` pending merge**; operator must supply live symbols and lot/tick sources |
 | Q-17 | Journal segment retention / rotation under `TRADELAB_JOURNAL_ROOT` | T-0102 ops | Open |
 | Q-18 | Delta live public feed capture licensing | T-0102 live | Open — operator confirm terms |
 | Q-19 | Default stale threshold for journal DQ reports | T-0103 ops | Open — CLI default 5000 ms |
@@ -390,6 +407,8 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-10-30 | cursor | T-0104 | `42b00e1` | In review | Instrument enrichment + instrument_enrich CLI. |
+| 2026-10-30 | cursor | T-0103 | `049ff86` merge | Done | Journal DQ on `main`. |
 | 2026-10-30 | cursor | T-0103 | (feature commit) | In review | Journal DQ report CLI + fixtures. |
 | 2026-10-30 | cursor | T-0102 | `72e7380` merge | Done | Tick capture on `main`. |
 | 2026-10-30 | cursor | T-0102 | (feature commit) | In review | Tick recorder → journal; mock feed tests; no trading. |

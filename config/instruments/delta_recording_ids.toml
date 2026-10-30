@@ -1,0 +1,18 @@
+# SAMPLE — NOT FOR TRADING
+# Journal recording instrument_id map (T-0104). TODO(operator): confirm IDs for live Delta symbols.
+
+[[instrument]]
+instrument_id = 1
+symbol = "SAMPLE-BTC-PERP"
+venue = "delta_testnet"
+lot_size = 1
+tick_size = 100
+underlying = "SAMPLE-BTC"
+
+[[instrument]]
+instrument_id = 2
+symbol = "SAMPLE-ETH-PERP"
+venue = "delta_testnet"
+lot_size = 1
+tick_size = 10
+underlying = "SAMPLE-ETH"

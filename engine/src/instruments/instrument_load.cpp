@@ -31,8 +31,12 @@ OptionType parse_option_type(std::string_view text) {
 
 void build_index(InstrumentMaster& master) {
   master.index_by_symbol.clear();
+  master.index_by_instrument_id.clear();
   for (std::size_t i = 0; i < master.instruments.size(); ++i) {
     master.index_by_symbol.emplace(master.instruments[i].symbol, i);
+    if (master.instruments[i].instrument_id.has_value()) {
+      master.index_by_instrument_id.emplace(*master.instruments[i].instrument_id, i);
+    }
   }
 }
 
@@ -73,6 +77,10 @@ load_instrument_master_file(const std::filesystem::path& path, LoadOptions optio
         continue;
       }
       Instrument instrument;
+      if (const auto* instrument_id = (*instrument_table)["instrument_id"].as_integer()) {
+        instrument.instrument_id =
+            static_cast<std::uint32_t>(instrument_id->get());
+      }
       if (const auto* symbol = (*instrument_table)["symbol"].as_string()) {
         instrument.symbol = symbol->get();
       }
@@ -112,6 +120,15 @@ load_instrument_master_file(const std::filesystem::path& path, LoadOptions optio
 const Instrument* find_by_symbol(const InstrumentMaster& master, std::string_view symbol) {
   const auto found = master.index_by_symbol.find(std::string(symbol));
   if (found == master.index_by_symbol.end()) {
+    return nullptr;
+  }
+  return &master.instruments[found->second];
+}
+
+const Instrument* find_by_instrument_id(const InstrumentMaster& master,
+                                        const std::uint32_t instrument_id) {
+  const auto found = master.index_by_instrument_id.find(instrument_id);
+  if (found == master.index_by_instrument_id.end()) {
     return nullptr;
   }
   return &master.instruments[found->second];
