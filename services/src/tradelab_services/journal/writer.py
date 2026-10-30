@@ -16,6 +16,7 @@ class JournalWriter:
     path: Path
     next_sequence: int = 1
     _fd: int | None = None
+    bytes_written: int = 0
 
     def open(self) -> None:
         if self._fd is not None:
@@ -46,6 +47,7 @@ class JournalWriter:
         )
         record = g.encode_header(header, payload) + payload
         os.write(self._fd, record)
+        self.bytes_written += len(record)
         seq = self.next_sequence
         self.next_sequence += 1
         return seq

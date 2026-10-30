@@ -3,21 +3,21 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-30T18:15:00+0530 by cursor
-- Active ticket: T-0105 (**In review**)
-- Branch: `feat/T-0105-journal-retention`
-- Last green commit: `6da738c` — `T-0105: journal segment rotation, retention guard, and journal_retention CLI`
+- Updated: 2026-10-30T19:00:00+0530 by cursor
+- Active ticket: T-0106 (**In review**)
+- Branch: `feat/T-0106-live-ws-capture`
+- Last green commit: `bbfa29b` — `T-0106: Delta public WS capture with rotating journal and mock-ws tests` (ADR Accept on `main`: `aa438de`)
 - Working tree: clean after commit
-- Tests passing at last commit: `just check` on **Darwin arm64**, 2026-10-30 (journal-retention **2/2**, journal-dq **6/6**, CTest **19/19** incl. `trading_journal_rotation_tests`, `journal_retention_cli`)
-- Next step (exact): Operator open PR `feat/T-0105-journal-retention` → `main`; set production rotation limits and archive path (Q-17); wire `RotatingJournalWriter` into live capture when ready.
-- Files touched this ticket: `engine/src/journal/`, `engine/include/trading/journal/`, `tools/journal_retention/`, `tests/unit/journal_retention/`, `engine/CMakeLists.txt`, `justfile`, `PROGRESS.md`
-- Decisions made this session (not yet in ADR): Segment footer magic `TJNF`; retention prune requires `ARCHIVE_VERIFIED=1` (same spirit as T-0006); default max segment size **256 MiB** (DESIGN §10.2).
-- Open questions: Q-17 (operator limits/archive location — tooling partial); Q-16, Q-18–Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
-- Notes for the next tool: `./build/debug-asan/engine/journal_retention status --root .handoff/journals`; `ARCHIVE_VERIFIED=1 ./build/debug-asan/engine/journal_retention apply --root PATH --max-closed-segments N`
+- Tests passing at last commit: `just check` on **Darwin arm64**, 2026-10-30 (services/ingestion **5/5**, CTest **19/19**)
+- Next step (exact): Operator open PR `feat/T-0106-live-ws-capture` → `main`; confirm Q-16 live symbol list and Q-18 licensing before production `--mode live`.
+- Files touched this ticket: `services/ingestion/`, `services/journal/`, `research/pyproject.toml`, `research/uv.lock`, `engine/include/trading/marketdata/delta_public_ws.hpp`, `tests/unit/ingestion/`, `justfile`, `PROGRESS.md`
+- Decisions made this session (not yet in ADR): Empty `instrument = []` → exit **2**, no WS connect; CI uses **`mock-ws`** only; live reconnect backoff per TI §11.
+- Open questions: Q-16, Q-18 (production live); Q-21 (WS subscribe channel set); Q-17, Q-19–Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
+- Notes for the next tool: `PYTHONPATH=services/src:tools/journal_inspect:tools uv run python -m tradelab_services.ingestion --mode mock-ws --instruments tests/fixtures/ingestion/recording_instruments.toml --mock-feed tests/fixtures/delta/public_feed.ndjson`
 
 ## Current Phase
 
-**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** in review on `feat/T-0105-journal-retention`.
+**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** in review on `feat/T-0106-live-ws-capture`.
 
 ## Phase 0 Backlog
 
@@ -319,7 +319,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
   - **Q-16:** Production instrument list and `instrument_id` map for live Delta symbols — **TODO(operator)**
   - **Q-17:** Journal segment retention path and rotation policy under `TRADELAB_JOURNAL_ROOT` — **TODO(operator)**
   - **Q-18:** Delta live public feed licensing / terms for continuous capture — **TODO(operator)** ([terms](https://www.delta.exchange/legal/terms-of-use))
-- Live network: mock feed only in CI; Delta public WS/REST wiring deferred until Q-16–Q-18 and any WS client ADR.
+- Live network: CI uses **mock** / **mock-ws** only; `--mode live` wired (ADR-0016) — production gated on Q-16/Q-18.
 - Files allowed: `services/ingestion/`, `engine/src/journal/`, `engine/src/marketdata/`, `tests/`, `tools/`, `PROGRESS.md`, `docs/` (notes only). **Amendment:** `engine/CMakeLists.txt` (`trading_add_module` multi-source + test targets), `justfile` (`services-test`).
 - Merged to `main`: `72e7380` (2026-10-30)
 
@@ -360,7 +360,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Merged to `main`: `dbeacdb` (2026-10-30)
 
 ### T-0105: Journal retention / rotation (Q-17)
-- Status: In review
+- Status: Done
 - Phase: 1 · Risk class: B · Depends on: T-0102 (journal writer)
 - Goal: Rotate journal segments on size/time; immutable closed segments with footer; retention with archive guard; ops CLI.
 - Acceptance criteria:
@@ -373,6 +373,21 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
   - `just check`: CTest **19/19**; journal-retention pytest **2/2**.
 - Operator TODO (Q-17): **Production rotation thresholds**, **archive destination**, and wiring capture to `RotatingJournalWriter` — defaults only in code.
 - Files allowed: `engine/src/journal/`, `tools/`, `services/ingestion/` (optional), `tests/`, `PROGRESS.md`, `docs/` (notes). **Amendment:** `engine/CMakeLists.txt`, `justfile`.
+- Merged to `main`: `cddb2e9` (2026-10-30)
+
+### T-0106: Live WebSocket tick capture (Delta public feed)
+- Status: In review
+- Phase: 1 · Risk class: B · Depends on: T-0105, ADR-0016 Accepted (`aa438de`)
+- Goal: Delta public WS → normalize → Python `RotatingJournalWriter`; health/gaps/stale; reconnect+backoff; mock-ws CI.
+- Acceptance criteria:
+  - [x] ADR-0016 Accepted; `websockets` pinned in research uv lock
+  - [x] `--mode live|mock|mock-ws` CLI; empty instrument list → no connect (code 2)
+  - [x] Rotating journal segments with TJNF footer on shutdown
+  - [x] Reconnect backoff + disconnect `FeedState`; stale/gap tracking preserved
+  - [x] Tests: ingestion **5/5** (mock, mock-ws, empty list, backoff) — no live network in CI
+- Evidence (2026-10-30, **Darwin arm64**): `just check` green; services-test **5/5**.
+- Operator TODO: Q-16 live symbols; Q-18 licensing before continuous live capture; Q-21 subscribe channel confirmation.
+- Files allowed: `services/ingestion/`, `engine/src/marketdata/`, `engine/src/journal/` (integration via services), `tests/`, `tools/`, `PROGRESS.md`, `docs/`. **Amendment:** `research/pyproject.toml`, `justfile`.
 
 ## Phase 1 Backlog (legacy note)
 
@@ -398,8 +413,10 @@ Tickets above supersede “Not Yet Ready” once Phase 0 exit is recorded in `do
 | Q-14 | Accept `engine/CMakeLists.txt` amendment for T-0011 (`trading_profile` links `trading_core`, exposes `engine/include`). | T-0011 merge | Open — required for loaders |
 | Q-15 | Accept **ADR-0015** (pyarrow, research Parquet only) to clear B-0101-3. | T-0101 | Done — Accepted on `main` @ `ac6c987` (2026-10-30) |
 | Q-16 | Live Delta recording instrument list and `instrument_id` mapping | T-0102 live | Open — operator must supply live symbols and lot/tick sources (`instrument_enrich` on `main`) |
-| Q-17 | Journal segment retention / rotation under `TRADELAB_JOURNAL_ROOT` | T-0102 ops | Open — **T-0105 tooling in review**; operator sets limits and archive path |
-| Q-18 | Delta live public feed capture licensing | T-0102 live | Open — operator confirm terms |
+| Q-17 | Journal segment retention / rotation under `TRADELAB_JOURNAL_ROOT` | T-0102 ops | Open — tooling on `main`; operator sets limits and archive path |
+| Q-18 | Delta live public feed capture licensing | T-0106 live prod | Open — **TODO(operator)** before continuous `--mode live` |
+| Q-21 | Delta public WS subscribe channels / symbol naming for production | T-0106 live prod | Open — repo uses `v2_ticker` + instrument TOML symbols (SAMPLE) |
+| B-0106-1 | Accept ADR-0016 | T-0106 | Done — `aa438de` on `main` (2026-10-30) |
 | Q-19 | Default stale threshold for journal DQ reports | T-0103 ops | Open — CLI default 5000 ms |
 | Q-20 | DQ reporting vs journal retention (Q-17) / Phase 1 exit | T-0103 | Open |
 
@@ -407,6 +424,7 @@ Tickets above supersede “Not Yet Ready” once Phase 0 exit is recorded in `do
 
 | Date | Decision | Reference |
 |---|---|---|
+| 2026-10-30 | `websockets` for services ingestion public feed capture only (T-0106) | ADR-0016 |
 | 2026-10-30 | pyarrow for research-side Parquet I/O only (T-0101) | ADR-0015 |
 | 2026-10-29 | Partitioned projection unique keys include `event_time` from journal `wall_ns` | ADR-0013 |
 | 2026-10-25 | Codex is primary; Cursor is fallback; both read AGENTS.md | PROCESS §1.1, §7.6 |
@@ -423,6 +441,9 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-10-30 | cursor | T-0106 | `bbfa29b` | In review | Live WS capture + rotating journal; mock-ws CI. |
+| 2026-10-30 | operator | ADR-0016 | `aa438de` | Accepted | websockets for ingestion. |
+| 2026-10-30 | cursor | T-0105 | `cddb2e9` merge | Done | Journal retention on `main`. |
 | 2026-10-30 | cursor | T-0105 | `6da738c` | In review | Journal rotation/retention + journal_retention CLI. |
 | 2026-10-30 | cursor | T-0104 | `dbeacdb` merge | Done | Instrument enrichment on `main`. |
 | 2026-10-30 | cursor | T-0104 | `42b00e1` | In review | Instrument enrichment + instrument_enrich CLI. |

@@ -54,7 +54,7 @@ research-test: research-sync
 
 services-test: research-sync
     cd "{{research-dir}}" && \
-        PYTHONPATH="{{justfile_directory()}}/services/src:{{justfile_directory()}}/tools/journal_inspect" \
+        PYTHONPATH="{{justfile_directory()}}/services/src:{{justfile_directory()}}/tools/journal_inspect:{{justfile_directory()}}/tools" \
         uv run pytest -q "{{justfile_directory()}}/tests/unit/ingestion"
 
 journal-dq-test: research-sync
