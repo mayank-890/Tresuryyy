@@ -1,0 +1,3 @@
+# Symbols observed in journal / capture fixtures (T-0104)
+SAMPLE-BTC-PERP
+SAMPLE-ETH-PERP

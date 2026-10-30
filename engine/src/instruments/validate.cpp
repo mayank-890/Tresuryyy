@@ -30,6 +30,7 @@ validate_master_structure(const InstrumentMaster& master) {
   }
 
   std::unordered_set<std::string> symbols;
+  std::unordered_set<std::uint32_t> instrument_ids;
   for (const auto& instrument : master.instruments) {
     if (instrument.symbol.empty()) {
       return validation_error("instrument.symbol is required");
@@ -48,6 +49,15 @@ validate_master_structure(const InstrumentMaster& master) {
     }
     if (instrument.underlying.empty()) {
       return validation_error("underlying is required for " + instrument.symbol);
+    }
+    if (instrument.instrument_id.has_value()) {
+      if (*instrument.instrument_id == 0) {
+        return validation_error("instrument_id must be positive for " + instrument.symbol);
+      }
+      if (!instrument_ids.insert(*instrument.instrument_id).second) {
+        return validation_error("duplicate instrument_id: " +
+                                std::to_string(*instrument.instrument_id));
+      }
     }
     if (instrument.option_type != OptionType::None) {
       if (!instrument.expiry_yyyy_mm_dd.has_value()) {

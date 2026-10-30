@@ -13,3 +13,4 @@ void register_stub() {}
 
 #include "../instruments/instrument_load.cpp"
 #include "../instruments/validate.cpp"
+#include "../instruments/enrich.cpp"
