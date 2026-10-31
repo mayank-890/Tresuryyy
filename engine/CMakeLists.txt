@@ -32,9 +32,20 @@ target_link_libraries(trading_marketdata_delta_tests PRIVATE trading_marketdata
 add_test(NAME trading_marketdata_delta_tests
          COMMAND trading_marketdata_delta_tests)
 
-trading_add_module(trading_strategy src/strategy/module.cpp)
+trading_add_module(trading_strategy src/strategy/module.cpp src/strategy/registry.cpp
+                   src/strategy/strategies/flat_echo/strategy.cpp)
+target_include_directories(trading_strategy PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/strategy")
 target_link_libraries(trading_strategy PUBLIC trading_core trading_marketdata)
 trading_add_smoke_test(trading_strategy)
+add_executable(trading_strategy_interface_tests
+               src/strategy/strategies/flat_echo/tests/flat_echo_tests.cpp)
+target_include_directories(trading_strategy_interface_tests PRIVATE
+                           "${CMAKE_CURRENT_SOURCE_DIR}/src/strategy")
+target_compile_definitions(trading_strategy_interface_tests PRIVATE
+                           TRADING_REPO_ROOT="${CMAKE_SOURCE_DIR}")
+target_link_libraries(trading_strategy_interface_tests PRIVATE trading_strategy
+                                                             GTest::gtest_main)
+add_test(NAME trading_strategy_interface_tests COMMAND trading_strategy_interface_tests)
 
 trading_add_module(trading_risk src/risk/module.cpp)
 target_link_libraries(trading_risk PUBLIC trading_core trading_strategy)

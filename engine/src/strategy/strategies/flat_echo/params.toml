@@ -1,0 +1,10 @@
+# SAMPLE — NOT FOR TRADING
+# Default parameter file for the flat_echo example.
+# T-0201 does not parse this file. Snapshots are built in code.
+# qty_lots = 0 emits no intents.
+name = "flat_echo"
+version = 0
+instrument_id = 0
+qty_lots = 0
+side = "buy"
+time_in_force = "day"
