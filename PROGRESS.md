@@ -6,7 +6,7 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-31T12:36:00+0530 by cursor
 - Active ticket: T-0108 (**In review**)
 - Branch: `feat/T-0108-projector-stub`
-- Last green commit: sha of `T-0108: add idempotent journal projector stub` (recorded in the following handoff commit)
+- Last green commit: `3b5fb1f` — `T-0108: add idempotent journal projector stub`
 - Working tree: clean after that commit
 - Tests passing at last commit: `just check` on **Darwin arm64**, 2026-10-31 (projector unit **9/9** in the gate). `just projector-integration` **1/1** against local PostgreSQL (not inside `just check`, same split as `just test-db`).
 - Next step (exact): Do not merge. Review T-0107 on `feat/T-0107-journal-recovery-smoke` (`70378ba`, handoff `d773db8`) and T-0108 on this branch. Merge T-0107 first so `justfile` keeps `journal-recovery-test`, then T-0108. Do not start Phase 2 until the operator writes the Phase 1 exit note. Recommended next draft after that note: Phase 2 strategy interface (PROCESS §6.1). Remaining Phase 1 exit work is operational: ≥2 weeks of capture (Q-16, Q-18) and DQ/retention (Q-19, Q-20).
@@ -470,7 +470,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-10-31 | cursor | T-0108 | (this commit) | In review | Idempotent projector stub. Not merged. T-0107 remains on its own branch. |
+| 2026-10-31 | cursor | T-0108 | `3b5fb1f` | In review | Idempotent projector stub. Not merged. T-0107 remains on its own branch. |
 | 2026-10-31 | cursor | T-0107 | `70378ba` | In review | Copy-safe torn-tail recovery on `feat/T-0107-journal-recovery-smoke`. Not merged. |
 | 2026-10-30 | cursor | T-0106 | `67ad621` merge | Done | Live WS capture on `main`. |
 | 2026-10-30 | cursor | T-0106 | `bbfa29b` | In review | Live WS capture + rotating journal; mock-ws CI. |
