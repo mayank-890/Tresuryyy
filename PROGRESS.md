@@ -3,21 +3,21 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-30T19:00:00+0530 by cursor
-- Active ticket: T-0106 (**In review**)
-- Branch: `feat/T-0106-live-ws-capture`
-- Last green commit: `bbfa29b` — `T-0106: Delta public WS capture with rotating journal and mock-ws tests` (ADR Accept on `main`: `aa438de`)
-- Working tree: clean after commit
-- Tests passing at last commit: `just check` on **Darwin arm64**, 2026-10-30 (services/ingestion **5/5**, CTest **19/19**)
-- Next step (exact): Operator open PR `feat/T-0106-live-ws-capture` → `main`; confirm Q-16 live symbol list and Q-18 licensing before production `--mode live`.
-- Files touched this ticket: `services/ingestion/`, `services/journal/`, `research/pyproject.toml`, `research/uv.lock`, `engine/include/trading/marketdata/delta_public_ws.hpp`, `tests/unit/ingestion/`, `justfile`, `PROGRESS.md`
-- Decisions made this session (not yet in ADR): Empty `instrument = []` → exit **2**, no WS connect; CI uses **`mock-ws`** only; live reconnect backoff per TI §11.
-- Open questions: Q-16, Q-18 (production live); Q-21 (WS subscribe channel set); Q-17, Q-19–Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
-- Notes for the next tool: `PYTHONPATH=services/src:tools/journal_inspect:tools uv run python -m tradelab_services.ingestion --mode mock-ws --instruments tests/fixtures/ingestion/recording_instruments.toml --mock-feed tests/fixtures/delta/public_feed.ndjson`
+- Updated: 2026-10-31T12:28:00+0530 by cursor
+- Active ticket: T-0107 (**In review**)
+- Branch: `feat/T-0107-journal-recovery-smoke`
+- Last green commit: sha of `T-0107: add copy-safe torn-tail recovery` (recorded in the following handoff commit)
+- Working tree: clean after that commit
+- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-10-31 (journal-recovery **9/9** including 100 kill-during-write cycles, CTest **19/19**)
+- Next step (exact): Do not merge T-0107. Branch `feat/T-0108-projector-stub` from `main` and implement the idempotent journal projector stub (FR-JR-03).
+- Files touched this ticket: `tools/journal_recover/`, `tools/journal_inspect/README.md`, `tests/unit/journal_recover/`, `docs/runbooks/RB-10-torn-journal-tail.md`, `justfile`, `PROGRESS.md`
+- Decisions made this session (not yet in ADR): Copy-safe truncate. Inspector stays read-only. `--apply` fsyncs `<segment>.torn`, then atomically replaces the segment with the verified prefix. FATAL scans and a valid TJNF footer are not truncated.
+- Open questions: Q-16, Q-18, Q-21 (live capture); Q-17, Q-19–Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1 (Phase 0 sign-off)
+- Notes for the next tool: Recording path only. No order, risk, or broker edits. `PYTHONPATH=tools:tools/journal_inspect python3 -m journal_recover <segment>` is dry-run (exit 1 on AL-14). `--apply` truncates.
 
 ## Current Phase
 
-**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** in review on `feat/T-0106-live-ws-capture`.
+**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** In review on `feat/T-0107-journal-recovery-smoke` (not merged).
 
 ## Phase 0 Backlog
 
@@ -376,7 +376,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Merged to `main`: `cddb2e9` (2026-10-30)
 
 ### T-0106: Live WebSocket tick capture (Delta public feed)
-- Status: In review
+- Status: Done
 - Phase: 1 · Risk class: B · Depends on: T-0105, ADR-0016 Accepted (`aa438de`)
 - Goal: Delta public WS → normalize → Python `RotatingJournalWriter`; health/gaps/stale; reconnect+backoff; mock-ws CI.
 - Acceptance criteria:
@@ -388,6 +388,21 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Evidence (2026-10-30, **Darwin arm64**): `just check` green; services-test **5/5**.
 - Operator TODO: Q-16 live symbols; Q-18 licensing before continuous live capture; Q-21 subscribe channel confirmation.
 - Files allowed: `services/ingestion/`, `engine/src/marketdata/`, `engine/src/journal/` (integration via services), `tests/`, `tools/`, `PROGRESS.md`, `docs/`. **Amendment:** `research/pyproject.toml`, `justfile`.
+- Merged to `main`: `67ad621` (2026-10-30)
+
+### T-0107: Journal recovery smoke (recording path, FR-JR-02)
+- Status: In review
+- Phase: 1 · Risk class: C · Depends on: T-0106; T-0008 (inspector)
+- Requirements: FR-JR-02 (TC-JR-02 / TC-JR-08 spirit; recording path only)
+- Goal: Validate crash-safe recording: torn-tail detection (AL-14), copy-safe truncate to the valid prefix; repeated kill-during-write smoke on synthetic segments only — not the engine order path.
+- Acceptance criteria:
+  - [x] Recovery CLI truncates a torn tail after the inspector reports `TORN_TAIL`; prior records intact
+  - [x] Automated test: 100 synthetic write/tear/recover cycles; inspector OK on the recovered prefix
+  - [x] Operator steps in `tools/journal_recover/README.md` and `docs/runbooks/RB-10-torn-journal-tail.md`; no live trading paths
+- Scope decision (operator, 2026-10-31, “truncate safely”): copy-safe truncate. Dry-run is the default. `--apply` fsyncs the original bytes to `<segment>.torn`, re-inspects the prefix, then atomically replaces the segment. `FATAL` (CRC, sequence gap, bad magic) is never truncated. A valid `TJNF` footer is not stripped. The inspector remains read-only.
+- Evidence (2026-10-31, **Darwin arm64**): `just check` green — codegen, journal schema **22/22**, research **11/11**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9** (100 kill-during-write cycles), UI **4/4**, CTest **19/19**, watchdog link check.
+- Files allowed: `tools/journal_inspect/`, `tools/`, `tests/`, `PROGRESS.md`, `docs/` (notes only). **Amendment:** `justfile` (`journal-recovery-test` wired into `just check`) so the new tests run in the commit gate.
+- Out of scope: order path, risk, broker, engine startup recovery, live trading
 
 ## Phase 1 Backlog (legacy note)
 
@@ -424,6 +439,7 @@ Tickets above supersede “Not Yet Ready” once Phase 0 exit is recorded in `do
 
 | Date | Decision | Reference |
 |---|---|---|
+| 2026-10-31 | Torn-tail recovery is copy-safe truncate: `.torn` backup, then atomic prefix replace. FATAL scans and valid TJNF footers are not truncated. Inspector stays read-only. | T-0107 |
 | 2026-10-30 | `websockets` for services ingestion public feed capture only (T-0106) | ADR-0016 |
 | 2026-10-30 | pyarrow for research-side Parquet I/O only (T-0101) | ADR-0015 |
 | 2026-10-29 | Partitioned projection unique keys include `event_time` from journal `wall_ns` | ADR-0013 |
@@ -441,6 +457,9 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-10-31 | cursor | T-0107 | (this commit) | In review | Copy-safe torn-tail recovery; 100 kill-during-write cycles. Not merged. |
+| 2026-10-31 | cursor | — | — | — | Sync PROGRESS: T-0106 Done on `main`; T-0107 backlog draft. |
+| 2026-10-30 | cursor | T-0106 | `67ad621` merge | Done | Live WS capture on `main`. |
 | 2026-10-30 | cursor | T-0106 | `bbfa29b` | In review | Live WS capture + rotating journal; mock-ws CI. |
 | 2026-10-30 | operator | ADR-0016 | `aa438de` | Accepted | websockets for ingestion. |
 | 2026-10-30 | cursor | T-0105 | `cddb2e9` merge | Done | Journal retention on `main`. |

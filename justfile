@@ -67,6 +67,12 @@ journal-retention-test: research-sync
         PYTHONPATH="{{justfile_directory()}}/tools" \
         uv run pytest -q "{{justfile_directory()}}/tests/unit/journal_retention"
 
+# T-0107: recording-path torn-tail recovery. justfile amendment so `just check` runs it.
+journal-recovery-test: research-sync
+    cd "{{research-dir}}" && \
+        PYTHONPATH="{{justfile_directory()}}/tools:{{justfile_directory()}}/tools/journal_inspect:{{justfile_directory()}}/services/src" \
+        uv run pytest -q "{{justfile_directory()}}/tests/unit/journal_recover"
+
 ui-dir := justfile_directory() / "ui"
 
 ui-install:
@@ -89,6 +95,7 @@ check preset=default_preset:
     just services-test
     just journal-dq-test
     just journal-retention-test
+    just journal-recovery-test
     just ui-unit-test
     just test "{{preset}}"
     just check-watchdog "{{preset}}"

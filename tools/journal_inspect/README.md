@@ -12,4 +12,4 @@ Tests and fixture generation:
 bash tools/journal_inspect/run_tests.sh
 ```
 
-`--repair` is not implemented; files are never modified.
+`--repair` is not implemented; this tool never modifies a file. Torn-tail truncate (AL-14) is `python3 -m journal_recover` in `tools/journal_recover/`.
