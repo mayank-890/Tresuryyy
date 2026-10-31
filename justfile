@@ -73,6 +73,20 @@ journal-recovery-test: research-sync
         PYTHONPATH="{{justfile_directory()}}/tools:{{justfile_directory()}}/tools/journal_inspect:{{justfile_directory()}}/services/src" \
         uv run pytest -q "{{justfile_directory()}}/tests/unit/journal_recover"
 
+# T-0108: projector unit tests. Integration is `just projector-integration` (needs Postgres).
+projector-test: research-sync
+    cd "{{research-dir}}" && \
+        PYTHONPATH="{{justfile_directory()}}/services/src:{{justfile_directory()}}/tools:{{justfile_directory()}}/tools/journal_inspect" \
+        uv run pytest -q "{{justfile_directory()}}/services/tests/test_projector.py"
+
+projector-integration: research-sync
+    #!/usr/bin/env bash
+    set -euo pipefail
+    eval "$(just load-db-env)"
+    cd "{{research-dir}}"
+    PYTHONPATH="{{justfile_directory()}}/services/src:{{justfile_directory()}}/tools:{{justfile_directory()}}/tools/journal_inspect" \
+        uv run pytest -q "{{justfile_directory()}}/services/tests/test_projector_integration.py"
+
 ui-dir := justfile_directory() / "ui"
 
 ui-install:
@@ -96,6 +110,7 @@ check preset=default_preset:
     just journal-dq-test
     just journal-retention-test
     just journal-recovery-test
+    just projector-test
     just ui-unit-test
     just test "{{preset}}"
     just check-watchdog "{{preset}}"

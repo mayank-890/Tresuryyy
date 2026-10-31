@@ -3,21 +3,21 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-31T12:28:00+0530 by cursor
-- Active ticket: T-0107 (**In review**)
-- Branch: `feat/T-0107-journal-recovery-smoke`
-- Last green commit: `70378ba` — `T-0107: add copy-safe torn-tail recovery`
-- Working tree: clean
-- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-10-31 (journal-recovery **9/9** including 100 kill-during-write cycles, CTest **19/19**)
-- Next step (exact): Do not merge T-0107. Branch `feat/T-0108-projector-stub` from `main` and implement the idempotent journal projector stub (FR-JR-03).
-- Files touched this ticket: `tools/journal_recover/`, `tools/journal_inspect/README.md`, `tests/unit/journal_recover/`, `docs/runbooks/RB-10-torn-journal-tail.md`, `justfile`, `PROGRESS.md`
-- Decisions made this session (not yet in ADR): Copy-safe truncate. Inspector stays read-only. `--apply` fsyncs `<segment>.torn`, then atomically replaces the segment with the verified prefix. FATAL scans and a valid TJNF footer are not truncated.
-- Open questions: Q-16, Q-18, Q-21 (live capture); Q-17, Q-19–Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1 (Phase 0 sign-off)
-- Notes for the next tool: Recording path only. No order, risk, or broker edits. `PYTHONPATH=tools:tools/journal_inspect python3 -m journal_recover <segment>` is dry-run (exit 1 on AL-14). `--apply` truncates.
+- Updated: 2026-10-31T19:20:00+0530 by cursor
+- Active ticket: **none**
+- Branch: `main`
+- Last green commit: this merge `Merge T-0108: projector stub` (feature `3b5fb1f`). T-0107 is already on `main` at `d773db8` (fast-forward; feature `70378ba`).
+- Working tree: clean after the merge commit
+- Tests passing at last commit: `just check` after this merge includes journal-recovery **9/9** and projector unit **9/9**. `just projector-integration` **1/1** was green on `3b5fb1f` (not part of `just check`).
+- Next step (exact): No ticket is Ready. Operator writes the Phase 1 exit note. Then draft the Phase 2 strategy interface (PROCESS §6.1). Remaining Phase 1 exit work is operational: ≥2 weeks of capture (Q-16, Q-18) and DQ/retention (Q-19, Q-20).
+- Files touched this merge: `PROGRESS.md`, `justfile`, and the T-0108 projector files from `feat/T-0108-projector-stub`
+- Decisions made this session (not yet in ADR): none. Recovery stays copy-safe truncate. Projector still uses `psql` (Q-23). `event_time` is integer `wall_ns` → UTC (`1705326896789000000` is `2024-01-15 13:54:56.789+00`).
+- Open questions: Q-22, Q-23; Q-16, Q-18, Q-21; Q-17, Q-19, Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
+- Notes for the next tool: `just check` runs `journal-recovery-test` and `projector-test`. `just projector-integration` needs Postgres. Dry-run projector: `PYTHONPATH=services/src:tools:tools/journal_inspect python3 -m tradelab_services.projector --segment <file> --dry-run`. Recovery dry-run: `PYTHONPATH=tools:tools/journal_inspect python3 -m journal_recover <segment>`.
 
 ## Current Phase
 
-**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** In review on `feat/T-0107-journal-recovery-smoke` (not merged).
+**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done in this merge (feature `3b5fb1f`).
 
 ## Phase 0 Backlog
 
@@ -391,7 +391,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Merged to `main`: `67ad621` (2026-10-30)
 
 ### T-0107: Journal recovery smoke (recording path, FR-JR-02)
-- Status: In review
+- Status: Done
 - Phase: 1 · Risk class: C · Depends on: T-0106; T-0008 (inspector)
 - Requirements: FR-JR-02 (TC-JR-02 / TC-JR-08 spirit; recording path only)
 - Goal: Validate crash-safe recording: torn-tail detection (AL-14), copy-safe truncate to the valid prefix; repeated kill-during-write smoke on synthetic segments only — not the engine order path.
@@ -403,6 +403,26 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Evidence (2026-10-31, **Darwin arm64**): `just check` green — codegen, journal schema **22/22**, research **11/11**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9** (100 kill-during-write cycles), UI **4/4**, CTest **19/19**, watchdog link check.
 - Files allowed: `tools/journal_inspect/`, `tools/`, `tests/`, `PROGRESS.md`, `docs/` (notes only). **Amendment:** `justfile` (`journal-recovery-test` wired into `just check`) so the new tests run in the commit gate.
 - Out of scope: order path, risk, broker, engine startup recovery, live trading
+- Merged to `main`: `d773db8` (fast-forward of `feat/T-0107-journal-recovery-smoke`; feature `70378ba`)
+
+### T-0108: Journal-to-PostgreSQL projector stub (idempotent)
+- Status: Done
+- Phase: 1 · Risk class: B · Depends on: T-0006 (schema); T-0004 (journal records). Marked Ready in the implementation session, then implemented.
+- Requirements: FR-JR-03
+- Goal: Basic projector that reads journal records and writes them idempotently to PostgreSQL. A PostgreSQL outage does not stop recording.
+- Acceptance criteria:
+  - [x] Projector reads journal segments and projects core record types
+  - [x] Idempotent writes (re-running does not duplicate)
+  - [x] Handles missing/out-of-order sequences safely
+  - [x] Basic tests (unit + one integration against local Postgres)
+  - [x] Documented how to run it
+- Core rows: `MarketQuote` / `MarketTrade` → `market_ticks`; `OrderIntent` → `orders`; `OrderEvent` → `order_events` plus a newer-sequence status update; `RiskRejected` → `risk_events`; `ControlCommand` → `control_commands`; `SessionStart` → `config_versions`. `event_time` is `wall_ns`, not `now()`.
+- Not projected: `FillEvent`, `PositionSnapshot` (Q-22). No new migration. No new Python driver (Q-23); client is `psql`.
+- Evidence (2026-10-31, **Darwin arm64**): `just check` green on `3b5fb1f` — codegen, journal schema **22/22**, research **11/11**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, projector unit **9/9**, UI **4/4**, CTest **19/19**, watchdog link check. `just projector-integration` **1/1** (re-project → 2 tick rows, 1 order row, `event_time` = `2024-01-15 13:54:56.789+00`).
+- Files allowed: `services/src/tradelab_services/projector/`, `db/migrations/` (new migration only — none added), `services/tests/`, `PROGRESS.md`, `justfile`.
+- Out of scope: order path, risk limits, live trading, UI
+- Run: `PYTHONPATH=services/src:tools:tools/journal_inspect python3 -m tradelab_services.projector --segment <file>` (`--dry-run` does not connect). `just projector-integration` needs `DATABASE_URL` / `just migrate`.
+- Merged to `main`: this merge (`Merge T-0108: projector stub`; feature `3b5fb1f`)
 
 ## Phase 1 Backlog (legacy note)
 
@@ -434,11 +454,14 @@ Tickets above supersede “Not Yet Ready” once Phase 0 exit is recorded in `do
 | B-0106-1 | Accept ADR-0016 | T-0106 | Done — `aa438de` on `main` (2026-10-30) |
 | Q-19 | Default stale threshold for journal DQ reports | T-0103 ops | Open — CLI default 5000 ms |
 | Q-20 | DQ reporting vs journal retention (Q-17) / Phase 1 exit | T-0103 | Open |
+| Q-22 | `FillEvent` has no `strategy_id` or `instrument_id`; `PositionSnapshot` has no `strategy_id`. `fills` and `position_snapshots` require those columns. Projector does not invent them. | Fuller FR-JR-03 projection | Open — **TODO(operator)** |
+| Q-23 | Python PostgreSQL driver for the projector (psycopg or similar) | Replace the `psql` stub | Open — needs an ADR before any new dependency |
 
 ## Decisions Log
 
 | Date | Decision | Reference |
 |---|---|---|
+| 2026-10-31 | Projector stub uses `psql` and `INSERT ... ON CONFLICT`. No new dependency and no new migration. Database failure does not modify the journal. | T-0108; Q-23 |
 | 2026-10-31 | Torn-tail recovery is copy-safe truncate: `.torn` backup, then atomic prefix replace. FATAL scans and valid TJNF footers are not truncated. Inspector stays read-only. | T-0107 |
 | 2026-10-30 | `websockets` for services ingestion public feed capture only (T-0106) | ADR-0016 |
 | 2026-10-30 | pyarrow for research-side Parquet I/O only (T-0101) | ADR-0015 |
@@ -457,7 +480,10 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-10-31 | cursor | T-0107 | `70378ba` | In review | Copy-safe torn-tail recovery; 100 kill-during-write cycles. Not merged. |
+| 2026-10-31 | cursor | T-0108 | merge `Merge T-0108: projector stub` (feature `3b5fb1f`) | Done | Idempotent projector stub on `main`. |
+| 2026-10-31 | cursor | T-0107 | `d773db8` | Done | Fast-forward onto `main` (feature `70378ba`). |
+| 2026-10-31 | cursor | T-0108 | `3b5fb1f` | In review | Idempotent projector stub before merge. |
+| 2026-10-31 | cursor | T-0107 | `70378ba` | In review | Copy-safe torn-tail recovery before merge. |
 | 2026-10-31 | cursor | — | — | — | Sync PROGRESS: T-0106 Done on `main`; T-0107 backlog draft. |
 | 2026-10-30 | cursor | T-0106 | `67ad621` merge | Done | Live WS capture on `main`. |
 | 2026-10-30 | cursor | T-0106 | `bbfa29b` | In review | Live WS capture + rotating journal; mock-ws CI. |
