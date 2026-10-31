@@ -6,8 +6,8 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-31T20:52:00+0530 by cursor
 - Active ticket: T-0201 (**In review**)
 - Branch: `feat/T-0201-strategy-interface`
-- Last green commit: sha of `T-0201: add strategy interface and compile-time registration` (recorded in the following handoff commit)
-- Working tree: clean after that commit
+- Last green commit: `9261b93` — `T-0201: add strategy interface and compile-time registration`
+- Working tree: clean
 - Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-10-31 (codegen, journal schema **22/22**, research **11/11**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **20/20**, watchdog link check)
 - Next step (exact): Do not merge T-0201. Operator reviews `feat/T-0201-strategy-interface`. Do not start the event-driven backtester until this ticket is Done.
 - Files touched this ticket: `engine/include/trading/strategy/`, `engine/src/strategy/`, `engine/CMakeLists.txt`, `PROGRESS.md`
@@ -501,7 +501,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-10-31 | cursor | T-0201 | (this commit) | In review | Strategy interface, parameter double-buffer, compile-time registration, `flat_echo` sample. Not merged. |
+| 2026-10-31 | cursor | T-0201 | `9261b93` | In review | Strategy interface, parameter double-buffer, compile-time registration, `flat_echo` sample. Not merged. |
 | 2026-10-31 | cursor | T-0108 | `a362c7e` | Done | Merge `Merge T-0108: projector stub` (feature `3b5fb1f`). |
 | 2026-10-31 | cursor | T-0107 | `d773db8` | Done | Fast-forward onto `main` (feature `70378ba`). |
 | 2026-10-31 | cursor | T-0108 | `3b5fb1f` | In review | Idempotent projector stub before merge. |
