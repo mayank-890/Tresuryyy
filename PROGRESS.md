@@ -6,8 +6,8 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-10-31T12:28:00+0530 by cursor
 - Active ticket: T-0107 (**In review**)
 - Branch: `feat/T-0107-journal-recovery-smoke`
-- Last green commit: sha of `T-0107: add copy-safe torn-tail recovery` (recorded in the following handoff commit)
-- Working tree: clean after that commit
+- Last green commit: `70378ba` — `T-0107: add copy-safe torn-tail recovery`
+- Working tree: clean
 - Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-10-31 (journal-recovery **9/9** including 100 kill-during-write cycles, CTest **19/19**)
 - Next step (exact): Do not merge T-0107. Branch `feat/T-0108-projector-stub` from `main` and implement the idempotent journal projector stub (FR-JR-03).
 - Files touched this ticket: `tools/journal_recover/`, `tools/journal_inspect/README.md`, `tests/unit/journal_recover/`, `docs/runbooks/RB-10-torn-journal-tail.md`, `justfile`, `PROGRESS.md`
@@ -457,7 +457,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-10-31 | cursor | T-0107 | (this commit) | In review | Copy-safe torn-tail recovery; 100 kill-during-write cycles. Not merged. |
+| 2026-10-31 | cursor | T-0107 | `70378ba` | In review | Copy-safe torn-tail recovery; 100 kill-during-write cycles. Not merged. |
 | 2026-10-31 | cursor | — | — | — | Sync PROGRESS: T-0106 Done on `main`; T-0107 backlog draft. |
 | 2026-10-30 | cursor | T-0106 | `67ad621` merge | Done | Live WS capture on `main`. |
 | 2026-10-30 | cursor | T-0106 | `bbfa29b` | In review | Live WS capture + rotating journal; mock-ws CI. |
