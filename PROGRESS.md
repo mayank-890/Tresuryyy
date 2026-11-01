@@ -6,8 +6,8 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-11-01T11:00:00+0530 by cursor
 - Active ticket: T-0203 (**In review**)
 - Branch: `feat/T-0203-walk-forward`
-- Last green commit: sha of `T-0203: add walk-forward evaluation` (recorded in the following handoff commit)
-- Working tree: clean after that commit
+- Last green commit: `66ac367` — `T-0203: add walk-forward evaluation`
+- Working tree: clean
 - Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-01 (codegen, journal schema **22/22**, research **25/25**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **20/20**, watchdog link check)
 - Next step (exact): Do not merge T-0203. Operator reviews `feat/T-0203-walk-forward`. T-0204 is Ready. Next implementation is `feat/T-0204-pybind11-bindings`: a pybind11 module that builds with `TRADING_BUILD_BINDINGS=ON` and calls `FlatEcho::decide` from Python. Note Q-24 before adding the dependency.
 - Files touched this ticket: `research/src/tradelab/backtest/`, `research/tests/unit/test_walk_forward.py`, `PROGRESS.md`
@@ -550,7 +550,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-11-01 | cursor | T-0203 | (this commit) | In review | Walk-forward evaluation. T-0204 left Ready. Not merged. |
+| 2026-11-01 | cursor | T-0203 | `66ac367` | In review | Walk-forward evaluation. T-0204 left Ready. Not merged. |
 | 2026-11-01 | cursor | T-0202 | `1fd6318` | Done | On `main` (feature `d0bb591`). |
 | 2026-11-01 | cursor | T-0201 | `4a7ff6a` | Done | On `main` (feature `9261b93`). |
 | 2026-10-31 | cursor | T-0108 | `a362c7e` | Done | Merge `Merge T-0108: projector stub` (feature `3b5fb1f`). |
