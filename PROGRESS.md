@@ -3,21 +3,21 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-11-01T11:00:00+0530 by cursor
-- Active ticket: T-0203 (**In review**)
-- Branch: `feat/T-0203-walk-forward`
-- Last green commit: `66ac367` — `T-0203: add walk-forward evaluation`
-- Working tree: clean
-- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-01 (codegen, journal schema **22/22**, research **25/25**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **20/20**, watchdog link check)
-- Next step (exact): Do not merge T-0203. Operator reviews `feat/T-0203-walk-forward`. T-0204 is Ready. Next implementation is `feat/T-0204-pybind11-bindings`: a pybind11 module that builds with `TRADING_BUILD_BINDINGS=ON` and calls `FlatEcho::decide` from Python. Note Q-24 before adding the dependency.
-- Files touched this ticket: `research/src/tradelab/backtest/`, `research/tests/unit/test_walk_forward.py`, `PROGRESS.md`
-- Decisions made this session (not yet in ADR): Walk-forward windows are event counts. The test slice starts where the train slice ends. The next window starts `step` events later. Aggregated decision and fill counts are the test windows. Each slice keeps its own config hash, data snapshot id, and engine build hash.
+- Updated: 2026-11-01T17:10:00+0530 by cursor
+- Active ticket: T-0204 (**In review**)
+- Branch: `feat/T-0204-pybind11-bindings`
+- Last green commit: sha of `T-0204: add pybind11 FlatEcho bindings` (recorded in the following handoff commit)
+- Working tree: clean after that commit
+- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-01 (codegen, journal schema **22/22**, research **26/26** including `test_pybind_flat_echo`, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **20/20**, watchdog link check). Bindings build is `build/bindings` with `TRADING_BUILD_BINDINGS=ON`, not the default preset.
+- Next step (exact): Do not merge T-0204. Operator reviews `feat/T-0204-pybind11-bindings`. Do not start the next phase until this review is accepted.
+- Files touched this ticket: `engine/bindings/python/`, `engine/CMakeLists.txt`, `research/src/tradelab/engine/`, `research/tests/unit/test_pybind_flat_echo.py`, `PROGRESS.md`
+- Decisions made this session (not yet in ADR): pybind11 3.1.0 is fetched when bindings are enabled, using the vcpkg port's tag and SHA512. It is not a `vcpkg.json` entry because that port depends on vcpkg's Python and that build failed (libb2/autoconf). Default presets stay `TRADING_BUILD_BINDINGS=OFF`.
 - Open questions: Q-24; Q-22, Q-23; Q-16, Q-18, Q-21; Q-17, Q-19, Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
-- Notes for the next tool: T-0202 Done on `main` @ `1fd6318` (feature `d0bb591`). `evaluate` is the default path and calls `run_walk_forward`. `run_backtest` is the single-window primitive. T-0204 stays Ready and was not started. Phase 1 exit is still open.
+- Notes for the next tool: T-0203 Done on `main` @ `ac305ce` (feature `66ac367`). `load_native()` imports `build/bindings/**/trading_bindings*.so`. The Python test builds that tree against the research interpreter if the module is missing. Build steps are in `engine/bindings/python/README.md`. ADR-0005 remains a stub. Phase 1 exit is still open.
 
 ## Current Phase
 
-**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done @ `a362c7e`. **T-0202** Done @ `1fd6318`. **Phase 2:** **T-0203** In review on `feat/T-0203-walk-forward`. **T-0204** Ready. Phase 1 exit is still open (Q-16, Q-18, Q-19, Q-20).
+**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done @ `a362c7e`. **T-0203** Done @ `ac305ce`. **Phase 2:** **T-0204** In review on `feat/T-0204-pybind11-bindings`. Phase 1 exit is still open (Q-16, Q-18, Q-19, Q-20). Do not start the next phase until T-0204 is reviewed.
 
 ## Phase 0 Backlog
 
@@ -462,7 +462,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Merged to `main`: `1fd6318` (feature `d0bb591`)
 
 ### T-0203: Walk-forward validation
-- Status: In review
+- Status: Done
 - Phase: 2 · Risk class: B · Depends on: T-0202
 - Requirements: FR-RS-03. Each slice still records FR-RS-04 hashes.
 - Goal: Default evaluation method is walk-forward. Split data into sequential train/test windows, run the backtester on each, and aggregate results.
@@ -474,21 +474,22 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Evidence (2026-11-01, **Darwin arm64**): `just check` green — codegen, journal schema **22/22**, research **25/25**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **20/20**, watchdog link check.
 - Files allowed: `research/src/tradelab/backtest/`, `research/tests/`, `PROGRESS.md`
 - Out of scope: parameter fitting inside the train window, pybind11, live engine threads, risk gate
-- Not merged.
+- Merged to `main`: `ac305ce` (feature `66ac367`)
 
 ### T-0204: pybind11 strategy bindings (stub)
-- Status: Ready
+- Status: In review
 - Phase: 2 · Risk class: B · Depends on: T-0201. Q-24
 - Requirements: FR-RS-01
 - Goal: Minimal pybind11 module so research can call the C++ strategy library. Does not need full production polish yet.
 - Acceptance criteria:
-  - [ ] pybind11 module builds when `TRADING_BUILD_BINDINGS=ON`
-  - [ ] At least `FlatEcho` can be instantiated and `decide()` called from Python
-  - [ ] Documented how to build and import it
-  - [ ] No new dependency without noting the ADR need (Q-24)
-- Files allowed: `engine/bindings/python/`, `engine/CMakeLists.txt`, `research/src/tradelab/engine/`, `research/tests/`, `vcpkg.json` (if needed), `PROGRESS.md`
-- Out of scope: full production packaging, all strategies
-- Not started.
+  - [x] `trading_bindings` builds only when `TRADING_BUILD_BINDINGS=ON`. Default presets stay OFF
+  - [x] Python instantiates `FlatEcho` and `decide()` returns the same sample intent as the C++ strategy (buy 2 lots at ask 12, param version 4, snapshot 99)
+  - [x] Build and import steps are in `engine/bindings/python/README.md`. `load_native()` imports the built module
+  - [x] pybind11 was not added to `vcpkg.json`. Q-24 records why. CMake fetches pybind11 3.1.0 (vcpkg port tag and SHA512) only when bindings are enabled, under ADR-0005
+- Evidence (2026-11-01, **Darwin arm64**): `just check` green — codegen, journal schema **22/22**, research **26/26** (includes `test_pybind_flat_echo`), services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **20/20**, watchdog link check. The Python test configures `build/bindings` with bindings ON.
+- Files allowed: `engine/bindings/python/`, `engine/CMakeLists.txt`, `research/src/tradelab/engine/`, `research/tests/`, `vcpkg.json` (not changed), `PROGRESS.md`
+- Out of scope: full production packaging, all strategies, vcpkg's Python
+- Not merged.
 
 ## Phase 1 Backlog (legacy note)
 
@@ -522,12 +523,13 @@ Tickets above supersede “Not Yet Ready” once Phase 0 exit is recorded in `do
 | Q-20 | DQ reporting vs journal retention (Q-17) / Phase 1 exit | T-0103 | Open |
 | Q-22 | `FillEvent` has no `strategy_id` or `instrument_id`; `PositionSnapshot` has no `strategy_id`. `fills` and `position_snapshots` require those columns. Projector does not invent them. | Fuller FR-JR-03 projection | Open — **TODO(operator)** |
 | Q-23 | Python PostgreSQL driver for the projector (psycopg or similar) | Replace the `psql` stub | Open — needs an ADR before any new dependency |
-| Q-24 | Add pybind11 and implement `TRADING_BUILD_BINDINGS` so research loads the C++ strategy library (FR-RS-01) | Full live-library binding | Open — needs `vcpkg.json`, CMake, and `engine/bindings/python/`. T-0202 checks `FlatEcho::decide` by compiling it in the parity test |
+| Q-24 | Add pybind11 without pulling vcpkg's Python. The vcpkg `pybind11` port depends on `python3`, and that build failed here (`libb2` needs autoconf). T-0204 fetches pybind11 3.1.0 (port tag and SHA512) only when `TRADING_BUILD_BINDINGS=ON` and binds the research interpreter. ADR-0005 is Accepted and still a stub. | Move the pin into `vcpkg.json` without a second Python | Open |
 
 ## Decisions Log
 
 | Date | Decision | Reference |
 |---|---|---|
+| 2026-11-01 | pybind11 3.1.0 is fetched when `TRADING_BUILD_BINDINGS=ON`, using the vcpkg port tag and SHA512. It is not a manifest dependency because that port builds vcpkg's Python. Default presets stay OFF. ADR-0005 remains a stub (Q-24). | T-0204; Q-24; ADR-0005 |
 | 2026-11-01 | Walk-forward windows are event counts. The test slice follows the train slice. Aggregated metrics are the test windows. `evaluate` is the default path. | T-0203; FR-RS-03 |
 | 2026-11-01 | Backtest events are ordered by exchange time, receive time, then sequence. Fills wait for `latency_ns` and use spread crossing plus fixed tick slippage. Manifests store config hash, data snapshot id, and a caller-supplied engine build hash. pybind11 was not added. | T-0202; Q-24 |
 | 2026-10-31 | Strategy intents carry no client order id. Parameter snapshots are copied at `load_for_cycle()`. `flat_echo` is a sample and is not for trading. `params.toml` is not parsed in T-0201. | T-0201 |
@@ -550,7 +552,8 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-11-01 | cursor | T-0203 | `66ac367` | In review | Walk-forward evaluation. T-0204 left Ready. Not merged. |
+| 2026-11-01 | cursor | T-0204 | (this commit) | In review | pybind11 FlatEcho stub. Not merged. Do not start the next phase. |
+| 2026-11-01 | cursor | T-0203 | `ac305ce` | Done | On `main` (feature `66ac367`). |
 | 2026-11-01 | cursor | T-0202 | `1fd6318` | Done | On `main` (feature `d0bb591`). |
 | 2026-11-01 | cursor | T-0201 | `4a7ff6a` | Done | On `main` (feature `9261b93`). |
 | 2026-10-31 | cursor | T-0108 | `a362c7e` | Done | Merge `Merge T-0108: projector stub` (feature `3b5fb1f`). |

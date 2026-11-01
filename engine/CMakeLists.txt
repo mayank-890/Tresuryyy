@@ -134,5 +134,25 @@ if(TRADING_BUILD_WATCHDOG)
 endif()
 
 if(TRADING_BUILD_BINDINGS)
-  message(FATAL_ERROR "TRADING_BUILD_BINDINGS is not implemented in T-0003.")
+  # ADR-0005 accepts pybind11. The vcpkg port depends on vcpkg's python3, which
+  # is a second interpreter and did not build here (Q-24). Fetch the same
+  # 3.1.0 tag and SHA512 the port records, and bind the Python passed in
+  # Python_EXECUTABLE. Default presets keep TRADING_BUILD_BINDINGS=OFF.
+  include(FetchContent)
+  find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
+  set(PYBIND11_TEST OFF CACHE BOOL "" FORCE)
+  set(PYBIND11_NOPYTHON OFF CACHE BOOL "" FORCE)
+  set(PYBIND11_FINDPYTHON ON CACHE BOOL "" FORCE)
+  FetchContent_Declare(
+    pybind11
+    URL https://github.com/pybind/pybind11/archive/v3.1.0.tar.gz
+    URL_HASH
+      SHA512=a79f7ed52d23c27325f37c50926bd0d0561aafefcf847219ed1378ba0a5a94479e15943e4da49117606695f40762b21ddcc8c32a6b8be61afc6de503c635af74
+  )
+  FetchContent_MakeAvailable(pybind11)
+  set_property(TARGET trading_core trading_marketdata trading_strategy trading_risk
+               PROPERTY POSITION_INDEPENDENT_CODE ON)
+  pybind11_add_module(trading_bindings bindings/python/trading_bindings.cpp)
+  target_include_directories(trading_bindings PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/strategy")
+  target_link_libraries(trading_bindings PRIVATE trading_strategy trading_risk)
 endif()

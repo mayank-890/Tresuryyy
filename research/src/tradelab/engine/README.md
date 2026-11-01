@@ -1,1 +1,1 @@
-Thin wrapper over the pybind11 module.
+Thin wrapper over the pybind11 module. `load_native()` imports `trading_bindings` from `build/bindings` after a `TRADING_BUILD_BINDINGS=ON` build. See `engine/bindings/python/README.md`. Q-24 records why pybind11 is fetched at configure time instead of from the vcpkg manifest.
