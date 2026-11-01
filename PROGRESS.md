@@ -3,21 +3,21 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-11-01T10:05:00+0530 by cursor
-- Active ticket: T-0202 (**In review**)
-- Branch: `feat/T-0202-event-driven-backtester`
-- Last green commit: `d0bb591` — `T-0202: add event-driven backtester core`
-- Working tree: clean
-- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-01 (codegen, journal schema **22/22**, research **21/21**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **20/20**, watchdog link check)
-- Next step (exact): Do not merge T-0202. Operator reviews `feat/T-0202-event-driven-backtester`. Do not start walk-forward or the pybind11 module until this ticket is Done.
-- Files touched this ticket: `research/src/tradelab/backtest/`, `research/tests/unit/test_backtest.py`, `research/tests/parity/`, `research/pyproject.toml`, `PROGRESS.md`
-- Decisions made this session (not yet in ADR): Events are ordered by exchange time, receive time, then sequence. A fill is allowed only after `latency_ns`, and only when the quote crosses the limit. Slippage is a fixed tick count on that quote. Manifests store config hash, data snapshot id, and the caller-supplied engine build hash. pybind11 was not added.
+- Updated: 2026-11-01T11:00:00+0530 by cursor
+- Active ticket: T-0203 (**In review**)
+- Branch: `feat/T-0203-walk-forward`
+- Last green commit: sha of `T-0203: add walk-forward evaluation` (recorded in the following handoff commit)
+- Working tree: clean after that commit
+- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-01 (codegen, journal schema **22/22**, research **25/25**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **20/20**, watchdog link check)
+- Next step (exact): Do not merge T-0203. Operator reviews `feat/T-0203-walk-forward`. T-0204 is Ready. Next implementation is `feat/T-0204-pybind11-bindings`: a pybind11 module that builds with `TRADING_BUILD_BINDINGS=ON` and calls `FlatEcho::decide` from Python. Note Q-24 before adding the dependency.
+- Files touched this ticket: `research/src/tradelab/backtest/`, `research/tests/unit/test_walk_forward.py`, `PROGRESS.md`
+- Decisions made this session (not yet in ADR): Walk-forward windows are event counts. The test slice starts where the train slice ends. The next window starts `step` events later. Aggregated decision and fill counts are the test windows. Each slice keeps its own config hash, data snapshot id, and engine build hash.
 - Open questions: Q-24; Q-22, Q-23; Q-16, Q-18, Q-21; Q-17, Q-19, Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
-- Notes for the next tool: T-0201 Done on `main` @ `4a7ff6a` (feature `9261b93`). Phase 1 exit is still open. `flat_echo` parity compiles `FlatEcho::decide` in the research test and compares it to the runner. `TRADING_BUILD_BINDINGS` is still unimplemented. Full FR-RS-02 items not in this fill model: size-dependent slippage, fees, queue position.
+- Notes for the next tool: T-0202 Done on `main` @ `1fd6318` (feature `d0bb591`). `evaluate` is the default path and calls `run_walk_forward`. `run_backtest` is the single-window primitive. T-0204 stays Ready and was not started. Phase 1 exit is still open.
 
 ## Current Phase
 
-**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done @ `a362c7e`. **T-0201** Done @ `4a7ff6a`. **Phase 2:** **T-0202** In review on `feat/T-0202-event-driven-backtester`. Phase 1 exit is still open (Q-16, Q-18, Q-19, Q-20).
+**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done @ `a362c7e`. **T-0202** Done @ `1fd6318`. **Phase 2:** **T-0203** In review on `feat/T-0203-walk-forward`. **T-0204** Ready. Phase 1 exit is still open (Q-16, Q-18, Q-19, Q-20).
 
 ## Phase 0 Backlog
 
@@ -445,7 +445,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Merged to `main`: `4a7ff6a` (feature `9261b93`)
 
 ### T-0202: Event-driven backtester core
-- Status: In review
+- Status: Done
 - Phase: 2 · Risk class: B · Depends on: T-0201
 - Requirements: FR-RS-01, FR-RS-02, FR-RS-04. This ticket covers the event-driven core, latency, and a basic fill model. Walk-forward (FR-RS-03) is out of scope. Size-dependent slippage, fees, and queue position from the full FR-RS-02 wording are out of scope.
 - Goal: Event-driven backtester that replays recorded market data through the same strategy decide contract used live. Supports latency injection and a basic fill model (spread crossing + fixed slippage). Every result records config hash, data snapshot id, and engine build hash.
@@ -459,7 +459,36 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - pybind11: not added. `TRADING_BUILD_BINDINGS` is still a configure error, and `vcpkg.json`, `CMakeLists.txt`, and `engine/bindings/python/` are outside this ticket's files. The parity test compiles the existing C++ `FlatEcho::decide` and compares it to the runner. See Q-24.
 - Files allowed: `research/src/tradelab/backtest/`, `research/tests/`, `PROGRESS.md`. **Amendment:** `research/pyproject.toml` adds `src/tradelab/backtest` to the strict mypy file list. `engine/src/strategy/` was not modified.
 - Out of scope: full walk-forward, fill-model calibration, live engine threads, risk gate, fees, queue position, size-dependent slippage
+- Merged to `main`: `1fd6318` (feature `d0bb591`)
+
+### T-0203: Walk-forward validation
+- Status: In review
+- Phase: 2 · Risk class: B · Depends on: T-0202
+- Requirements: FR-RS-03. Each slice still records FR-RS-04 hashes.
+- Goal: Default evaluation method is walk-forward. Split data into sequential train/test windows, run the backtester on each, and aggregate results.
+- Acceptance criteria:
+  - [x] `evaluate` is the default path and calls `run_walk_forward`
+  - [x] `WindowSpec` sets train size, test size, and step in event counts
+  - [x] Test-window decision and fill counts are aggregated. Train slices are run and stored separately
+  - [x] A 10-quote fixture checks window bounds and the aggregate counts
+- Evidence (2026-11-01, **Darwin arm64**): `just check` green — codegen, journal schema **22/22**, research **25/25**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **20/20**, watchdog link check.
+- Files allowed: `research/src/tradelab/backtest/`, `research/tests/`, `PROGRESS.md`
+- Out of scope: parameter fitting inside the train window, pybind11, live engine threads, risk gate
 - Not merged.
+
+### T-0204: pybind11 strategy bindings (stub)
+- Status: Ready
+- Phase: 2 · Risk class: B · Depends on: T-0201. Q-24
+- Requirements: FR-RS-01
+- Goal: Minimal pybind11 module so research can call the C++ strategy library. Does not need full production polish yet.
+- Acceptance criteria:
+  - [ ] pybind11 module builds when `TRADING_BUILD_BINDINGS=ON`
+  - [ ] At least `FlatEcho` can be instantiated and `decide()` called from Python
+  - [ ] Documented how to build and import it
+  - [ ] No new dependency without noting the ADR need (Q-24)
+- Files allowed: `engine/bindings/python/`, `engine/CMakeLists.txt`, `research/src/tradelab/engine/`, `research/tests/`, `vcpkg.json` (if needed), `PROGRESS.md`
+- Out of scope: full production packaging, all strategies
+- Not started.
 
 ## Phase 1 Backlog (legacy note)
 
@@ -499,6 +528,7 @@ Tickets above supersede “Not Yet Ready” once Phase 0 exit is recorded in `do
 
 | Date | Decision | Reference |
 |---|---|---|
+| 2026-11-01 | Walk-forward windows are event counts. The test slice follows the train slice. Aggregated metrics are the test windows. `evaluate` is the default path. | T-0203; FR-RS-03 |
 | 2026-11-01 | Backtest events are ordered by exchange time, receive time, then sequence. Fills wait for `latency_ns` and use spread crossing plus fixed tick slippage. Manifests store config hash, data snapshot id, and a caller-supplied engine build hash. pybind11 was not added. | T-0202; Q-24 |
 | 2026-10-31 | Strategy intents carry no client order id. Parameter snapshots are copied at `load_for_cycle()`. `flat_echo` is a sample and is not for trading. `params.toml` is not parsed in T-0201. | T-0201 |
 | 2026-10-31 | Projector stub uses `psql` and `INSERT ... ON CONFLICT`. No new dependency and no new migration. Database failure does not modify the journal. | T-0108; Q-23 |
@@ -520,7 +550,8 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-11-01 | cursor | T-0202 | `d0bb591` | In review | Event-driven backtester, latency, spread-cross fill, result hashes. Not merged. |
+| 2026-11-01 | cursor | T-0203 | (this commit) | In review | Walk-forward evaluation. T-0204 left Ready. Not merged. |
+| 2026-11-01 | cursor | T-0202 | `1fd6318` | Done | On `main` (feature `d0bb591`). |
 | 2026-11-01 | cursor | T-0201 | `4a7ff6a` | Done | On `main` (feature `9261b93`). |
 | 2026-10-31 | cursor | T-0108 | `a362c7e` | Done | Merge `Merge T-0108: projector stub` (feature `3b5fb1f`). |
 | 2026-10-31 | cursor | T-0107 | `d773db8` | Done | Fast-forward onto `main` (feature `70378ba`). |
