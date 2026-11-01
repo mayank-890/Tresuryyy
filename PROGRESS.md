@@ -6,8 +6,8 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-11-01T10:05:00+0530 by cursor
 - Active ticket: T-0202 (**In review**)
 - Branch: `feat/T-0202-event-driven-backtester`
-- Last green commit: sha of `T-0202: add event-driven backtester core` (recorded in the following handoff commit)
-- Working tree: clean after that commit
+- Last green commit: `d0bb591` — `T-0202: add event-driven backtester core`
+- Working tree: clean
 - Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-01 (codegen, journal schema **22/22**, research **21/21**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **20/20**, watchdog link check)
 - Next step (exact): Do not merge T-0202. Operator reviews `feat/T-0202-event-driven-backtester`. Do not start walk-forward or the pybind11 module until this ticket is Done.
 - Files touched this ticket: `research/src/tradelab/backtest/`, `research/tests/unit/test_backtest.py`, `research/tests/parity/`, `research/pyproject.toml`, `PROGRESS.md`
@@ -520,7 +520,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-11-01 | cursor | T-0202 | (this commit) | In review | Event-driven backtester, latency, spread-cross fill, result hashes. Not merged. |
+| 2026-11-01 | cursor | T-0202 | `d0bb591` | In review | Event-driven backtester, latency, spread-cross fill, result hashes. Not merged. |
 | 2026-11-01 | cursor | T-0201 | `4a7ff6a` | Done | On `main` (feature `9261b93`). |
 | 2026-10-31 | cursor | T-0108 | `a362c7e` | Done | Merge `Merge T-0108: projector stub` (feature `3b5fb1f`). |
 | 2026-10-31 | cursor | T-0107 | `d773db8` | Done | Fast-forward onto `main` (feature `70378ba`). |
