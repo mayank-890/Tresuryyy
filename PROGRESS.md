@@ -6,7 +6,7 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-11-01T18:00:29+0530 by cursor
 - Active ticket: T-0301 (**In review**)
 - Branch: `feat/T-0301-order-state-machine`
-- Last green commit: `SHA_PENDING` — `T-0301: add order state machine`
+- Last green commit: `c72ebd7` — `T-0301: add order state machine`
 - Working tree: clean after that commit
 - Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-01 (codegen, journal schema **22/22**, research **26/26**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **21/21** including `trading_orders_state_tests`, watchdog link check).
 - Next step (exact): Do not merge T-0301. Operator reviews `feat/T-0301-order-state-machine`. Class A: a second agent that did not write this code should review the diff against DESIGN §5 and FR-OR-01, FR-OR-02, FR-OR-04.
@@ -571,7 +571,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-11-01 | cursor | T-0301 | `SHA_PENDING` | In review | Order state machine, client ids, §5.4 resolver. Not merged. |
+| 2026-11-01 | cursor | T-0301 | `c72ebd7` | In review | Order state machine, client ids, §5.4 resolver. Not merged. |
 | 2026-11-01 | cursor | T-0204 | `c77fc2a` | Done | On `main` (feature `a5d4387`). Phase 2 research tooling complete. |
 | 2026-11-01 | cursor | T-0204 | `a5d4387` | In review | pybind11 FlatEcho stub. Merged later the same day. |
 | 2026-11-01 | cursor | T-0203 | `ac305ce` | Done | On `main` (feature `66ac367`). |
