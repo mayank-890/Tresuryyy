@@ -3,21 +3,21 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-10-31T20:52:00+0530 by cursor
-- Active ticket: T-0201 (**In review**)
-- Branch: `feat/T-0201-strategy-interface`
-- Last green commit: `9261b93` — `T-0201: add strategy interface and compile-time registration`
-- Working tree: clean
-- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-10-31 (codegen, journal schema **22/22**, research **11/11**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **20/20**, watchdog link check)
-- Next step (exact): Do not merge T-0201. Operator reviews `feat/T-0201-strategy-interface`. Do not start the event-driven backtester until this ticket is Done.
-- Files touched this ticket: `engine/include/trading/strategy/`, `engine/src/strategy/`, `engine/CMakeLists.txt`, `PROGRESS.md`
-- Decisions made this session (not yet in ADR): Strategy intents have no client order id. `load_for_cycle()` copies the published parameter snapshot; that copy is the cycle boundary. `flat_echo` is a sample and is not for trading. `params.toml` is not parsed in this ticket. `just replay-parity` is not in the justfile and there is no strategy reference fixture; it was not skipped with xfail.
-- Open questions: Q-22, Q-23; Q-16, Q-18, Q-21; Q-17, Q-19, Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
-- Notes for the next tool: Phase 1 is not exited. T-0107 Done @ `d773db8`. T-0108 Done @ `a362c7e`. Sample strategy id is `1` (`TODO(operator)`). Duplicate strategy names fail `ActiveStrategies::names_unique()`. `trading_strategy_interface_tests` checks that strategy sources do not include broker, journal, or socket headers.
+- Updated: 2026-11-01T10:05:00+0530 by cursor
+- Active ticket: T-0202 (**In review**)
+- Branch: `feat/T-0202-event-driven-backtester`
+- Last green commit: sha of `T-0202: add event-driven backtester core` (recorded in the following handoff commit)
+- Working tree: clean after that commit
+- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-01 (codegen, journal schema **22/22**, research **21/21**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **20/20**, watchdog link check)
+- Next step (exact): Do not merge T-0202. Operator reviews `feat/T-0202-event-driven-backtester`. Do not start walk-forward or the pybind11 module until this ticket is Done.
+- Files touched this ticket: `research/src/tradelab/backtest/`, `research/tests/unit/test_backtest.py`, `research/tests/parity/`, `research/pyproject.toml`, `PROGRESS.md`
+- Decisions made this session (not yet in ADR): Events are ordered by exchange time, receive time, then sequence. A fill is allowed only after `latency_ns`, and only when the quote crosses the limit. Slippage is a fixed tick count on that quote. Manifests store config hash, data snapshot id, and the caller-supplied engine build hash. pybind11 was not added.
+- Open questions: Q-24; Q-22, Q-23; Q-16, Q-18, Q-21; Q-17, Q-19, Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
+- Notes for the next tool: T-0201 Done on `main` @ `4a7ff6a` (feature `9261b93`). Phase 1 exit is still open. `flat_echo` parity compiles `FlatEcho::decide` in the research test and compares it to the runner. `TRADING_BUILD_BINDINGS` is still unimplemented. Full FR-RS-02 items not in this fill model: size-dependent slippage, fees, queue position.
 
 ## Current Phase
 
-**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done @ `a362c7e`. **Phase 2:** **T-0201** In review on `feat/T-0201-strategy-interface`. Phase 1 exit is still open (Q-16, Q-18, Q-19, Q-20).
+**Phase 1: Data infrastructure — in progress.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done @ `a362c7e`. **T-0201** Done @ `4a7ff6a`. **Phase 2:** **T-0202** In review on `feat/T-0202-event-driven-backtester`. Phase 1 exit is still open (Q-16, Q-18, Q-19, Q-20).
 
 ## Phase 0 Backlog
 
@@ -427,7 +427,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 ## Phase 2 Backlog
 
 ### T-0201: Strategy interface and compile-time registration
-- Status: In review
+- Status: Done
 - Phase: 2 · Risk class: B · Depends on: T-0003. Operator started this ticket while the Phase 1 exit note is still open.
 - Requirements: FR-ST-01. Interface-level FR-ST-02 and FR-ST-03, included because the operator asked for the double-buffer and intents-only boundary in this ticket. FR-ST-04 (halt) is out of scope. Each intent stores `param_version` and `snapshot_sequence` (FR-ST-05, partial).
 - Goal: Strategy base interface, immutable parameter-snapshot double-buffer, compile-time registration, and one trivial example strategy that emits intents only.
@@ -442,6 +442,23 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Evidence (2026-10-31, **Darwin arm64**): `just check` green — codegen, journal schema **22/22**, research **11/11**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **20/20** (includes `trading_strategy_interface_tests`), watchdog link check. `just replay-parity` is not in the justfile and no strategy reference fixture exists. It was not disabled and not marked xfail.
 - Files allowed: `engine/include/trading/strategy/`, `engine/src/strategy/` (tests under `strategies/flat_echo/tests/` per TI §13), `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt` builds the new sources and registers `trading_strategy_interface_tests`.
 - Out of scope: risk limits, broker calls, journal writer, sockets, live trading, parsing `params.toml`, halt, backtester, pybind11
+- Merged to `main`: `4a7ff6a` (feature `9261b93`)
+
+### T-0202: Event-driven backtester core
+- Status: In review
+- Phase: 2 · Risk class: B · Depends on: T-0201
+- Requirements: FR-RS-01, FR-RS-02, FR-RS-04. This ticket covers the event-driven core, latency, and a basic fill model. Walk-forward (FR-RS-03) is out of scope. Size-dependent slippage, fees, and queue position from the full FR-RS-02 wording are out of scope.
+- Goal: Event-driven backtester that replays recorded market data through the same strategy decide contract used live. Supports latency injection and a basic fill model (spread crossing + fixed slippage). Every result records config hash, data snapshot id, and engine build hash.
+- Acceptance criteria:
+  - [x] Backtester drives strategies via the `IStrategy` decide contract (market snapshot in, intents out). `flat_echo` replay decisions match C++ `FlatEcho::decide` on the same inputs
+  - [x] Replays journal quotes and recorded ticks in `(exchange time, receive time, sequence)` order
+  - [x] Basic fill model: spread crossing plus fixed tick slippage, after `latency_ns`
+  - [x] Records config hash, data snapshot id, and engine build hash with the result manifest
+  - [x] Unit and replay tests prove identical decisions on the same inputs
+- Evidence (2026-11-01, **Darwin arm64**): `just check` green — codegen, journal schema **22/22**, research **21/21**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **20/20**, watchdog link check.
+- pybind11: not added. `TRADING_BUILD_BINDINGS` is still a configure error, and `vcpkg.json`, `CMakeLists.txt`, and `engine/bindings/python/` are outside this ticket's files. The parity test compiles the existing C++ `FlatEcho::decide` and compares it to the runner. See Q-24.
+- Files allowed: `research/src/tradelab/backtest/`, `research/tests/`, `PROGRESS.md`. **Amendment:** `research/pyproject.toml` adds `src/tradelab/backtest` to the strict mypy file list. `engine/src/strategy/` was not modified.
+- Out of scope: full walk-forward, fill-model calibration, live engine threads, risk gate, fees, queue position, size-dependent slippage
 - Not merged.
 
 ## Phase 1 Backlog (legacy note)
@@ -476,11 +493,13 @@ Tickets above supersede “Not Yet Ready” once Phase 0 exit is recorded in `do
 | Q-20 | DQ reporting vs journal retention (Q-17) / Phase 1 exit | T-0103 | Open |
 | Q-22 | `FillEvent` has no `strategy_id` or `instrument_id`; `PositionSnapshot` has no `strategy_id`. `fills` and `position_snapshots` require those columns. Projector does not invent them. | Fuller FR-JR-03 projection | Open — **TODO(operator)** |
 | Q-23 | Python PostgreSQL driver for the projector (psycopg or similar) | Replace the `psql` stub | Open — needs an ADR before any new dependency |
+| Q-24 | Add pybind11 and implement `TRADING_BUILD_BINDINGS` so research loads the C++ strategy library (FR-RS-01) | Full live-library binding | Open — needs `vcpkg.json`, CMake, and `engine/bindings/python/`. T-0202 checks `FlatEcho::decide` by compiling it in the parity test |
 
 ## Decisions Log
 
 | Date | Decision | Reference |
 |---|---|---|
+| 2026-11-01 | Backtest events are ordered by exchange time, receive time, then sequence. Fills wait for `latency_ns` and use spread crossing plus fixed tick slippage. Manifests store config hash, data snapshot id, and a caller-supplied engine build hash. pybind11 was not added. | T-0202; Q-24 |
 | 2026-10-31 | Strategy intents carry no client order id. Parameter snapshots are copied at `load_for_cycle()`. `flat_echo` is a sample and is not for trading. `params.toml` is not parsed in T-0201. | T-0201 |
 | 2026-10-31 | Projector stub uses `psql` and `INSERT ... ON CONFLICT`. No new dependency and no new migration. Database failure does not modify the journal. | T-0108; Q-23 |
 | 2026-10-31 | Torn-tail recovery is copy-safe truncate: `.torn` backup, then atomic prefix replace. FATAL scans and valid TJNF footers are not truncated. Inspector stays read-only. | T-0107 |
@@ -501,7 +520,8 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-10-31 | cursor | T-0201 | `9261b93` | In review | Strategy interface, parameter double-buffer, compile-time registration, `flat_echo` sample. Not merged. |
+| 2026-11-01 | cursor | T-0202 | (this commit) | In review | Event-driven backtester, latency, spread-cross fill, result hashes. Not merged. |
+| 2026-11-01 | cursor | T-0201 | `4a7ff6a` | Done | On `main` (feature `9261b93`). |
 | 2026-10-31 | cursor | T-0108 | `a362c7e` | Done | Merge `Merge T-0108: projector stub` (feature `3b5fb1f`). |
 | 2026-10-31 | cursor | T-0107 | `d773db8` | Done | Fast-forward onto `main` (feature `70378ba`). |
 | 2026-10-31 | cursor | T-0108 | `3b5fb1f` | In review | Idempotent projector stub before merge. |

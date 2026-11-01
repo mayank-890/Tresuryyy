@@ -1,1 +1,1 @@
-Backtest runner and walk-forward entry points. No implementation in this ticket.
+Event-driven backtest runner. `run_backtest` replays quotes in `(exchange time, receive time, sequence)` order and calls `decide` with the same intent fields as `IStrategy`. Orders fill only after `latency_ns`, using spread crossing plus fixed tick slippage. Each result records config hash, data snapshot id, and engine build hash. Walk-forward is not implemented.
