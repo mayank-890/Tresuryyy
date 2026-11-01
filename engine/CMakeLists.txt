@@ -51,9 +51,15 @@ trading_add_module(trading_risk src/risk/module.cpp)
 target_link_libraries(trading_risk PUBLIC trading_core trading_strategy)
 trading_add_smoke_test(trading_risk)
 
-trading_add_module(trading_orders src/orders/module.cpp)
+trading_add_module(trading_orders src/orders/module.cpp src/orders/client_order_id.cpp
+                   src/orders/transition.cpp src/orders/order_book.cpp)
 target_link_libraries(trading_orders PUBLIC trading_core)
 trading_add_smoke_test(trading_orders)
+# T-0301: state-machine tests live under tests/unit/orders/. The smoke helper
+# only compiles tests/unit/trading_orders/smoke_test.cpp.
+add_executable(trading_orders_state_tests tests/unit/orders/order_state_machine_tests.cpp)
+target_link_libraries(trading_orders_state_tests PRIVATE trading_orders GTest::gtest_main)
+add_test(NAME trading_orders_state_tests COMMAND trading_orders_state_tests)
 
 trading_add_module(trading_journal src/journal/module.cpp src/journal/writer.cpp
                    src/journal/segment_footer.cpp src/journal/rotation.cpp)
