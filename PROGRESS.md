@@ -6,7 +6,7 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-11-01T17:10:00+0530 by cursor
 - Active ticket: T-0204 (**In review**)
 - Branch: `feat/T-0204-pybind11-bindings`
-- Last green commit: sha of `T-0204: add pybind11 FlatEcho bindings` (recorded in the following handoff commit)
+- Last green commit: `a5d4387` — `T-0204: add pybind11 FlatEcho bindings`
 - Working tree: clean after that commit
 - Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-01 (codegen, journal schema **22/22**, research **26/26** including `test_pybind_flat_echo`, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **20/20**, watchdog link check). Bindings build is `build/bindings` with `TRADING_BUILD_BINDINGS=ON`, not the default preset.
 - Next step (exact): Do not merge T-0204. Operator reviews `feat/T-0204-pybind11-bindings`. Do not start the next phase until this review is accepted.
@@ -552,7 +552,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-11-01 | cursor | T-0204 | (this commit) | In review | pybind11 FlatEcho stub. Not merged. Do not start the next phase. |
+| 2026-11-01 | cursor | T-0204 | `a5d4387` | In review | pybind11 FlatEcho stub. Not merged. Do not start the next phase. |
 | 2026-11-01 | cursor | T-0203 | `ac305ce` | Done | On `main` (feature `66ac367`). |
 | 2026-11-01 | cursor | T-0202 | `1fd6318` | Done | On `main` (feature `d0bb591`). |
 | 2026-11-01 | cursor | T-0201 | `4a7ff6a` | Done | On `main` (feature `9261b93`). |
