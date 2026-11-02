@@ -1,0 +1,1 @@
+Risk gate. `decide` is the pure check for RL-01 through RL-16. `RiskGate` journals each decision and is the only issuer of an `ApprovalToken`. Compiled ceilings in `limits.hpp` are unset, so a default gate refuses every order.

@@ -3,21 +3,21 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-11-01T18:00:29+0530 by cursor
-- Active ticket: T-0301 (**In review**)
-- Branch: `feat/T-0301-order-state-machine`
-- Last green commit: `c72ebd7` — `T-0301: add order state machine`
+- Updated: 2026-11-02T15:03:03+0530 by cursor
+- Active ticket: T-0302 (**In review**)
+- Branch: `feat/T-0302-risk-gate`
+- Last green commit: `SHA_PENDING` — `T-0302: add risk gate`
 - Working tree: clean after that commit
-- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-01 (codegen, journal schema **22/22**, research **26/26**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **21/21** including `trading_orders_state_tests`, watchdog link check).
-- Next step (exact): Do not merge T-0301. Operator reviews `feat/T-0301-order-state-machine`. Class A: a second agent that did not write this code should review the diff against DESIGN §5 and FR-OR-01, FR-OR-02, FR-OR-04.
-- Files touched this ticket: `engine/include/trading/orders/`, `engine/src/orders/`, `engine/tests/unit/orders/order_state_machine_tests.cpp`, `engine/CMakeLists.txt`, `PROGRESS.md`
-- Decisions made this session (not yet in ADR): Session prefix is 4 base-36 characters from the persisted session counter. Client ids are `<prefix>-<10 digits>`. The counter is persisted before the id is returned. UNKNOWN resolution queries that client id 3 times (delays 1s then 3s), then resends the same id once. A still-unresolved resend stays UNKNOWN, keeps the scope blocked, and raises AL-04. The resend-once flag is in memory only. A fill while PENDING_NEW is rejected (Q-25).
-- Open questions: Q-25; Q-24; Q-22, Q-23; Q-16, Q-18, Q-21; Q-17, Q-19, Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
-- Notes for the next tool: T-0204 is Done on `main` @ `c77fc2a` (feature `a5d4387`). Phase 1 exit is still open. The journal and broker ports are stubs. `resolve_unknown` never calls the id source. Do not start the next ticket until this review is accepted.
+- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-02 (codegen, journal schema **22/22**, research **26/26**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **22/22** including `trading_risk_gate_tests`, watchdog link check).
+- Next step (exact): Do not merge T-0302. Operator reviews `feat/T-0302-risk-gate`. Class A: a second agent that did not write this code should review the diff against DESIGN §6–§7 and FR-RK-01, FR-RK-02, FR-RK-07. Do not start the next ticket.
+- Files touched this ticket: `engine/include/trading/risk/`, `engine/src/risk/`, `engine/tests/unit/risk/risk_gate_tests.cpp`, `engine/CMakeLists.txt`, `PROGRESS.md`
+- Decisions made this session (not yet in ADR): `limits.hpp` has no numeric ceilings (Q-26). A default `RiskGate` is unconfigured and journals `NotConfigured`. Tests inject a `LimitSet` through `with_fixture_limits`. An `ApprovalToken` is issued only after the journal accepts the decision. It is bound to the client id, the limit-set version, and a 500 ms expiry, and it is valid while `now < expiry`. A failed journal does not latch and does not issue a token. Runtime config may only tighten. Session start clears RL-10 latches and leaves the RL-11 kill in place. A cancel with a client id is approved and does not consume the entry budget.
+- Open questions: Q-26; Q-25; Q-24; Q-22, Q-23; Q-16, Q-18, Q-21; Q-17, Q-19, Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
+- Notes for the next tool: T-0301 is Done on `main` @ `e684057` (feature `c72ebd7`). Phase 1 exit is still open. Do not put numbers in `limits.hpp`. Fixture ceilings in the risk tests are not operator limits. The journal port is a stub. Do not merge this branch and do not start the next ticket.
 
 ## Current Phase
 
-**Phase 2 research tooling is complete.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done @ `a362c7e`. **T-0203** Done @ `ac305ce`. **T-0204** Done on `main` @ `c77fc2a` (feature `a5d4387`). Phase 1 exit is still open (Q-16, Q-18, Q-19, Q-20). **Phase 3:** **T-0301** In review on `feat/T-0301-order-state-machine`.
+**Phase 2 research tooling is complete.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done @ `a362c7e`. **T-0203** Done @ `ac305ce`. **T-0204** Done on `main` @ `c77fc2a` (feature `a5d4387`). Phase 1 exit is still open (Q-16, Q-18, Q-19, Q-20). **Phase 3:** **T-0301** Done on `main` @ `e684057` (feature `c72ebd7`). **T-0302** In review on `feat/T-0302-risk-gate`.
 
 ## Phase 0 Backlog
 
@@ -492,7 +492,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Merged to `main`: `c77fc2a` (feature `a5d4387`)
 
 ### T-0301: Order state machine
-- Status: In review
+- Status: Done
 - Phase: 3 · Risk class: A · Depends on: none
 - Requirements: FR-OR-01, FR-OR-02, FR-OR-04, DESIGN §5
 - Goal: Orders follow DESIGN §5.1–5.2 only. Invalid transitions are rejected, logged, and halt the strategy and instrument. Client order ids are `<session-prefix>-<10-digit counter>` and are not reused. UNKNOWN is resolved by querying that client id, then resending the same id once. A new id is never used to resolve UNKNOWN. No order is sent unless the intent journal reports the record durable.
@@ -506,6 +506,23 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Evidence (2026-11-01, **Darwin arm64**): `just check` green — codegen, journal schema **22/22**, research **26/26**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **21/21** (includes `trading_orders_state_tests`, 18 gtest cases), watchdog link check.
 - Files allowed: `engine/src/orders/`, `engine/include/trading/orders/`, `engine/tests/unit/orders/`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt` lists the new sources and `trading_orders_state_tests`. Without that target, `just check` does not compile or run the state machine.
 - Out of scope: real broker calls, risk gate, threading, TC-OS-06 until Q-25 is decided
+- Merged to `main`: `e684057` (feature `c72ebd7`)
+
+### T-0302: Risk gate core
+- Status: In review
+- Phase: 3 · Risk class: A · Depends on: T-0301
+- Requirements: FR-RK-01, FR-RK-02, FR-RK-07, DESIGN §6–§7
+- Goal: Every `OrderIntent` is evaluated against RL-01 through RL-16. Compiled ceilings stay in `engine/src/risk/limits.hpp` and are still `TODO(operator)`; this ticket does not set them. Runtime config may only tighten. A full pass issues an `ApprovalToken` bound to the client id, the limit-set version, and a 500 ms expiry. Every approve and reject is journaled. The gate is deterministic.
+- Acceptance criteria:
+  - [x] All RL-01–RL-16 checks exist (compiled ceilings remain `TODO(operator)`; tests use an injected `LimitSet`)
+  - [x] ApprovalToken is issued only on full pass and expires in 500 ms
+  - [x] Reject path returns the limit ID, observed value, and threshold
+  - [x] Self-trade prevention (RL-12) rejects crossing own resting orders
+  - [x] Unit tests cover boundary cases for every limit
+  - [x] No strategy code can bypass the gate
+- Evidence (2026-11-02, **Darwin arm64**): `just check` green — codegen, journal schema **22/22**, research **26/26**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **22/22** (includes `trading_risk_gate_tests`, 25 gtest cases), watchdog link check. A default `RiskGate` journals `NotConfigured` and issues no token.
+- Files allowed: `engine/src/risk/`, `engine/include/trading/risk/`, `engine/src/risk/limits.hpp` (comments and `TODO(operator)` only), `engine/tests/unit/risk/`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt` lists `src/risk/gate.cpp` and `trading_risk_gate_tests`. Without that target, `just check` does not compile or run the gate.
+- Out of scope: real broker, threading, changing limit numbers
 - Not merged.
 
 ## Phase 1 Backlog (legacy note)
@@ -542,11 +559,13 @@ Tickets above supersede “Not Yet Ready” once Phase 0 exit is recorded in `do
 | Q-23 | Python PostgreSQL driver for the projector (psycopg or similar) | Replace the `psql` stub | Open — needs an ADR before any new dependency |
 | Q-24 | Add pybind11 without pulling vcpkg's Python. The vcpkg `pybind11` port depends on `python3`, and that build failed here (`libb2` needs autoconf). T-0204 fetches pybind11 3.1.0 (port tag and SHA512) only when `TRADING_BUILD_BINDINGS=ON` and binds the research interpreter. ADR-0005 is Accepted and still a stub. | Move the pin into `vcpkg.json` without a second Python | Open |
 | Q-25 | TC-OS-06 says a fill that arrives before the ack is reconstructed and logged. DESIGN §5.2 says a transition that is not in the table is invalid. A fill while `PENDING_NEW` is not in the table. T-0301 rejects it, logs it, and halts the scope. | Whether T-0301 should grow a reconstruct-ack transition | Open — **TODO(operator)** |
+| Q-26 | T-0302 asked for conservative placeholder ceilings and also limited `limits.hpp` to comments and `TODO(operator)`. The red line forbids setting those numbers. `limits.hpp` stays unset. A default `RiskGate` fails closed with `NotConfigured`. Boundary tests inject a `LimitSet` through `with_fixture_limits`. Those fixture numbers are not operator limits. | Operator ceilings for RL-01 through RL-16 | Open — **TODO(operator)** |
 
 ## Decisions Log
 
 | Date | Decision | Reference |
 |---|---|---|
+| 2026-11-02 | `limits.hpp` stays comment-only. A default risk gate journals `NotConfigured` and issues no token. Tests supply fixture ceilings. A token is stored only after the journal accepts it, expires 500 ms after `now` (`now < expiry`), and dies when the limit-set version changes. Journal failure does not latch. Runtime changes may only tighten. Session start clears RL-10 and leaves RL-11 latched. Cancels with a client id are approved and do not use the entry budget. | T-0302; Q-26; DESIGN §6–§7 |
 | 2026-11-01 | Client ids are 4 base-36 characters, a hyphen, and a 10-digit counter (`S7F2-0000012345`). The counter is journaled before the id is issued. UNKNOWN queries use delays of 1s then 3s, then one same-id resend. A resolved query or a not-found resend clears the scope block when no other UNKNOWN order remains. An unresolved resend stays UNKNOWN, keeps the block, and raises AL-04. The resend-once flag is process-local. Fills while `PENDING_NEW` are invalid until Q-25 is decided. | T-0301; Q-25; DESIGN §5 |
 | 2026-11-01 | pybind11 3.1.0 is fetched when `TRADING_BUILD_BINDINGS=ON`, using the vcpkg port tag and SHA512. It is not a manifest dependency because that port builds vcpkg's Python. Default presets stay OFF. ADR-0005 remains a stub (Q-24). | T-0204; Q-24; ADR-0005 |
 | 2026-11-01 | Walk-forward windows are event counts. The test slice follows the train slice. Aggregated metrics are the test windows. `evaluate` is the default path. | T-0203; FR-RS-03 |
@@ -571,7 +590,8 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-11-01 | cursor | T-0301 | `c72ebd7` | In review | Order state machine, client ids, §5.4 resolver. Not merged. |
+| 2026-11-02 | cursor | T-0302 | `SHA_PENDING` | In review | Risk gate RL-01–RL-16, approval tokens, fixture ceilings only. Not merged. |
+| 2026-11-01 | cursor | T-0301 | `e684057` | Done | On `main` (feature `c72ebd7`). Order state machine. |
 | 2026-11-01 | cursor | T-0204 | `c77fc2a` | Done | On `main` (feature `a5d4387`). Phase 2 research tooling complete. |
 | 2026-11-01 | cursor | T-0204 | `a5d4387` | In review | pybind11 FlatEcho stub. Merged later the same day. |
 | 2026-11-01 | cursor | T-0203 | `ac305ce` | Done | On `main` (feature `66ac367`). |

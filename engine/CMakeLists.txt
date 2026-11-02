@@ -47,9 +47,17 @@ target_link_libraries(trading_strategy_interface_tests PRIVATE trading_strategy
                                                              GTest::gtest_main)
 add_test(NAME trading_strategy_interface_tests COMMAND trading_strategy_interface_tests)
 
-trading_add_module(trading_risk src/risk/module.cpp)
+trading_add_module(trading_risk src/risk/module.cpp src/risk/gate.cpp)
+target_include_directories(trading_risk PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/risk")
 target_link_libraries(trading_risk PUBLIC trading_core trading_strategy)
 trading_add_smoke_test(trading_risk)
+# T-0302: gate tests live under tests/unit/risk/. The smoke helper only
+# compiles tests/unit/trading_risk/smoke_test.cpp.
+add_executable(trading_risk_gate_tests tests/unit/risk/risk_gate_tests.cpp)
+target_include_directories(trading_risk_gate_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/risk")
+target_compile_definitions(trading_risk_gate_tests PRIVATE TRADING_REPO_ROOT="${CMAKE_SOURCE_DIR}")
+target_link_libraries(trading_risk_gate_tests PRIVATE trading_risk GTest::gtest_main)
+add_test(NAME trading_risk_gate_tests COMMAND trading_risk_gate_tests)
 
 trading_add_module(trading_orders src/orders/module.cpp src/orders/client_order_id.cpp
                    src/orders/transition.cpp src/orders/order_book.cpp)
