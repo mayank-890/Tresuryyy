@@ -6,7 +6,7 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-11-02T15:03:03+0530 by cursor
 - Active ticket: T-0302 (**In review**)
 - Branch: `feat/T-0302-risk-gate`
-- Last green commit: `SHA_PENDING` — `T-0302: add risk gate`
+- Last green commit: `a443f1c` — `T-0302: add risk gate`
 - Working tree: clean after that commit
 - Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-02 (codegen, journal schema **22/22**, research **26/26**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **22/22** including `trading_risk_gate_tests`, watchdog link check).
 - Next step (exact): Do not merge T-0302. Operator reviews `feat/T-0302-risk-gate`. Class A: a second agent that did not write this code should review the diff against DESIGN §6–§7 and FR-RK-01, FR-RK-02, FR-RK-07. Do not start the next ticket.
@@ -590,7 +590,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-11-02 | cursor | T-0302 | `SHA_PENDING` | In review | Risk gate RL-01–RL-16, approval tokens, fixture ceilings only. Not merged. |
+| 2026-11-02 | cursor | T-0302 | `a443f1c` | In review | Risk gate RL-01–RL-16, approval tokens, fixture ceilings only. Not merged. |
 | 2026-11-01 | cursor | T-0301 | `e684057` | Done | On `main` (feature `c72ebd7`). Order state machine. |
 | 2026-11-01 | cursor | T-0204 | `c77fc2a` | Done | On `main` (feature `a5d4387`). Phase 2 research tooling complete. |
 | 2026-11-01 | cursor | T-0204 | `a5d4387` | In review | pybind11 FlatEcho stub. Merged later the same day. |
