@@ -3,21 +3,21 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-11-02T15:03:03+0530 by cursor
-- Active ticket: T-0302 (**In review**)
-- Branch: `feat/T-0302-risk-gate`
-- Last green commit: `a443f1c` — `T-0302: add risk gate`
+- Updated: 2026-11-03T17:27:27+0530 by cursor
+- Active ticket: T-0303 (**In review**)
+- Branch: `feat/T-0303-journal-writer`
+- Last green commit: `SHA_PENDING` — `T-0303: add group-commit journal writer`
 - Working tree: clean after that commit
-- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-02 (codegen, journal schema **22/22**, research **26/26**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **22/22** including `trading_risk_gate_tests`, watchdog link check).
-- Next step (exact): Do not merge T-0302. Operator reviews `feat/T-0302-risk-gate`. Class A: a second agent that did not write this code should review the diff against DESIGN §6–§7 and FR-RK-01, FR-RK-02, FR-RK-07. Do not start the next ticket.
-- Files touched this ticket: `engine/include/trading/risk/`, `engine/src/risk/`, `engine/tests/unit/risk/risk_gate_tests.cpp`, `engine/CMakeLists.txt`, `PROGRESS.md`
-- Decisions made this session (not yet in ADR): `limits.hpp` has no numeric ceilings (Q-26). A default `RiskGate` is unconfigured and journals `NotConfigured`. Tests inject a `LimitSet` through `with_fixture_limits`. An `ApprovalToken` is issued only after the journal accepts the decision. It is bound to the client id, the limit-set version, and a 500 ms expiry, and it is valid while `now < expiry`. A failed journal does not latch and does not issue a token. Runtime config may only tighten. Session start clears RL-10 latches and leaves the RL-11 kill in place. A cancel with a client id is approved and does not consume the entry budget.
-- Open questions: Q-26; Q-25; Q-24; Q-22, Q-23; Q-16, Q-18, Q-21; Q-17, Q-19, Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
-- Notes for the next tool: T-0301 is Done on `main` @ `e684057` (feature `c72ebd7`). Phase 1 exit is still open. Do not put numbers in `limits.hpp`. Fixture ceilings in the risk tests are not operator limits. The journal port is a stub. Do not merge this branch and do not start the next ticket.
+- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-03 (codegen, journal schema **22/22**, research **26/26**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **23/23** including `trading_journal_group_tests`, watchdog link check).
+- Next step (exact): Do not merge T-0303. Operator reviews `feat/T-0303-journal-writer`. Class A: a second agent that did not write this code should review the diff against DESIGN §10, FR-JR-01, FR-JR-02, and NFR-REL-01. Do not start the next ticket.
+- Files touched this ticket: `engine/include/trading/journal/`, `engine/src/journal/`, `engine/tests/unit/journal/group_commit_tests.cpp`, `engine/CMakeLists.txt`, `PROGRESS.md`
+- Decisions made this session (not yet in ADR): A sequence becomes durable only after `fsync` returns. The group window defaults to 2 ms. The byte threshold is unset (`size_threshold == 0`, Q-27); explicit `commit()` still flushes. Torn tails use the T-0107 copy-safe truncate and raise AL-14. A CRC mismatch, a sequence gap, and a bad magic on a complete header are fatal and are not truncated. A valid `TJNF` footer is left in place. Append copies into a preallocated buffer; the measured p99 of that copy is within 50 µs and does not call `fsync`.
+- Open questions: Q-27; Q-26; Q-25; Q-24; Q-22, Q-23; Q-16, Q-18, Q-21; Q-17, Q-19, Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
+- Notes for the next tool: T-0302 is Done on `main` @ `b765351` (feature `a443f1c`). Phase 1 exit is still open. `GroupCommitJournal` is the durability gate. `SegmentWriter` still fsyncs on `flush` and does not publish a durable sequence. The 100-run recovery test simulates torn suffixes. It is not a live `kill -9` (TC-JR-08). Do not merge this branch and do not start the next ticket.
 
 ## Current Phase
 
-**Phase 2 research tooling is complete.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done @ `a362c7e`. **T-0203** Done @ `ac305ce`. **T-0204** Done on `main` @ `c77fc2a` (feature `a5d4387`). Phase 1 exit is still open (Q-16, Q-18, Q-19, Q-20). **Phase 3:** **T-0301** Done on `main` @ `e684057` (feature `c72ebd7`). **T-0302** In review on `feat/T-0302-risk-gate`.
+**Phase 2 research tooling is complete.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done @ `a362c7e`. **T-0203** Done @ `ac305ce`. **T-0204** Done on `main` @ `c77fc2a` (feature `a5d4387`). Phase 1 exit is still open (Q-16, Q-18, Q-19, Q-20). **Phase 3:** **T-0301** Done on `main` @ `e684057` (feature `c72ebd7`). **T-0302** Done on `main` @ `b765351` (feature `a443f1c`). **T-0303** In review on `feat/T-0303-journal-writer`.
 
 ## Phase 0 Backlog
 
@@ -509,7 +509,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Merged to `main`: `e684057` (feature `c72ebd7`)
 
 ### T-0302: Risk gate core
-- Status: In review
+- Status: Done
 - Phase: 3 · Risk class: A · Depends on: T-0301
 - Requirements: FR-RK-01, FR-RK-02, FR-RK-07, DESIGN §6–§7
 - Goal: Every `OrderIntent` is evaluated against RL-01 through RL-16. Compiled ceilings stay in `engine/src/risk/limits.hpp` and are still `TODO(operator)`; this ticket does not set them. Runtime config may only tighten. A full pass issues an `ApprovalToken` bound to the client id, the limit-set version, and a 500 ms expiry. Every approve and reject is journaled. The gate is deterministic.
@@ -523,6 +523,23 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Evidence (2026-11-02, **Darwin arm64**): `just check` green — codegen, journal schema **22/22**, research **26/26**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **22/22** (includes `trading_risk_gate_tests`, 25 gtest cases), watchdog link check. A default `RiskGate` journals `NotConfigured` and issues no token.
 - Files allowed: `engine/src/risk/`, `engine/include/trading/risk/`, `engine/src/risk/limits.hpp` (comments and `TODO(operator)` only), `engine/tests/unit/risk/`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt` lists `src/risk/gate.cpp` and `trading_risk_gate_tests`. Without that target, `just check` does not compile or run the gate.
 - Out of scope: real broker, threading, changing limit numbers
+- Merged to `main`: `b765351` (feature `a443f1c`)
+
+### T-0303: Journal writer — group fsync
+- Status: In review
+- Phase: 3 · Risk class: A · Depends on: T-0107
+- Requirements: FR-JR-01, FR-JR-02, NFR-REL-01, DESIGN §10, NFR-PERF-03
+- Goal: Append records, group-commit them with fsync, and publish a durable sequence only after fsync. An order intent is durable before send is allowed. A torn tail is detected and truncated safely (AL-14). Append latency, excluding the fsync wait, stays within p99 ≤ 50 µs.
+- Acceptance criteria:
+  - [x] Writer appends records with CRC and sequence numbers
+  - [x] Group commit + fsync; durable sequence published only after fsync
+  - [x] Torn tail is detected and truncated safely (AL-14)
+  - [x] Order intent is durable before send is allowed
+  - [x] Unit + crash-recovery tests
+  - [x] Benchmark or measurement for append latency
+- Evidence (2026-11-03, **Darwin arm64**): `just check` green — codegen, journal schema **22/22**, research **26/26**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **23/23** (includes `trading_journal_group_tests`, 9 gtest cases), watchdog link check. Append p99, excluding fsync, is asserted at ≤ 50 µs. One hundred simulated torn tails recover the same prefix.
+- Files allowed: `engine/src/journal/`, `engine/include/trading/journal/`, `engine/tests/unit/journal/`, `tools/journal_inspect/` (not changed), `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt` lists `recovery.cpp`, `group_commit.cpp`, and `trading_journal_group_tests`.
+- Out of scope: full projector, threading model, broker, live `kill -9` (TC-JR-08)
 - Not merged.
 
 ## Phase 1 Backlog (legacy note)
@@ -560,11 +577,13 @@ Tickets above supersede “Not Yet Ready” once Phase 0 exit is recorded in `do
 | Q-24 | Add pybind11 without pulling vcpkg's Python. The vcpkg `pybind11` port depends on `python3`, and that build failed here (`libb2` needs autoconf). T-0204 fetches pybind11 3.1.0 (port tag and SHA512) only when `TRADING_BUILD_BINDINGS=ON` and binds the research interpreter. ADR-0005 is Accepted and still a stub. | Move the pin into `vcpkg.json` without a second Python | Open |
 | Q-25 | TC-OS-06 says a fill that arrives before the ack is reconstructed and logged. DESIGN §5.2 says a transition that is not in the table is invalid. A fill while `PENDING_NEW` is not in the table. T-0301 rejects it, logs it, and halts the scope. | Whether T-0301 should grow a reconstruct-ack transition | Open — **TODO(operator)** |
 | Q-26 | T-0302 asked for conservative placeholder ceilings and also limited `limits.hpp` to comments and `TODO(operator)`. The red line forbids setting those numbers. `limits.hpp` stays unset. A default `RiskGate` fails closed with `NotConfigured`. Boundary tests inject a `LimitSet` through `with_fixture_limits`. Those fixture numbers are not operator limits. | Operator ceilings for RL-01 through RL-16 | Open — **TODO(operator)** |
+| Q-27 | DESIGN §10.2 flushes a group commit on a size threshold and does not give the number. `GroupCommitConfig::size_threshold == 0` disables that trigger. The 2 ms window and explicit `commit()` still flush. | Operator byte threshold for group commit | Open — **TODO(operator)** |
 
 ## Decisions Log
 
 | Date | Decision | Reference |
 |---|---|---|
+| 2026-11-03 | Durable sequence advances only after `fsync` returns. The group window is 2 ms. The size threshold stays 0 until the operator sets it (Q-27). Torn-tail recovery is the T-0107 copy-safe truncate and raises AL-14. CRC mismatch, sequence gap, and bad magic on a complete header are fatal and are not truncated. A valid `TJNF` footer is not stripped. Append into the preallocated buffer is the NFR-PERF-03 measurement and does not include fsync. | T-0303; Q-27; DESIGN §10 |
 | 2026-11-02 | `limits.hpp` stays comment-only. A default risk gate journals `NotConfigured` and issues no token. Tests supply fixture ceilings. A token is stored only after the journal accepts it, expires 500 ms after `now` (`now < expiry`), and dies when the limit-set version changes. Journal failure does not latch. Runtime changes may only tighten. Session start clears RL-10 and leaves RL-11 latched. Cancels with a client id are approved and do not use the entry budget. | T-0302; Q-26; DESIGN §6–§7 |
 | 2026-11-01 | Client ids are 4 base-36 characters, a hyphen, and a 10-digit counter (`S7F2-0000012345`). The counter is journaled before the id is issued. UNKNOWN queries use delays of 1s then 3s, then one same-id resend. A resolved query or a not-found resend clears the scope block when no other UNKNOWN order remains. An unresolved resend stays UNKNOWN, keeps the block, and raises AL-04. The resend-once flag is process-local. Fills while `PENDING_NEW` are invalid until Q-25 is decided. | T-0301; Q-25; DESIGN §5 |
 | 2026-11-01 | pybind11 3.1.0 is fetched when `TRADING_BUILD_BINDINGS=ON`, using the vcpkg port tag and SHA512. It is not a manifest dependency because that port builds vcpkg's Python. Default presets stay OFF. ADR-0005 remains a stub (Q-24). | T-0204; Q-24; ADR-0005 |
@@ -590,7 +609,8 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-11-02 | cursor | T-0302 | `a443f1c` | In review | Risk gate RL-01–RL-16, approval tokens, fixture ceilings only. Not merged. |
+| 2026-11-03 | cursor | T-0303 | `SHA_PENDING` | In review | Group commit, durable sequence after fsync, AL-14 recovery. Not merged. |
+| 2026-11-02 | cursor | T-0302 | `b765351` | Done | On `main` (feature `a443f1c`). Risk gate. |
 | 2026-11-01 | cursor | T-0301 | `e684057` | Done | On `main` (feature `c72ebd7`). Order state machine. |
 | 2026-11-01 | cursor | T-0204 | `c77fc2a` | Done | On `main` (feature `a5d4387`). Phase 2 research tooling complete. |
 | 2026-11-01 | cursor | T-0204 | `a5d4387` | In review | pybind11 FlatEcho stub. Merged later the same day. |

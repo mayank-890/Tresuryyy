@@ -1,1 +1,1 @@
-Journal segment writer, rotation, and retention (T-0102, T-0105). Closed segments carry a `TJNF` footer; pruning requires `ARCHIVE_VERIFIED=1`.
+Journal segment writer, group commit, recovery, rotation, and retention. `GroupCommitJournal` publishes a sequence only after fsync. A torn tail is truncated with AL-14. Closed segments carry a `TJNF` footer; pruning requires `ARCHIVE_VERIFIED=1`.
