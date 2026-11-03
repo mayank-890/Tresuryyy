@@ -6,7 +6,7 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-11-03T17:27:27+0530 by cursor
 - Active ticket: T-0303 (**In review**)
 - Branch: `feat/T-0303-journal-writer`
-- Last green commit: `SHA_PENDING` — `T-0303: add group-commit journal writer`
+- Last green commit: `5bf09b8` — `T-0303: add group-commit journal writer`
 - Working tree: clean after that commit
 - Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-03 (codegen, journal schema **22/22**, research **26/26**, services **5/5**, journal-dq **6/6**, journal-retention **2/2**, journal-recovery **9/9**, projector unit **9/9**, UI **4/4**, CTest **23/23** including `trading_journal_group_tests`, watchdog link check).
 - Next step (exact): Do not merge T-0303. Operator reviews `feat/T-0303-journal-writer`. Class A: a second agent that did not write this code should review the diff against DESIGN §10, FR-JR-01, FR-JR-02, and NFR-REL-01. Do not start the next ticket.
@@ -609,7 +609,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-11-03 | cursor | T-0303 | `SHA_PENDING` | In review | Group commit, durable sequence after fsync, AL-14 recovery. Not merged. |
+| 2026-11-03 | cursor | T-0303 | `5bf09b8` | In review | Group commit, durable sequence after fsync, AL-14 recovery. Not merged. |
 | 2026-11-02 | cursor | T-0302 | `b765351` | Done | On `main` (feature `a443f1c`). Risk gate. |
 | 2026-11-01 | cursor | T-0301 | `e684057` | Done | On `main` (feature `c72ebd7`). Order state machine. |
 | 2026-11-01 | cursor | T-0204 | `c77fc2a` | Done | On `main` (feature `a5d4387`). Phase 2 research tooling complete. |
