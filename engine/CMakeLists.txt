@@ -63,6 +63,13 @@ trading_add_module(trading_orders src/orders/module.cpp src/orders/client_order_
                    src/orders/transition.cpp src/orders/order_book.cpp
                    src/orders/execution_gate.cpp)
 target_link_libraries(trading_orders PUBLIC trading_core)
+
+trading_add_module(trading_portfolio src/portfolio/module.cpp src/portfolio/types.cpp
+                   src/portfolio/reconciler.cpp)
+target_link_libraries(trading_portfolio PUBLIC trading_core trading_orders)
+add_executable(trading_portfolio_reconciler_tests tests/unit/portfolio/reconciler_tests.cpp)
+target_link_libraries(trading_portfolio_reconciler_tests PRIVATE trading_portfolio GTest::gtest_main)
+add_test(NAME trading_portfolio_reconciler_tests COMMAND trading_portfolio_reconciler_tests)
 trading_add_smoke_test(trading_orders)
 # T-0301: state-machine tests live under tests/unit/orders/. The smoke helper
 # only compiles tests/unit/trading_orders/smoke_test.cpp.
