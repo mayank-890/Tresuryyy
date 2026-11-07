@@ -3,21 +3,21 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-11-07T09:25:00+0530 by cursor
-- Active ticket: T-0304 (**In review**)
-- Branch: `feat/T-0304-engine-threading`
-- Last green commit: `cf2721e` — `T-0304: wire engine threading skeleton`
+- Updated: 2026-11-07T17:45:00+0530 by cursor
+- Active ticket: T-0305 (**In review**)
+- Branch: `feat/T-0305-reconciler`
+- Last green commit: `3f1b78d` — `T-0305: add portfolio reconciler core`
 - Working tree: clean after that commit
-- Tests passing at last commit: `just check` and `just test-tsan` green on **Darwin arm64**, 2026-11-07 (CTest **24/24** including `trading_engine_pipeline_tests`; TSan clean on threaded integration tests).
-- Next step (exact): Operator opens PR from `feat/T-0304-engine-threading`. Class B review against DESIGN §4, NFR-PERF-01, NFR-PERF-02. Wire `EnginePipeline` into `trader` startup is out of scope for this ticket.
-- Files touched this ticket: `engine/include/trading/marketdata/pipeline_types.hpp`, `engine/include/trading/strategy/pipeline_types.hpp`, `engine/include/trading/risk/pipeline_types.hpp`, `engine/include/trading/orders/execution_sink.hpp`, `engine/src/apps/trader/engine_pipeline.{hpp,cpp}`, `engine/src/orders/execution_gate.cpp`, `engine/tests/integration/`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt` (`execution_gate.cpp` on `trading_orders`, `add_subdirectory(tests/integration)`).
-- Decisions made this session (not yet in ADR): T7 journal records are copied onto a dedicated SPSC ring and drained on a pinned background thread (stub callback only). Test inject quotes via `submit_quote` into the T1 ingress ring. Warmup cycles prime rings and risk `issued_` storage before allocation-hook measurement.
+- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-07 (CTest **25/25** including `trading_portfolio_reconciler_tests`, 8 GTest cases).
+- Next step (exact): Operator opens PR from `feat/T-0305-reconciler`. Class A review against FR-PF-02, FR-PF-03, FR-OP-02, and DESIGN §10.3 step 4. Wire reconciler into T6/trader startup and real broker REST are out of scope.
+- Files touched this ticket: `engine/include/trading/portfolio/`, `engine/src/portfolio/`, `engine/tests/unit/portfolio/reconciler_tests.cpp`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt` (`trading_portfolio`, `trading_portfolio_reconciler_tests`).
+- Decisions made this session (not yet in ADR): Broker snapshots use mock ports only. Mismatch scope is instrument-level when an `instrument_id` is known, otherwise global. `operator_clear` lifts halt latches; FR-OP-02 readiness is set on clean connect or clean reconnect after a failed startup. Periodic reconcile is gated by `kPeriodicReconcileIntervalNs` (60 s). Clean runs journal `PositionSnapshot` rows and `ReconciliationResult`; mismatch raises AL-03 (code 3).
 - Open questions: Q-27; Q-26; Q-25; Q-24; Q-22, Q-23; Q-16, Q-18, Q-21; Q-17, Q-19, Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
-- Notes for the next tool: T-0303 is Done on `main` @ `5bf09b8` (handoff `50ab583`). `EnginePipeline` runs T1–T4 plus T7 journal drain; execution uses `RiskGate::accept_token`. No broker sockets or live feeds. Pin cores 0–4; non-Linux increments `pinThreadWarningCount` per thread (expected).
+- Notes for the next tool: T-0304 is Done on `main` @ `65feeda`. `Reconciler::trading_allowed` is the FR-OP-02 gate until `on_connect` is clean. No heap on compare path beyond test vectors.
 
 ## Current Phase
 
-**Phase 2 research tooling is complete.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done @ `a362c7e`. **T-0203** Done @ `ac305ce`. **T-0204** Done on `main` @ `c77fc2a` (feature `a5d4387`). Phase 1 exit is still open (Q-16, Q-18, Q-19, Q-20). **Phase 3:** **T-0301** Done on `main` @ `e684057` (feature `c72ebd7`). **T-0302** Done on `main` @ `b765351` (feature `a443f1c`). **T-0303** Done on `main` @ `5bf09b8` (feature `5bf09b8`). **T-0304** In review on `feat/T-0304-engine-threading`.
+**Phase 2 research tooling is complete.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done @ `a362c7e`. **T-0203** Done @ `ac305ce`. **T-0204** Done on `main` @ `c77fc2a` (feature `a5d4387`). Phase 1 exit is still open (Q-16, Q-18, Q-19, Q-20). **Phase 3:** **T-0301** Done on `main` @ `e684057` (feature `c72ebd7`). **T-0302** Done on `main` @ `b765351` (feature `a443f1c`). **T-0303** Done on `main` @ `5bf09b8` (feature `5bf09b8`). **T-0304** Done on `main` @ `65feeda` (feature `cf2721e`). **T-0305** In review on `feat/T-0305-reconciler`.
 
 ## Phase 0 Backlog
 
@@ -543,7 +543,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Merged to `main`: `5bf09b8` (feature `5bf09b8`; handoff sync `50ab583`, 2026-11-07)
 
 ### T-0304: Engine threading skeleton
-- Status: In review
+- Status: Done
 - Phase: 3 · Risk class: B · Depends on: T-0302, T-0303
 - Requirements: DESIGN §4, NFR-PERF-01, NFR-PERF-02
 - Goal: Wire the core engine threads (MarketData → Strategy → RiskGate → Execution) using SPSC rings. Hot path has no heap allocation after warm-up, no mutexes, and uses the existing Clock, ObjectPool, and SpscRing primitives. Threads can be pinned. Order intents flow through the rings and reach the execution thread only with a valid ApprovalToken. Journal writer is called off the hot path or via its own ring.
@@ -557,6 +557,22 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Evidence (2026-11-07, **Darwin arm64**): `just check` green — CTest **24/24** (`trading_engine_pipeline_tests`, 3 cases). `just test-tsan` green — CTest **24/24**, pipeline tests TSan clean (~1.1s).
 - Files allowed: `engine/src/apps/trader/`, `engine/src/marketdata/`, `engine/src/strategy/`, `engine/src/risk/`, `engine/src/orders/`, `engine/tests/integration/`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt` lists `execution_gate.cpp` and the integration test target.
 - Out of scope: real broker sockets, full reconciler, watchdog, live market data, wiring `EnginePipeline` into `trader` main
+- Merged to `main`: `65feeda` (feature `cf2721e`; 2026-11-07)
+
+### T-0305: Reconciler core
+- Status: In review
+- Phase: 3 · Risk class: A · Depends on: T-0301
+- Requirements: FR-PF-02, FR-PF-03, FR-OP-02, DESIGN §10.3
+- Goal: Implement the reconciler that compares internal positions, open orders, and fills against broker snapshots. Runs after connect, after reconnect, and every 60 seconds. A mismatch halts trading for the affected scope until the operator clears it. Periodic position snapshots are written to the journal.
+- Acceptance criteria:
+  - [x] Reconciles positions, open orders, and fills
+  - [x] Mismatch → halt affected scope + alert
+  - [x] Periodic snapshots written to journal
+  - [x] Unit tests for match, mismatch, and recovery paths
+  - [x] No trading until startup reconciliation completes cleanly
+- Evidence (2026-11-07, **Darwin arm64**): `just check` green — CTest **25/25** (`trading_portfolio_reconciler_tests`, 8 GTest cases).
+- Files allowed: `engine/src/portfolio/`, `engine/include/trading/portfolio/`, `engine/tests/unit/portfolio/`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt` for `trading_portfolio` and test target.
+- Out of scope: real broker REST calls, full UI, T6 thread wiring
 
 ## Phase 1 Backlog (legacy note)
 
@@ -625,6 +641,8 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-11-07 | cursor | T-0305 | `3f1b78d` | In review | Portfolio reconciler; mock snapshots; AL-03 on mismatch. |
+| 2026-11-07 | cursor | T-0304 | — | Done | Merged on `main` @ `65feeda` (operator). |
 | 2026-11-07 | cursor | T-0304 | `cf2721e` | In review | SPSC pipeline T1–T4 + T7 journal ring; integration + TSan. |
 | 2026-11-07 | cursor | T-0303 | — | Done | Merged on `main` @ `5bf09b8` (operator). |
 | 2026-11-03 | cursor | T-0303 | `5bf09b8` | In review | Group commit, durable sequence after fsync, AL-14 recovery. Not merged. |
