@@ -6,7 +6,7 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-11-07T09:25:00+0530 by cursor
 - Active ticket: T-0304 (**In review**)
 - Branch: `feat/T-0304-engine-threading`
-- Last green commit: (pending — `T-0304: wire engine threading skeleton`)
+- Last green commit: `cf2721e` — `T-0304: wire engine threading skeleton`
 - Working tree: clean after that commit
 - Tests passing at last commit: `just check` and `just test-tsan` green on **Darwin arm64**, 2026-11-07 (CTest **24/24** including `trading_engine_pipeline_tests`; TSan clean on threaded integration tests).
 - Next step (exact): Operator opens PR from `feat/T-0304-engine-threading`. Class B review against DESIGN §4, NFR-PERF-01, NFR-PERF-02. Wire `EnginePipeline` into `trader` startup is out of scope for this ticket.
@@ -625,7 +625,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-11-07 | cursor | T-0304 | (pending) | In review | SPSC pipeline T1–T4 + T7 journal ring; integration + TSan. |
+| 2026-11-07 | cursor | T-0304 | `cf2721e` | In review | SPSC pipeline T1–T4 + T7 journal ring; integration + TSan. |
 | 2026-11-07 | cursor | T-0303 | — | Done | Merged on `main` @ `5bf09b8` (operator). |
 | 2026-11-03 | cursor | T-0303 | `5bf09b8` | In review | Group commit, durable sequence after fsync, AL-14 recovery. Not merged. |
 | 2026-11-02 | cursor | T-0302 | `b765351` | Done | On `main` (feature `a443f1c`). Risk gate. |
