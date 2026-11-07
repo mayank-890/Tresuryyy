@@ -60,7 +60,8 @@ target_link_libraries(trading_risk_gate_tests PRIVATE trading_risk GTest::gtest_
 add_test(NAME trading_risk_gate_tests COMMAND trading_risk_gate_tests)
 
 trading_add_module(trading_orders src/orders/module.cpp src/orders/client_order_id.cpp
-                   src/orders/transition.cpp src/orders/order_book.cpp)
+                   src/orders/transition.cpp src/orders/order_book.cpp
+                   src/orders/execution_gate.cpp)
 target_link_libraries(trading_orders PUBLIC trading_core)
 trading_add_smoke_test(trading_orders)
 # T-0301: state-machine tests live under tests/unit/orders/. The smoke helper
@@ -141,6 +142,7 @@ set_tests_properties(
     PASS_REGULAR_EXPRESSION "RUNNING \\(no trading logic\\)")
 
 add_subdirectory(tests/unit/profile)
+add_subdirectory(tests/integration)
 
 if(TRADING_BUILD_WATCHDOG)
   add_executable(watchdog src/apps/watchdog/main.cpp)
