@@ -21,7 +21,8 @@ trading_add_smoke_test(trading_core)
 add_subdirectory(tests/unit/core)
 
 trading_add_module(trading_marketdata src/marketdata/module.cpp
-                   src/marketdata/delta_normalize.cpp)
+                   src/marketdata/delta_normalize.cpp src/marketdata/generic_frame.cpp
+                   src/marketdata/normalizer.cpp)
 target_link_libraries(trading_marketdata PUBLIC trading_core
                                                 nlohmann_json::nlohmann_json)
 trading_add_smoke_test(trading_marketdata)
@@ -31,6 +32,12 @@ target_link_libraries(trading_marketdata_delta_tests PRIVATE trading_marketdata
                                                              GTest::gtest_main)
 add_test(NAME trading_marketdata_delta_tests
          COMMAND trading_marketdata_delta_tests)
+add_executable(trading_marketdata_normalizer_tests
+               tests/unit/marketdata/normalizer_tests.cpp)
+target_link_libraries(trading_marketdata_normalizer_tests PRIVATE trading_marketdata
+                                                                  GTest::gtest_main)
+add_test(NAME trading_marketdata_normalizer_tests
+         COMMAND trading_marketdata_normalizer_tests)
 
 trading_add_module(trading_strategy src/strategy/module.cpp src/strategy/registry.cpp
                    src/strategy/strategies/flat_echo/strategy.cpp)
