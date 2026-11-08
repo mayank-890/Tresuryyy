@@ -3,21 +3,21 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-11-08T13:15:00+0530 by cursor
-- Active ticket: none (T-0401 **In review**)
-- Branch: `feat/T-0401-delta-adapter`
-- Last green commit: `e102887` — `T-0401: update PROGRESS — In review`
+- Updated: 2026-11-08T13:35:00+0530 by cursor
+- Active ticket: none (T-0402 **In review**)
+- Branch: `feat/T-0402-mock-exchange`
+- Last green commit: *(pending)* — `T-0402: update PROGRESS — In review`
 - Working tree: clean after PROGRESS commit
-- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-08 (CTest **27/27** including `trading_broker_delta_adapter_tests`, 5 GTest cases).
-- Next step (exact): Operator opens Class A PR from `feat/T-0401-delta-adapter` against `main`. Review FR-BR-02/03/04 and DESIGN §9. Follow-on: real HTTP/WebSocket transports (not in ticket), engine execution wiring, REST reconcile on private WS reconnect (TI §12.1).
-- Files touched this ticket: `engine/include/trading/broker/**`, `engine/src/broker/{common,delta}/**`, `engine/tests/unit/broker/delta_adapter_tests.cpp`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt` (`trading_broker_common` / `trading_broker_delta` sources, `trading_broker_delta_adapter_tests`).
-- Decisions made this session (not yet in ADR): Broker I/O is injectable (`HttpTransport`, `WebSocketTransport`). Credentials load through `CredentialPort` only (no secrets in tree). Delta private WS auth uses `GET` + `/live` prehash (mock-tested); confirm against live Delta docs before testnet. Default rate buckets are placeholders — **TODO(operator)** for production rates.
+- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-08 (CTest **28/28** including `trading_broker_mock_exchange_tests`, 7 GTest cases).
+- Next step (exact): Operator opens Class B PR from `feat/T-0402-mock-exchange` against `main`. Review FR-BR-07 and TI §12.3. Follow-on: wire `MockExchangeBroker` into paper profile startup and engine pipeline integration tests.
+- Files touched this ticket: `engine/include/trading/broker/mock/**`, `engine/src/broker/mock/**`, `engine/tests/unit/broker/mock_exchange_tests.cpp`, `tests/mock_exchange/scenarios/*.toml`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt` (`trading_broker_mock` sources, `trading_broker_mock_exchange_tests`).
+- Decisions made this session (not yet in ADR): Scenario schema version `1` with ordered `[[place]]` steps and `[[timeline]]` disconnect/reconnect. `seed` sets initial auto `broker_order_id`. Scheduled fills use `fill_schedule` delays from place time (`last_mono_ns_`); callers must `tick()` for private events.
 - Open questions: Q-27; Q-26; Q-25; Q-24; Q-22, Q-23; Q-16, Q-18, Q-21; Q-17, Q-19, Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
-- Notes for the next tool: `DeltaBroker` implements `IBroker`. TC-DL-01 vector in `DeltaSigning.TcDl01_DocumentationVector`. Test fixture uses public documentation sample secret (not for live use).
+- Notes for the next tool: T-0401 Done on `main` @ `6566b95`. `MockExchangeBroker` is non-movable (IBroker); load TOML then construct in place.
 
 ## Current Phase
 
-**Phase 2 research tooling is complete.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done @ `a362c7e`. **T-0203** Done @ `ac305ce`. **T-0204** Done on `main` @ `c77fc2a` (feature `a5d4387`). Phase 1 exit is still open (Q-16, Q-18, Q-19, Q-20). **Phase 3:** **T-0301** Done on `main` @ `e684057` (feature `c72ebd7`). **T-0302** Done on `main` @ `b765351` (feature `a443f1c`). **T-0303** Done on `main` @ `5bf09b8` (feature `5bf09b8`). **T-0304** Done on `main` @ `65feeda` (feature `cf2721e`). **T-0305** Done on `main` @ `4f44231` (feature `3f1b78d`). **T-0306** Done on `main` @ `7b70fbd` (feature `0ff3f18`). **Phase 4:** **T-0401** In review on `feat/T-0401-delta-adapter`.
+**Phase 2 research tooling is complete.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done @ `a362c7e`. **T-0203** Done @ `ac305ce`. **T-0204** Done on `main` @ `c77fc2a` (feature `a5d4387`). Phase 1 exit is still open (Q-16, Q-18, Q-19, Q-20). **Phase 3:** **T-0301** Done on `main` @ `e684057` (feature `c72ebd7`). **T-0302** Done on `main` @ `b765351` (feature `a443f1c`). **T-0303** Done on `main` @ `5bf09b8` (feature `5bf09b8`). **T-0304** Done on `main` @ `65feeda` (feature `cf2721e`). **T-0305** Done on `main` @ `4f44231` (feature `3f1b78d`). **T-0306** Done on `main` @ `7b70fbd` (feature `0ff3f18`). **Phase 4:** **T-0401** Done on `main` @ `6566b95` (feature `ba828d3`). **T-0402** In review on `feat/T-0402-mock-exchange`.
 
 ## Phase 0 Backlog
 
@@ -595,7 +595,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 ## Phase 4 Backlog
 
 ### T-0401: Delta REST + private WebSocket adapter
-- Status: In review
+- Status: Done
 - Phase: 4 · Risk class: A · Depends on: T-0301
 - Requirements: FR-BR-02, FR-BR-03, FR-BR-04, DESIGN §9
 - Goal: Implement the Delta Exchange adapter. REST for place/cancel/query orders with HMAC-SHA256 signing. Private WebSocket for order updates, fills, and position changes with heartbeat and reconnection. Rate limiting per endpoint category (cancels and reduce-only have priority). All access goes through the `IBroker` interface.
@@ -609,6 +609,22 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Evidence (2026-11-08, **Darwin arm64**): `just check` green — CTest **27/27** (`trading_broker_delta_adapter_tests`, 5 cases; TC-DL-01 signing vector).
 - Files allowed: `engine/src/broker/delta/`, `engine/src/broker/common/`, `engine/include/trading/broker/`, `engine/tests/unit/broker/`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt`.
 - Out of scope: live credentials, Groww, full engine wiring, production HTTP/WS client
+- Merged to `main`: `6566b95` (feature `ba828d3`; 2026-11-08, operator)
+
+### T-0402: Mock exchange adapter
+- Status: In review
+- Phase: 4 · Risk class: B · Depends on: T-0401
+- Requirements: FR-BR-07, TI §12.3
+- Goal: Implement a mock exchange adapter for tests and paper mode. Configurable acks, partial fills, rejects, timeouts, 429 responses, and disconnects. Implements the same `IBroker` interface as Delta.
+- Acceptance criteria:
+  - [x] Implements IBroker
+  - [x] Configurable scenarios: ack, partial fill, reject, timeout, 429, disconnect
+  - [x] Can be driven by scripted scenario files (TOML)
+  - [x] Unit tests covering each failure mode
+  - [x] Usable for paper trading and integration tests
+- Evidence (2026-11-08, **Darwin arm64**): `just check` green — CTest **28/28** (`trading_broker_mock_exchange_tests`, 7 cases; scenarios under `tests/mock_exchange/scenarios/`).
+- Files allowed: `engine/src/broker/mock/`, `engine/tests/unit/broker/`, `tests/mock_exchange/`, `PROGRESS.md`. **Amendment:** `engine/include/trading/broker/mock/`, `engine/CMakeLists.txt`.
+- Out of scope: real network, live credentials, trader binary wiring
 
 ## Phase 1 Backlog (legacy note)
 
@@ -677,6 +693,8 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-11-08 | cursor | T-0402 | *(see commits)* | In review | Mock `IBroker`; TOML scenarios; failure-mode tests. |
+| 2026-11-08 | cursor | T-0401 | — | Done | Merged on `main` @ `6566b95` (operator). |
 | 2026-11-08 | cursor | T-0401 | `e102887` | In review | Delta `IBroker`; signed REST; private WS; rate limiter; mock tests. |
 | 2026-11-08 | cursor | T-0306 | — | Done | Merged on `main` @ `7b70fbd` (operator). |
 | 2026-11-08 | cursor | T-0306 | `0ff3f18` | In review | Generic GMD0 frames; health FSM; gap/stale tests. |
