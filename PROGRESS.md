@@ -3,21 +3,21 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-11-07T17:45:00+0530 by cursor
-- Active ticket: T-0305 (**In review**)
-- Branch: `feat/T-0305-reconciler`
-- Last green commit: `3f1b78d` — `T-0305: add portfolio reconciler core`
+- Updated: 2026-11-08T12:50:00+0530 by cursor
+- Active ticket: T-0306 (**In review**)
+- Branch: `feat/T-0306-marketdata-normalizer`
+- Last green commit: `0ff3f18` — `T-0306: add market data normalizer`
 - Working tree: clean after that commit
-- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-07 (CTest **25/25** including `trading_portfolio_reconciler_tests`, 8 GTest cases).
-- Next step (exact): Operator opens PR from `feat/T-0305-reconciler`. Class A review against FR-PF-02, FR-PF-03, FR-OP-02, and DESIGN §10.3 step 4. Wire reconciler into T6/trader startup and real broker REST are out of scope.
-- Files touched this ticket: `engine/include/trading/portfolio/`, `engine/src/portfolio/`, `engine/tests/unit/portfolio/reconciler_tests.cpp`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt` (`trading_portfolio`, `trading_portfolio_reconciler_tests`).
-- Decisions made this session (not yet in ADR): Broker snapshots use mock ports only. Mismatch scope is instrument-level when an `instrument_id` is known, otherwise global. `operator_clear` lifts halt latches; FR-OP-02 readiness is set on clean connect or clean reconnect after a failed startup. Periodic reconcile is gated by `kPeriodicReconcileIntervalNs` (60 s). Clean runs journal `PositionSnapshot` rows and `ReconciliationResult`; mismatch raises AL-03 (code 3).
+- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-08 (CTest **26/26** including `trading_marketdata_normalizer_tests`, 5 GTest cases).
+- Next step (exact): Operator opens PR from `feat/T-0306-marketdata-normalizer`. Class B review against FR-MD-02/03/04 and DESIGN §8. T1 WebSocket wiring and Delta JSON path remain separate (`delta_normalize`).
+- Files touched this ticket: `engine/include/trading/marketdata/{types,generic_frame,normalizer}.hpp`, `engine/src/marketdata/{generic_frame,normalizer}.cpp`, `engine/tests/unit/marketdata/normalizer_tests.cpp`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt` (sources + `trading_marketdata_normalizer_tests`).
+- Decisions made this session (not yet in ADR): Generic wire format `GMD0` is test-only, not a broker protocol. `MarketDataNormalizer` tracks per-instrument health (DESIGN §8.2); `orders_allowed` is true only in `HEALTHY`. Stale threshold defaults to 5 s (`Q-19`). Session-closed suppresses STALE promotion (`FR-MD-04`). Gap → `RESYNCING` + `ResyncPort::request_snapshot`; recovery via `apply_snapshot`.
 - Open questions: Q-27; Q-26; Q-25; Q-24; Q-22, Q-23; Q-16, Q-18, Q-21; Q-17, Q-19, Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
-- Notes for the next tool: T-0304 is Done on `main` @ `65feeda`. `Reconciler::trading_allowed` is the FR-OP-02 gate until `on_connect` is clean. No heap on compare path beyond test vectors.
+- Notes for the next tool: T-0305 is Done on `main` @ `4f44231`. Malformed ingest never throws; counters in `NormalizerStats`. Instrument id must be `< kMaxTrackedInstruments` (1024).
 
 ## Current Phase
 
-**Phase 2 research tooling is complete.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done @ `a362c7e`. **T-0203** Done @ `ac305ce`. **T-0204** Done on `main` @ `c77fc2a` (feature `a5d4387`). Phase 1 exit is still open (Q-16, Q-18, Q-19, Q-20). **Phase 3:** **T-0301** Done on `main` @ `e684057` (feature `c72ebd7`). **T-0302** Done on `main` @ `b765351` (feature `a443f1c`). **T-0303** Done on `main` @ `5bf09b8` (feature `5bf09b8`). **T-0304** Done on `main` @ `65feeda` (feature `cf2721e`). **T-0305** In review on `feat/T-0305-reconciler`.
+**Phase 2 research tooling is complete.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done @ `a362c7e`. **T-0203** Done @ `ac305ce`. **T-0204** Done on `main` @ `c77fc2a` (feature `a5d4387`). Phase 1 exit is still open (Q-16, Q-18, Q-19, Q-20). **Phase 3:** **T-0301** Done on `main` @ `e684057` (feature `c72ebd7`). **T-0302** Done on `main` @ `b765351` (feature `a443f1c`). **T-0303** Done on `main` @ `5bf09b8` (feature `5bf09b8`). **T-0304** Done on `main` @ `65feeda` (feature `cf2721e`). **T-0305** Done on `main` @ `4f44231` (feature `3f1b78d`). **T-0306** In review on `feat/T-0306-marketdata-normalizer`.
 
 ## Phase 0 Backlog
 
@@ -560,7 +560,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Merged to `main`: `65feeda` (feature `cf2721e`; 2026-11-07)
 
 ### T-0305: Reconciler core
-- Status: In review
+- Status: Done
 - Phase: 3 · Risk class: A · Depends on: T-0301
 - Requirements: FR-PF-02, FR-PF-03, FR-OP-02, DESIGN §10.3
 - Goal: Implement the reconciler that compares internal positions, open orders, and fills against broker snapshots. Runs after connect, after reconnect, and every 60 seconds. A mismatch halts trading for the affected scope until the operator clears it. Periodic position snapshots are written to the journal.
@@ -573,6 +573,23 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Evidence (2026-11-07, **Darwin arm64**): `just check` green — CTest **25/25** (`trading_portfolio_reconciler_tests`, 8 GTest cases).
 - Files allowed: `engine/src/portfolio/`, `engine/include/trading/portfolio/`, `engine/tests/unit/portfolio/`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt` for `trading_portfolio` and test target.
 - Out of scope: real broker REST calls, full UI, T6 thread wiring
+- Merged to `main`: `4f44231` (feature `3f1b78d`; 2026-11-08)
+
+### T-0306: Market data normalizer
+- Status: In review
+- Phase: 3 · Risk class: B · Depends on: T-0005
+- Requirements: FR-MD-02, FR-MD-03, FR-MD-04, DESIGN §8
+- Goal: Normalize broker market data messages into internal Quote and Trade types. Detect sequence gaps and request snapshot resync. Mark instruments STALE when no update arrives within threshold; block new orders on STALE instruments. Malformed frames are rejected and counted (never crash the thread).
+- Acceptance criteria:
+  - [x] Normalizes raw frames into Quote/Trade
+  - [x] Sequence gap detection + resync request
+  - [x] Staleness detection with configurable threshold
+  - [x] STALE instruments block new orders
+  - [x] Malformed frames are counted and dropped
+  - [x] Unit tests for gap, staleness, and malformed cases
+- Evidence (2026-11-08, **Darwin arm64**): `just check` green — CTest **26/26** (`trading_marketdata_normalizer_tests`, 5 cases).
+- Files allowed: `engine/src/marketdata/`, `engine/include/trading/marketdata/`, `engine/tests/unit/marketdata/`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt`.
+- Out of scope: real WebSocket client, Delta-specific parsing (existing `delta_normalize`), full engine wiring
 
 ## Phase 1 Backlog (legacy note)
 
@@ -641,6 +658,8 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-11-08 | cursor | T-0306 | `0ff3f18` | In review | Generic GMD0 frames; health FSM; gap/stale tests. |
+| 2026-11-08 | cursor | T-0305 | — | Done | Merged on `main` @ `4f44231` (operator). |
 | 2026-11-07 | cursor | T-0305 | `3f1b78d` | In review | Portfolio reconciler; mock snapshots; AL-03 on mismatch. |
 | 2026-11-07 | cursor | T-0304 | — | Done | Merged on `main` @ `65feeda` (operator). |
 | 2026-11-07 | cursor | T-0304 | `cf2721e` | In review | SPSC pipeline T1–T4 + T7 journal ring; integration + TSan. |
