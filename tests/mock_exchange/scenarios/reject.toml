@@ -1,0 +1,6 @@
+version = 1
+seed = 9002
+
+[[place]]
+response = "reject"
+reason = "insufficient_margin"

@@ -127,9 +127,17 @@ target_link_libraries(trading_broker_delta_adapter_tests PRIVATE trading_broker_
                                                                  GTest::gtest_main)
 add_test(NAME trading_broker_delta_adapter_tests COMMAND trading_broker_delta_adapter_tests)
 
-trading_add_module(trading_broker_mock src/broker/mock/module.cpp)
-target_link_libraries(trading_broker_mock PUBLIC trading_broker_common)
+trading_add_module(trading_broker_mock src/broker/mock/module.cpp src/broker/mock/scenario.cpp
+                   src/broker/mock/adapter.cpp)
+target_link_libraries(trading_broker_mock PUBLIC trading_broker_common trading_orders
+                                                 tomlplusplus::tomlplusplus)
 trading_add_smoke_test(trading_broker_mock)
+add_executable(trading_broker_mock_exchange_tests tests/unit/broker/mock_exchange_tests.cpp)
+target_compile_definitions(trading_broker_mock_exchange_tests
+                           PRIVATE TRADING_REPO_ROOT="${CMAKE_SOURCE_DIR}")
+target_link_libraries(trading_broker_mock_exchange_tests PRIVATE trading_broker_mock
+                                                                 GTest::gtest_main)
+add_test(NAME trading_broker_mock_exchange_tests COMMAND trading_broker_mock_exchange_tests)
 
 trading_add_module(trading_control src/control/module.cpp)
 target_link_libraries(trading_control PUBLIC trading_core trading_journal)

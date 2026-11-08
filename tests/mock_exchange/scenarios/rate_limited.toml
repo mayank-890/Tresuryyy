@@ -1,0 +1,5 @@
+version = 1
+seed = 9004
+
+[[place]]
+response = "rate_limited"

@@ -1,0 +1,13 @@
+version = 1
+seed = 9001
+
+[connect]
+succeed = true
+
+[[place]]
+response = "ack"
+broker_order_id = 501
+fill_schedule = [
+  { delay_ns = 1000, qty_lots = 1, price_ticks = 100 },
+  { delay_ns = 2000, qty_lots = 1, price_ticks = 101 },
+]

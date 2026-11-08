@@ -1,0 +1,14 @@
+version = 1
+seed = 9005
+
+[[place]]
+response = "ack"
+broker_order_id = 777
+
+[[timeline]]
+at_mono_ns = 5000
+action = "disconnect"
+
+[[place]]
+response = "ack"
+broker_order_id = 778

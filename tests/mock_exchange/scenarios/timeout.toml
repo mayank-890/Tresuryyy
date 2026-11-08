@@ -1,0 +1,5 @@
+version = 1
+seed = 9003
+
+[[place]]
+response = "timeout"
