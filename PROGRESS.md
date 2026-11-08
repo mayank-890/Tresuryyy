@@ -6,7 +6,7 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-11-08T13:15:00+0530 by cursor
 - Active ticket: none (T-0401 **In review**)
 - Branch: `feat/T-0401-delta-adapter`
-- Last green commit: *(pending second commit)* — `T-0401: update PROGRESS — In review`
+- Last green commit: `e102887` — `T-0401: update PROGRESS — In review`
 - Working tree: clean after PROGRESS commit
 - Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-08 (CTest **27/27** including `trading_broker_delta_adapter_tests`, 5 GTest cases).
 - Next step (exact): Operator opens Class A PR from `feat/T-0401-delta-adapter` against `main`. Review FR-BR-02/03/04 and DESIGN §9. Follow-on: real HTTP/WebSocket transports (not in ticket), engine execution wiring, REST reconcile on private WS reconnect (TI §12.1).
@@ -677,7 +677,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-11-08 | cursor | T-0401 | *(see commits)* | In review | Delta `IBroker`; signed REST; private WS; rate limiter; mock tests. |
+| 2026-11-08 | cursor | T-0401 | `e102887` | In review | Delta `IBroker`; signed REST; private WS; rate limiter; mock tests. |
 | 2026-11-08 | cursor | T-0306 | — | Done | Merged on `main` @ `7b70fbd` (operator). |
 | 2026-11-08 | cursor | T-0306 | `0ff3f18` | In review | Generic GMD0 frames; health FSM; gap/stale tests. |
 | 2026-11-08 | cursor | T-0305 | — | Done | Merged on `main` @ `4f44231` (operator). |
