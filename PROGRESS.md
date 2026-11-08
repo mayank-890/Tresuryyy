@@ -6,7 +6,7 @@ Single source of truth for the current state of work. Read this first in every s
 - Updated: 2026-11-08T13:35:00+0530 by cursor
 - Active ticket: none (T-0402 **In review**)
 - Branch: `feat/T-0402-mock-exchange`
-- Last green commit: *(pending)* — `T-0402: update PROGRESS — In review`
+- Last green commit: `5c44fff` — `T-0402: update PROGRESS — In review`
 - Working tree: clean after PROGRESS commit
 - Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-08 (CTest **28/28** including `trading_broker_mock_exchange_tests`, 7 GTest cases).
 - Next step (exact): Operator opens Class B PR from `feat/T-0402-mock-exchange` against `main`. Review FR-BR-07 and TI §12.3. Follow-on: wire `MockExchangeBroker` into paper profile startup and engine pipeline integration tests.
@@ -693,7 +693,7 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
-| 2026-11-08 | cursor | T-0402 | *(see commits)* | In review | Mock `IBroker`; TOML scenarios; failure-mode tests. |
+| 2026-11-08 | cursor | T-0402 | `5c44fff` | In review | Mock `IBroker`; TOML scenarios; failure-mode tests. |
 | 2026-11-08 | cursor | T-0401 | — | Done | Merged on `main` @ `6566b95` (operator). |
 | 2026-11-08 | cursor | T-0401 | `e102887` | In review | Delta `IBroker`; signed REST; private WS; rate limiter; mock tests. |
 | 2026-11-08 | cursor | T-0306 | — | Done | Merged on `main` @ `7b70fbd` (operator). |
