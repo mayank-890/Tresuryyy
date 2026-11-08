@@ -110,13 +110,22 @@ add_test(
   COMMAND journal_retention status --root "${CMAKE_SOURCE_DIR}/tests/fixtures/compat/v1")
 set_tests_properties(journal_retention_cli PROPERTIES PASS_REGULAR_EXPRESSION "segments=")
 
-trading_add_module(trading_broker_common src/broker/common/module.cpp)
-target_link_libraries(trading_broker_common PUBLIC trading_core)
+trading_add_module(trading_broker_common src/broker/common/module.cpp
+                   src/broker/common/hmac_sha256.cpp src/broker/common/rate_limiter.cpp)
+target_link_libraries(trading_broker_common PUBLIC trading_core trading_journal
+                                                   OpenSSL::Crypto)
 trading_add_smoke_test(trading_broker_common)
 
-trading_add_module(trading_broker_delta src/broker/delta/module.cpp)
-target_link_libraries(trading_broker_delta PUBLIC trading_broker_common)
+trading_add_module(trading_broker_delta src/broker/delta/module.cpp src/broker/delta/signing.cpp
+                   src/broker/delta/rest_client.cpp src/broker/delta/private_ws.cpp
+                   src/broker/delta/adapter.cpp)
+target_link_libraries(trading_broker_delta PUBLIC trading_broker_common trading_orders
+                                                  nlohmann_json::nlohmann_json)
 trading_add_smoke_test(trading_broker_delta)
+add_executable(trading_broker_delta_adapter_tests tests/unit/broker/delta_adapter_tests.cpp)
+target_link_libraries(trading_broker_delta_adapter_tests PRIVATE trading_broker_delta
+                                                                 GTest::gtest_main)
+add_test(NAME trading_broker_delta_adapter_tests COMMAND trading_broker_delta_adapter_tests)
 
 trading_add_module(trading_broker_mock src/broker/mock/module.cpp)
 target_link_libraries(trading_broker_mock PUBLIC trading_broker_common)
