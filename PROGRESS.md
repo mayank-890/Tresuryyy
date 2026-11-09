@@ -3,21 +3,21 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-11-08T13:35:00+0530 by cursor
-- Active ticket: none (T-0402 **In review**)
-- Branch: `feat/T-0402-mock-exchange`
-- Last green commit: `5c44fff` — `T-0402: update PROGRESS — In review`
+- Updated: 2026-11-08T20:00:00+0530 by cursor
+- Active ticket: none (T-0403 **In review**)
+- Branch: `feat/T-0403-paper-mode`
+- Last green commit: `4153f0f` — `T-0403: wire mock broker into paper profile and pipeline`
 - Working tree: clean after PROGRESS commit
-- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-08 (CTest **28/28** including `trading_broker_mock_exchange_tests`, 7 GTest cases).
-- Next step (exact): Operator opens Class B PR from `feat/T-0402-mock-exchange` against `main`. Review FR-BR-07 and TI §12.3. Follow-on: wire `MockExchangeBroker` into paper profile startup and engine pipeline integration tests.
-- Files touched this ticket: `engine/include/trading/broker/mock/**`, `engine/src/broker/mock/**`, `engine/tests/unit/broker/mock_exchange_tests.cpp`, `tests/mock_exchange/scenarios/*.toml`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt` (`trading_broker_mock` sources, `trading_broker_mock_exchange_tests`).
-- Decisions made this session (not yet in ADR): Scenario schema version `1` with ordered `[[place]]` steps and `[[timeline]]` disconnect/reconnect. `seed` sets initial auto `broker_order_id`. Scheduled fills use `fill_schedule` delays from place time (`last_mono_ns_`); callers must `tick()` for private events.
+- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-08 (CTest **29/29** including `trading_paper_pipeline_tests`, 3 GTest cases).
+- Next step (exact): Operator opens Class B PR from `feat/T-0403-paper-mode` against `main`. Review FR-OP-01 / FR-BR-07. Follow-on: long-running paper session loop with market-data inject + periodic reconciler ticks in `trader`.
+- Files touched this ticket: `engine/src/apps/trader/{paper_session,paper_paths,broker_execution,profile_startup,engine_pipeline,main}.cpp`, `config/profiles/paper.toml`, `engine/tests/integration/paper_pipeline_tests.cpp`, `tests/mock_exchange/scenarios/paper_pipeline.toml`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt`, `engine/tests/integration/CMakeLists.txt` (`trading_paper_pipeline_tests`, `trading_profile` links `trading_broker_mock` + `trading_portfolio`).
+- Decisions made this session (not yet in ADR): Paper mock scenario path is conventional `tests/mock_exchange/scenarios/paper_pipeline.toml` resolved from `config_root` parent (no new profile.schema field). `EnginePipeline::set_broker` uses release/acquire atomic. Trader `--smoke` for `paper` prints `paper_startup_reconcile=clean`. Execution calls `accept_and_execute` when broker set (opt-in; existing pipeline tests unchanged with broker unset).
 - Open questions: Q-27; Q-26; Q-25; Q-24; Q-22, Q-23; Q-16, Q-18, Q-21; Q-17, Q-19, Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
-- Notes for the next tool: T-0401 Done on `main` @ `6566b95`. `MockExchangeBroker` is non-movable (IBroker); load TOML then construct in place.
+- Notes for the next tool: T-0402 Done on `main` @ `5e39bc1`. Paper profile enforces `execution.adapter = mock`. No network I/O in paper bootstrap.
 
 ## Current Phase
 
-**Phase 2 research tooling is complete.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done @ `a362c7e`. **T-0203** Done @ `ac305ce`. **T-0204** Done on `main` @ `c77fc2a` (feature `a5d4387`). Phase 1 exit is still open (Q-16, Q-18, Q-19, Q-20). **Phase 3:** **T-0301** Done on `main` @ `e684057` (feature `c72ebd7`). **T-0302** Done on `main` @ `b765351` (feature `a443f1c`). **T-0303** Done on `main` @ `5bf09b8` (feature `5bf09b8`). **T-0304** Done on `main` @ `65feeda` (feature `cf2721e`). **T-0305** Done on `main` @ `4f44231` (feature `3f1b78d`). **T-0306** Done on `main` @ `7b70fbd` (feature `0ff3f18`). **Phase 4:** **T-0401** Done on `main` @ `6566b95` (feature `ba828d3`). **T-0402** In review on `feat/T-0402-mock-exchange`.
+**Phase 2 research tooling is complete.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done @ `a362c7e`. **T-0203** Done @ `ac305ce`. **T-0204** Done on `main` @ `c77fc2a` (feature `a5d4387`). Phase 1 exit is still open (Q-16, Q-18, Q-19, Q-20). **Phase 3:** **T-0301** Done on `main` @ `e684057` (feature `c72ebd7`). **T-0302** Done on `main` @ `b765351` (feature `a443f1c`). **T-0303** Done on `main` @ `5bf09b8` (feature `5bf09b8`). **T-0304** Done on `main` @ `65feeda` (feature `cf2721e`). **T-0305** Done on `main` @ `4f44231` (feature `3f1b78d`). **T-0306** Done on `main` @ `7b70fbd` (feature `0ff3f18`). **Phase 4:** **T-0401** Done on `main` @ `6566b95` (feature `ba828d3`). **T-0402** Done on `main` @ `5e39bc1` (feature `a2cd0a2`). **T-0403** In review on `feat/T-0403-paper-mode`.
 
 ## Phase 0 Backlog
 
@@ -612,7 +612,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Merged to `main`: `6566b95` (feature `ba828d3`; 2026-11-08, operator)
 
 ### T-0402: Mock exchange adapter
-- Status: In review
+- Status: Done
 - Phase: 4 · Risk class: B · Depends on: T-0401
 - Requirements: FR-BR-07, TI §12.3
 - Goal: Implement a mock exchange adapter for tests and paper mode. Configurable acks, partial fills, rejects, timeouts, 429 responses, and disconnects. Implements the same `IBroker` interface as Delta.
@@ -625,6 +625,22 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Evidence (2026-11-08, **Darwin arm64**): `just check` green — CTest **28/28** (`trading_broker_mock_exchange_tests`, 7 cases; scenarios under `tests/mock_exchange/scenarios/`).
 - Files allowed: `engine/src/broker/mock/`, `engine/tests/unit/broker/`, `tests/mock_exchange/`, `PROGRESS.md`. **Amendment:** `engine/include/trading/broker/mock/`, `engine/CMakeLists.txt`.
 - Out of scope: real network, live credentials, trader binary wiring
+- Merged to `main`: `5e39bc1` (feature `a2cd0a2`; 2026-11-08, operator)
+
+### T-0403: Wire mock broker into paper profile
+- Status: In review
+- Phase: 4 · Risk class: B · Depends on: T-0402
+- Requirements: FR-OP-01, FR-BR-07
+- Goal: Paper mode starts the engine with the mock exchange adapter. A named paper profile loads, the mock broker is injected, and the pipeline can run end-to-end against scripted scenarios without any real network calls.
+- Acceptance criteria:
+  - [x] Paper profile selects the mock adapter
+  - [x] Engine starts in paper mode and completes startup reconciliation against the mock
+  - [x] At least one scripted scenario runs through the full pipeline (quote → strategy → risk → mock fill)
+  - [x] No real network calls in paper mode
+  - [x] Integration test proves the path
+- Evidence (2026-11-08, **Darwin arm64**): `just check` green — CTest **29/29** (`trading_paper_pipeline_tests`, 3 cases); `trader --profile paper --smoke` matches `paper_startup_reconcile=clean`.
+- Files allowed: `engine/src/apps/trader/`, `config/profiles/`, `engine/tests/integration/`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt`, `engine/tests/integration/CMakeLists.txt`, `tests/mock_exchange/scenarios/paper_pipeline.toml`.
+- Out of scope: live credentials, UI, real Delta connection, continuous paper trading loop in `trader`
 
 ## Phase 1 Backlog (legacy note)
 
@@ -693,6 +709,8 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-11-08 | cursor | T-0403 | `4153f0f` | In review | Paper mock bootstrap; pipeline broker execution; integration tests. |
+| 2026-11-08 | cursor | T-0402 | — | Done | Merged on `main` @ `5e39bc1` (operator). |
 | 2026-11-08 | cursor | T-0402 | `5c44fff` | In review | Mock `IBroker`; TOML scenarios; failure-mode tests. |
 | 2026-11-08 | cursor | T-0401 | — | Done | Merged on `main` @ `6566b95` (operator). |
 | 2026-11-08 | cursor | T-0401 | `e102887` | In review | Delta `IBroker`; signed REST; private WS; rate limiter; mock tests. |
