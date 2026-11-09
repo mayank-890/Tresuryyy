@@ -3,6 +3,9 @@
 #include "trading/core/spsc_ring.hpp"
 #include "trading/marketdata/pipeline_types.hpp"
 #include "trading/orders/client_order_id.hpp"
+#include "broker_execution.hpp"
+
+#include "trading/broker/broker.hpp"
 #include "trading/orders/execution_sink.hpp"
 #include "trading/risk/gate.hpp"
 #include "trading/risk/pipeline_types.hpp"
@@ -52,6 +55,12 @@ public:
   void set_portfolio_view(risk::PortfolioView view);
   void set_journal_drain(JournalDrain drain);
   void set_param_blob(const void* data, std::size_t size, std::uint64_t version);
+  void set_broker(broker::IBroker* broker) noexcept {
+    // Release: execution thread acquire-loads before use.
+    broker_.store(broker, std::memory_order_release);
+  }
+
+  [[nodiscard]] const BrokerExecutionStats& broker_stats() const noexcept { return broker_stats_; }
 
   // Starts threads and runs warmup quotes through the full path.
   void start_and_warmup(std::uint32_t warmup_cycles = 3);
@@ -101,6 +110,9 @@ private:
   std::atomic<bool> stop_{false};
   std::atomic<bool> running_{false};
   std::atomic<std::uint32_t> journal_drained_{0};
+
+  std::atomic<broker::IBroker*> broker_{nullptr};
+  BrokerExecutionStats broker_stats_{};
 
   std::thread t_market_data_;
   std::thread t_strategy_;

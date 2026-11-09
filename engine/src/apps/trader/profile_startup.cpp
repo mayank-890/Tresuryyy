@@ -86,6 +86,13 @@ std::optional<ConfigError> run_profile_startup(const std::filesystem::path& conf
 
   out.config_hash_hex = profile_content_hash_hex(document);
   out.profile_name = document["profile"]["name"].get<std::string>();
+  out.profile_mode = document["profile"]["mode"].get<std::string>();
+  out.execution_adapter = document["execution"]["adapter"].get<std::string>();
+
+  if (out.profile_mode == "paper" && out.execution_adapter != "mock") {
+    return fail(ConfigErrorCode::ProfileReadFailed,
+                "paper profile requires execution.adapter = \"mock\"");
+  }
 
   if (mode == "live") {
     const auto promotion_rel = document["promotion"]["file"].get<std::string>();

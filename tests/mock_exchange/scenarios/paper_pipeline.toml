@@ -1,0 +1,10 @@
+version = 1
+seed = 4003
+
+[connect]
+succeed = true
+
+[[place]]
+response = "ack"
+broker_order_id = 4003
+fill_schedule = [{ delay_ns = 0, qty_lots = 2, price_ticks = 12 }]

@@ -11,6 +11,8 @@ namespace trading::config {
 struct StartupContext {
   std::string profile_name;
   std::string config_hash_hex;
+  std::string profile_mode;
+  std::string execution_adapter;
 };
 
 [[nodiscard]] std::optional<ConfigError> run_profile_startup(

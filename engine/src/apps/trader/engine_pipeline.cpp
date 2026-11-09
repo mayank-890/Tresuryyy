@@ -1,5 +1,7 @@
 #include "engine_pipeline.hpp"
 
+#include "broker_execution.hpp"
+
 #include "trading/core/clock.hpp"
 #include "trading/core/object_pool.hpp"
 #include "trading/core/thread_pin.hpp"
@@ -271,11 +273,23 @@ void EnginePipeline::run_execution() {
       continue;
     }
     const std::int64_t now = core::Clock::monotonicNs();
-    (void)orders::accept_for_execution(*ingress, gate_, now, sink_);
+    broker::IBroker* const broker =
+        broker_.load(std::memory_order_acquire); // Acquire: matches set_broker release.
+    if (broker != nullptr) {
+      (void)accept_and_execute(*ingress, gate_, *broker, now, sink_, broker_stats_);
+    } else {
+      (void)orders::accept_for_execution(*ingress, gate_, now, sink_);
+    }
   }
   while (auto tail = risk_to_execution_.try_pop()) {
     const std::int64_t now = core::Clock::monotonicNs();
-    (void)orders::accept_for_execution(*tail, gate_, now, sink_);
+    broker::IBroker* const broker =
+        broker_.load(std::memory_order_acquire); // Acquire: matches set_broker release.
+    if (broker != nullptr) {
+      (void)accept_and_execute(*tail, gate_, *broker, now, sink_, broker_stats_);
+    } else {
+      (void)orders::accept_for_execution(*tail, gate_, now, sink_);
+    }
   }
 }
 

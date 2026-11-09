@@ -1,5 +1,9 @@
 #include "config_error.hpp"
+#include "paper_paths.hpp"
+#include "paper_session.hpp"
 #include "profile_startup.hpp"
+
+#include "trading/core/clock.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -87,7 +91,21 @@ int main(int argc, char** argv) {
   std::cout << "profile=" << context.profile_name << " config_hash=" << context.config_hash_hex
             << '\n';
   std::cout << "journal_config_hash_recorded=" << context.config_hash_hex << '\n';
-  std::cout << "RUNNING (no trading logic)\n";
+  std::cout << "mode=" << context.profile_mode << " adapter=" << context.execution_adapter << '\n';
+
+  if (context.profile_mode == "paper" && context.execution_adapter == "mock") {
+    trading::trader::PaperTradingSession session;
+    session.adopt_startup(context);
+    const auto scenario = trading::trader::default_paper_mock_scenario(options.config_root);
+    const auto boot = session.bootstrap_mock_broker(scenario, trading::core::Clock::monotonicNs());
+    if (!boot.ok) {
+      std::cerr << "paper startup failed: " << boot.detail << '\n';
+      return 1;
+    }
+    std::cout << "paper_startup_reconcile=clean broker=mock scenario=" << scenario.string() << '\n';
+  } else {
+    std::cout << "RUNNING (no trading logic)\n";
+  }
 
   if (options.smoke) {
     return 0;

@@ -1,4 +1,5 @@
 # SAMPLE — paper profile (no live credentials).
+# Mock scenario: tests/mock_exchange/scenarios/paper_pipeline.toml (FR-OP-01).
 
 [profile]
 name = "paper"

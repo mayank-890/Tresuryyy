@@ -150,6 +150,8 @@ add_library(trading_profile STATIC
             src/apps/trader/secret_store.cpp
             src/apps/trader/promotion_verifier.cpp
             src/apps/trader/profile_startup.cpp
+            src/apps/trader/paper_paths.cpp
+            src/apps/trader/paper_session.cpp
             src/calendar/stub.cpp)
 target_include_directories(
   trading_profile
@@ -157,8 +159,8 @@ target_include_directories(
          "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(
   trading_profile
-  PUBLIC trading_core tomlplusplus::tomlplusplus nlohmann_json::nlohmann_json
-         OpenSSL::Crypto)
+  PUBLIC trading_core trading_broker_mock trading_portfolio tomlplusplus::tomlplusplus
+         nlohmann_json::nlohmann_json OpenSSL::Crypto)
 target_compile_features(trading_profile PUBLIC cxx_std_20)
 
 add_executable(trader src/apps/trader/main.cpp)
@@ -170,7 +172,7 @@ set_tests_properties(
   trader_version
   PROPERTIES
     ENVIRONMENT "TRADING_SECRET_TRADING_PG_PROJECTOR=ci-test-secret-not-real"
-    PASS_REGULAR_EXPRESSION "RUNNING \\(no trading logic\\)")
+    PASS_REGULAR_EXPRESSION "paper_startup_reconcile=clean")
 
 add_subdirectory(tests/unit/profile)
 add_subdirectory(tests/integration)
