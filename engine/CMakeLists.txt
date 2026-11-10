@@ -139,8 +139,9 @@ target_link_libraries(trading_broker_mock_exchange_tests PRIVATE trading_broker_
                                                                  GTest::gtest_main)
 add_test(NAME trading_broker_mock_exchange_tests COMMAND trading_broker_mock_exchange_tests)
 
-trading_add_module(trading_control src/control/module.cpp)
-target_link_libraries(trading_control PUBLIC trading_core trading_journal)
+trading_add_module(trading_control src/control/module.cpp src/control/line_v1.cpp)
+target_link_libraries(trading_control PUBLIC trading_core trading_journal
+                                                 nlohmann_json::nlohmann_json)
 trading_add_smoke_test(trading_control)
 
 add_library(trading_profile STATIC

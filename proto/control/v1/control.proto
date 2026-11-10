@@ -1,0 +1,57 @@
+// Control plane v1 (DESIGN_ARCHITECTURE.md §12, TECHNICAL_IMPLEMENTATION.md §5.4).
+// gRPC over UDS in production; HTTP control_api translates into these messages.
+syntax = "proto3";
+
+package trading.control.v1;
+
+option java_multiple_files = true;
+
+// Scope for halt / resume / cancel-all (DESIGN §12.2).
+enum ControlScope {
+  CONTROL_SCOPE_UNSPECIFIED = 0;
+  CONTROL_SCOPE_GLOBAL = 1;
+  CONTROL_SCOPE_STRATEGY = 2;
+  CONTROL_SCOPE_INSTRUMENT = 3;
+}
+
+enum ControlCommand {
+  CONTROL_COMMAND_UNSPECIFIED = 0;
+  CONTROL_COMMAND_HALT = 1;
+  CONTROL_COMMAND_RESUME = 2;
+  CONTROL_COMMAND_CANCEL_ALL = 3;
+  CONTROL_COMMAND_KILL = 4;
+}
+
+message ControlRequest {
+  ControlCommand command = 1;
+  ControlScope scope = 2;
+  // Operator identity (max 32 ASCII); echoed in journal operator_ref.
+  string operator_ref = 3;
+  // Session token from control_api login (DESIGN §12.3).
+  string session_token = 4;
+  // Set when the operator completed the HTTP confirmation step (kill / cancel-all).
+  bool confirmed = 5;
+  string scope_ref = 6; // strategy name or instrument id when scope != GLOBAL
+}
+
+message ControlAck {
+  bool accepted = 1;
+  string detail = 2;
+  uint64 journal_sequence = 3;
+}
+
+message StatusRequest {}
+
+message EngineStatus {
+  string run_state = 1;
+  bool halted = 2;
+  uint64 status_wall_ns = 3;
+}
+
+service ControlPlane {
+  rpc Halt(ControlRequest) returns (ControlAck);
+  rpc Resume(ControlRequest) returns (ControlAck);
+  rpc CancelAll(ControlRequest) returns (ControlAck);
+  rpc Kill(ControlRequest) returns (ControlAck);
+  rpc GetStatus(StatusRequest) returns (EngineStatus);
+}
