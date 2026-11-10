@@ -3,21 +3,21 @@
 Single source of truth for the current state of work. Read this first in every session. Update it at every checkpoint.
 
 ## Handoff
-- Updated: 2026-11-08T20:00:00+0530 by cursor
-- Active ticket: none (T-0403 **In review**)
-- Branch: `feat/T-0403-paper-mode`
-- Last green commit: `4153f0f` — `T-0403: wire mock broker into paper profile and pipeline`
+- Updated: 2026-11-10T14:30:00+0530 by cursor
+- Active ticket: none (T-0501 **In review**)
+- Branch: `feat/T-0501-control-api`
+- Last green commit: `66735db` — `T-0501: implement localhost control API`
 - Working tree: clean after PROGRESS commit
-- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-08 (CTest **29/29** including `trading_paper_pipeline_tests`, 3 GTest cases).
-- Next step (exact): Operator opens Class B PR from `feat/T-0403-paper-mode` against `main`. Review FR-OP-01 / FR-BR-07. Follow-on: long-running paper session loop with market-data inject + periodic reconciler ticks in `trader`.
-- Files touched this ticket: `engine/src/apps/trader/{paper_session,paper_paths,broker_execution,profile_startup,engine_pipeline,main}.cpp`, `config/profiles/paper.toml`, `engine/tests/integration/paper_pipeline_tests.cpp`, `tests/mock_exchange/scenarios/paper_pipeline.toml`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt`, `engine/tests/integration/CMakeLists.txt` (`trading_paper_pipeline_tests`, `trading_profile` links `trading_broker_mock` + `trading_portfolio`).
-- Decisions made this session (not yet in ADR): Paper mock scenario path is conventional `tests/mock_exchange/scenarios/paper_pipeline.toml` resolved from `config_root` parent (no new profile.schema field). `EnginePipeline::set_broker` uses release/acquire atomic. Trader `--smoke` for `paper` prints `paper_startup_reconcile=clean`. Execution calls `accept_and_execute` when broker set (opt-in; existing pipeline tests unchanged with broker unset).
+- Tests passing at last commit: `just check` green on **Darwin arm64**, 2026-11-10 (CTest **29/29**; `just control-api-test` **5/5** pytest cases).
+- Next step (exact): Operator opens **Class A** PR from `feat/T-0501-control-api` against `main`. Review FR-UI-02 / FR-OP-03 / DESIGN §12. Follow-on: wire `trader` control UDS server to apply journaled commands; gRPC codegen from `proto/control/v1/control.proto`.
+- Files touched this ticket: `services/src/tradelab_services/control_api/**`, `proto/control/v1/control.proto`, `engine/include/trading/control/line_v1.hpp`, `engine/src/control/line_v1.cpp`, `services/tests/test_control_api*.py`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt` (`trading_control` + line v1), `justfile` (`control-api-test` in `just check`).
+- Decisions made this session (not yet in ADR): HTTP binds `127.0.0.1` only; Bearer + `X-CSRF-Token` on mutating routes. Confirmation uses `confirmed` + `confirmation_phrase` (428 when missing). Journal `ControlCommand` is the audit record; HTTP **kill** maps to journal `Flatten` (schema has no Kill kind). UDS uses JSON line protocol v1 aligned with proto until gRPC lands. No `/api/v1/order*` routes.
 - Open questions: Q-27; Q-26; Q-25; Q-24; Q-22, Q-23; Q-16, Q-18, Q-21; Q-17, Q-19, Q-20; Q-1–Q-7, Q-11, Q-13, Q-14; B-0101-1
-- Notes for the next tool: T-0402 Done on `main` @ `5e39bc1`. Paper profile enforces `execution.adapter = mock`. No network I/O in paper bootstrap.
+- Notes for the next tool: T-0403 Done on `main` @ `a3f0de8`. `TRADING_CONTROL_API_TOKEN` required to run `python -m tradelab_services.control_api`. Integration UDS stub uses `build/ctl-<pid>.sock` (short path for macOS).
 
 ## Current Phase
 
-**Phase 2 research tooling is complete.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done @ `a362c7e`. **T-0203** Done @ `ac305ce`. **T-0204** Done on `main` @ `c77fc2a` (feature `a5d4387`). Phase 1 exit is still open (Q-16, Q-18, Q-19, Q-20). **Phase 3:** **T-0301** Done on `main` @ `e684057` (feature `c72ebd7`). **T-0302** Done on `main` @ `b765351` (feature `a443f1c`). **T-0303** Done on `main` @ `5bf09b8` (feature `5bf09b8`). **T-0304** Done on `main` @ `65feeda` (feature `cf2721e`). **T-0305** Done on `main` @ `4f44231` (feature `3f1b78d`). **T-0306** Done on `main` @ `7b70fbd` (feature `0ff3f18`). **Phase 4:** **T-0401** Done on `main` @ `6566b95` (feature `ba828d3`). **T-0402** Done on `main` @ `5e39bc1` (feature `a2cd0a2`). **T-0403** In review on `feat/T-0403-paper-mode`.
+**Phase 2 research tooling is complete.** Phase 0 exit recorded 2026-10-29 (`docs/reviews/phase-0.md`; operator sign-off pending). **T-0101** Done @ `de58b1c`. **T-0102** Done @ `72e7380`. **T-0103** Done @ `049ff86`. **T-0104** Done @ `dbeacdb`. **T-0105** Done @ `cddb2e9`. **T-0106** Done @ `67ad621`. **T-0107** Done @ `d773db8`. **T-0108** Done @ `a362c7e`. **T-0203** Done @ `ac305ce`. **T-0204** Done on `main` @ `c77fc2a` (feature `a5d4387`). Phase 1 exit is still open (Q-16, Q-18, Q-19, Q-20). **Phase 3:** **T-0301** Done on `main` @ `e684057` (feature `c72ebd7`). **T-0302** Done on `main` @ `b765351` (feature `a443f1c`). **T-0303** Done on `main` @ `5bf09b8` (feature `5bf09b8`). **T-0304** Done on `main` @ `65feeda` (feature `cf2721e`). **T-0305** Done on `main` @ `4f44231` (feature `3f1b78d`). **T-0306** Done on `main` @ `7b70fbd` (feature `0ff3f18`). **Phase 4:** **T-0401** Done on `main` @ `6566b95` (feature `ba828d3`). **T-0402** Done on `main` @ `5e39bc1` (feature `a2cd0a2`). **T-0403** Done on `main` @ `a3f0de8` (feature `4153f0f`). **Phase 5:** **T-0501** In review on `feat/T-0501-control-api`.
 
 ## Phase 0 Backlog
 
@@ -628,7 +628,7 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Merged to `main`: `5e39bc1` (feature `a2cd0a2`; 2026-11-08, operator)
 
 ### T-0403: Wire mock broker into paper profile
-- Status: In review
+- Status: Done
 - Phase: 4 · Risk class: B · Depends on: T-0402
 - Requirements: FR-OP-01, FR-BR-07
 - Goal: Paper mode starts the engine with the mock exchange adapter. A named paper profile loads, the mock broker is injected, and the pipeline can run end-to-end against scripted scenarios without any real network calls.
@@ -641,6 +641,22 @@ Status values: `Backlog` · `Ready` · `In progress` · `In review` · `Done` ·
 - Evidence (2026-11-08, **Darwin arm64**): `just check` green — CTest **29/29** (`trading_paper_pipeline_tests`, 3 cases); `trader --profile paper --smoke` matches `paper_startup_reconcile=clean`.
 - Files allowed: `engine/src/apps/trader/`, `config/profiles/`, `engine/tests/integration/`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt`, `engine/tests/integration/CMakeLists.txt`, `tests/mock_exchange/scenarios/paper_pipeline.toml`.
 - Out of scope: live credentials, UI, real Delta connection, continuous paper trading loop in `trader`
+- Merged to `main`: `a3f0de8` (feature `4153f0f`; 2026-11-10, operator)
+
+### T-0501: Control API — halt/resume/kill
+- Status: In review
+- Phase: 5 · Risk class: A · Depends on: T-0403
+- Requirements: FR-UI-02, FR-OP-03, DESIGN §12
+- Goal: Localhost control API (Python) that accepts halt, resume, cancel-all, and kill commands. Every command is written to the audit log / journal. Commands go over an authenticated UDS or localhost HTTP socket. The UI cannot submit orders.
+- Acceptance criteria:
+  - [x] Endpoints for halt, resume, cancel-all, kill, and status
+  - [x] Every command is journaled with operator identity
+  - [x] Confirmation step for destructive commands
+  - [x] Unit + integration tests
+  - [x] No order submission path from the API
+- Evidence (2026-11-10, **Darwin arm64**): `just check` green — `control-api-test` 5 passed; routes `POST /api/v1/{halt,resume,cancel-all,kill}`, `GET /api/v1/status`; order paths return 404.
+- Files allowed: `services/src/tradelab_services/control_api/`, `proto/control/`, `engine/src/control/`, `services/tests/`, `PROGRESS.md`. **Amendment:** `engine/CMakeLists.txt`, `justfile`.
+- Out of scope: full dashboard UI, real alerts delivery, gRPC server in `trader`, peer-credential enforcement (SO_PEERCRED)
 
 ## Phase 1 Backlog (legacy note)
 
@@ -709,6 +725,8 @@ Append one entry per session. Newest first.
 
 | Date (IST) | Tool | Ticket | Commits | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-11-10 | cursor | T-0501 | `66735db` | In review | Localhost control API; journal audit; UDS forward; pytest. |
+| 2026-11-10 | cursor | T-0403 | — | Done | Merged on `main` @ `a3f0de8` (operator). |
 | 2026-11-08 | cursor | T-0403 | `4153f0f` | In review | Paper mock bootstrap; pipeline broker execution; integration tests. |
 | 2026-11-08 | cursor | T-0402 | — | Done | Merged on `main` @ `5e39bc1` (operator). |
 | 2026-11-08 | cursor | T-0402 | `5c44fff` | In review | Mock `IBroker`; TOML scenarios; failure-mode tests. |
